@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>费用明细清单(V2.2.2)</title>
+
+  <!-- 1. 引入 LeanCloud SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.14.0/dist/av-min.js"></script>
+
+  <!-- 2. 引入 Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+
+  <!-- 3. 引入 ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+  <!-- 引入 Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* --- 莫兰迪配色定义 --- */
+      --bg-body: #f2f4f6;
+      --bg-card: #ffffff;
+
+      --primary: #607d8b;          /* 蓝灰 */
+      --primary-hover: #455a64;
+      --accent: #81a18b;           /* 鼠尾草绿 */
+      --danger: #d4a5a5;           /* 干枯玫瑰 */
+      --danger-hover: #c08b8b;
+
+      --text-main: #374151;
+      --text-sub: #6b7280;
+      --border-color: #e5e7eb;
+
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+
+      --radius-md: 8px;
+      --radius-lg: 16px;
+    }
+
+    * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Roboto', 'Noto Sans SC', sans-serif;
+      background-color: var(--bg-body);
+      margin: 0;
+      padding: 20px;
+      color: var(--text-main);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      padding: 30px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.75rem;
+      margin: 10px 0 30px;
+      color: var(--primary);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* 通用表单与按钮 */
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; color: var(--text-sub); }
+
+    /* 统一输入框样式与高度 */
+    input, select, .custom-select-trigger {
+      width: 100%;
+      height: 42px;
+      padding: 0 12px;
+      line-height: 40px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      background-color: #f9fafb;
+      color: var(--text-main);
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+    }
+
+    select {
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23374151%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px top 50%;
+      background-size: 10px auto;
+    }
+
+    input:focus, select:focus, .custom-select-wrapper.open .custom-select-trigger {
+      border-color: var(--primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 3px rgba(96, 125, 139, 0.15);
+    }
+
+    /* 按钮体系 */
+    button { font-family: inherit; transition: all 0.2s ease; border: none; cursor: pointer; }
+
+    .action-btn, .action-btn-large {
+      border-radius: 6px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .action-btn { padding: 5px 10px; font-size: 0.8rem; margin: 0; white-space: nowrap; }
+    .action-btn-large { padding: 12px 24px; font-size: 1rem; min-width: 100px; border-radius: var(--radius-md); }
+
+    .btn-brown { background: var(--primary); color: white; }
+    .btn-brown:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-dark { background: var(--danger); color: white; }
+    .btn-dark:hover { background: var(--danger-hover); transform: translateY(-1px); }
+    .btn-light { background: #fff; border: 1px solid var(--border-color); color: var(--text-main); }
+    .btn-light:hover { background: #f3f4f6; border-color: #d1d5db; }
+
+    /* 统计概览条 */
+    .summary {
+      background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
+      padding: 16px 20px; border-radius: var(--radius-md); margin: 20px 0;
+      font-weight: 500; color: var(--text-main); border-left: 5px solid var(--primary);
+    }
+
+    /* 表格样式 */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; font-size: 0.95rem; }
+    th {
+      padding: 15px; text-align: left; background-color: #f8fafc; color: var(--text-sub);
+      font-weight: 600; border-bottom: 2px solid var(--border-color); white-space: nowrap;
+    }
+    td {
+      padding: 12px 15px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle;
+    }
+    tbody tr:hover { background-color: #f9fafb; }
+    .action-cell-content { display: flex; gap: 8px; align-items: center; }
+    .month-group-title { background: #e2e8f0; color: var(--text-main); font-weight: 600; font-size: 0.9rem; padding-left: 15px; }
+
+    /* 布局与图表 */
+    .charts-section { margin: 30px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    @media (max-width: 768px) { .charts-section { grid-template-columns: 1fr; } }
+
+    .chart-container {
+      background: #fff; border-radius: var(--radius-lg); padding: 20px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--border-color);
+    }
+    .chart-title { text-align: center; font-weight: 600; margin-bottom: 15px; color: var(--text-main); font-size: 1.1rem; }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex; gap: 20px; margin: 25px 0; align-items: flex-end; flex-wrap: wrap;
+      background: #f8fafc; padding: 20px; border-radius: var(--radius-md);
+    }
+    .filter-bar > div { flex: 1; min-width: 200px; width: 100%; }
+
+    /* 自定义下拉框 */
+    .custom-select-wrapper { position: relative; user-select: none; }
+    .custom-select-trigger { position: relative; cursor: pointer; }
+    .custom-select-trigger::after {
+      content: ''; position: absolute; right: 15px; top: 50%; transform: translateY(-25%);
+      border: 5px solid transparent; border-top-color: var(--text-sub);
+    }
+    .custom-options {
+      position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+      background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md);
+      z-index: 100; opacity: 0; visibility: hidden;
+      transform: translateY(-10px); transition: all 0.2s ease; box-shadow: var(--shadow-lg);
+    }
+    .custom-select-wrapper.open .custom-options { opacity: 1; visibility: visible; transform: translateY(0); }
+    .custom-options-list { max-height: 250px; overflow-y: auto; padding: 5px 0; }
+    .custom-option { padding: 10px 15px; cursor: pointer; display: flex; align-items: center; }
+    .custom-option:hover { background-color: #f1f5f9; }
+    .custom-option input { width: 16px; height: 16px; margin-right: 10px; accent-color: var(--primary); }
+    .custom-footer { display: flex; border-top: 1px solid var(--border-color); padding: 10px; gap: 10px; background: #f8fafc; }
+    .custom-footer button { padding: 8px; flex: 1; border-radius: 4px; font-size: 0.85rem; }
+    .btn-cancel { background: #e5e7eb; }
+    .btn-confirm { background: var(--primary); color: white; }
+
+    /* 模态框 */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal {
+      background: #fff; padding: 30px; border-radius: var(--radius-lg);
+      width: 90%; max-width: 480px; box-shadow: var(--shadow-lg);
+      transform: scale(0.95); transition: transform 0.3s;
+    }
+    .modal-overlay.active .modal { transform: scale(1); }
+    .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+
+    /* ============ 分页样式更新 ============ */
+    .pagination-container {
+      display: flex; justify-content: space-between; align-items: center;
+      margin: 30px 0; padding: 15px 0;
+      border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap; gap: 15px;
+    }
+
+    .pagination-jumper {
+      display: flex; align-items: center; font-size: 0.95rem; color: var(--text-main);
+      background: #f8fafc; padding: 5px 10px; border-radius: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* 分页输入框 */
+    .pagination-input {
+      width: 50px !important; height: 28px !important; padding: 4px !important;
+      text-align: center; margin: 0 5px; line-height: normal !important;
+      border: 1px solid #cbd5e1; border-radius: 4px; background: #fff;
+    }
+
+    /* 上一页/下一页 箭头按钮 */
+    .btn-page-nav {
+      background: transparent; border: none; color: var(--text-sub);
+      font-size: 1.1rem; padding: 0 8px; cursor: pointer; display: flex; align-items: center;
+      height: 28px; border-radius: 4px; transition: all 0.2s;
+    }
+    .btn-page-nav:hover { color: var(--primary); background: #e2e8f0; }
+
+    /* 跳转按钮 */
+    .btn-jump {
+      margin-left: 10px; padding: 4px 12px; background: #fff;
+      border: 1px solid #cbd5e1; border-radius: 4px; color: var(--text-main); font-size: 0.85rem;
+    }
+    .btn-jump:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* 预算条 */
+    #budgetProgressBar {
+      margin-top: 15px; padding: 4px; background: #eceff1;
+      border-radius: 20px; position: relative; height: 36px; overflow: hidden;
+    }
+    #budgetBase { border-radius: 18px !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>费用明细清单 <span style="font-size:0.6em; font-weight:400; color:var(--text-sub);">V2.2.2</span></h1>
+
+    <div style="text-align: center; margin-bottom: 25px;">
+      <button class="action-btn-large btn-brown" onclick="openAddModal()">
+        <span style="margin-right:5px; font-size:1.2em;">+</span> 新增支出
+      </button>
+    </div>
+
+    <div class="summary" id="summaryBox">当前：共 0 笔支出，总额 ¥0.00</div>
+
+    <!-- 图表区域 -->
+    <div class="charts-section">
+      <div class="chart-container">
+        <div class="chart-title">
+          <span id="budgetTitle">各月总支出</span>
+          <button id="editBudgetBtn" class="action-btn btn-light" style="margin-left:8px; font-size:0.75em;">修改预算</button>
+        </div>
+        <canvas id="monthlyBarChart" height="180"></canvas>
+        <div id="budgetProgressBar">
+          <div id="budgetBase" style="height:100%; width:100%; background:#cfd8dc; position:relative; overflow:hidden;">
+            <div id="progressGreen" style="height:100%; width:0%; background:linear-gradient(to right, #a5d6a7, #81c784); position:absolute; left:0; top:0; transition: width 0.5s ease;"></div>
+            <div id="progressRed" style="height:100%; width:0%; background:linear-gradient(to right, #ef9a9a, #e57373); position:absolute; left:0; top:0; transition: width 0.5s ease;"></div>
+            <div id="progressText" style="position:absolute; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:0.85em; z-index:2;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">类型占比 <span style="font-size:0.8em; color:var(--text-sub); font-weight:400;">(点击扇区筛选)</span></div>
+        <div id="echartsPie" style="width: 100%; height: 350px;"></div>
+      </div>
+    </div>
+
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+      <div>
+        <label>类型筛选 (多选)</label>
+        <div class="custom-select-wrapper" id="typeSelectWrapper">
+          <div class="custom-select-trigger" id="typeSelectTrigger">全部类型</div>
+          <div class="custom-options">
+            <div class="custom-options-list" id="typeOptionsList"></div>
+            <div class="custom-footer">
+              <button class="btn-cancel" onclick="cancelTypeFilter()">取消</button>
+              <button class="btn-confirm" onclick="confirmTypeFilter()">确认</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label for="monthFilter">统计月份筛选</label>
+        <select id="monthFilter" onchange="applyMonthOrSearchFilter()">
+          <option value="">全部月份</option>
+        </select>
+      </div>
+      <div>
+        <label for="searchInput">搜索（二级类型）</label>
+        <input type="text" id="searchInput" placeholder="输入关键词..." oninput="applyMonthOrSearchFilter()" />
+      </div>
+    </div>
+
+    <!-- 表格 -->
+    <div style="overflow-x: auto;">
+      <table id="expenseTable">
+        <thead>
+          <tr>
+            <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()" style="height:auto;"></th>
+            <th>统计月份</th>
+            <th>消费日期</th>
+            <th>一级类型</th>
+            <th>二级类型</th>
+            <th>金额</th>
+            <th style="width: 160px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="expenseList"></tbody>
+      </table>
+    </div>
+
+    <!-- ============ 修改点：分页增加了箭头按钮 ============ -->
+    <div class="pagination-container">
+      <div style="display:flex; align-items:center;">
+        <span style="color:var(--text-sub); font-size:0.9rem; margin-right:5px;">每页:</span>
+        <select id="pageSizeSelect" onchange="changePageSize()" style="width:auto; height:30px; line-height:30px; padding:0 25px 0 10px; font-size:0.9rem;">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+
+      <div class="pagination-jumper">
+        <!-- 上一页 -->
+        <button class="btn-page-nav" onclick="changePageRelative(-1)" title="上一页">❮</button>
+
+        <span style="margin: 0 6px;">第</span>
+        <input type="number" id="pageJumpInput" class="pagination-input" value="1" min="1" onkeypress="if(event.keyCode==13) jumpToPage()">
+        <span style="margin: 0 6px;">页 / 共 <span id="totalPagesDisplay" style="font-weight:bold;">1</span> 页</span>
+
+        <!-- 下一页 -->
+        <button class="btn-page-nav" onclick="changePageRelative(1)" title="下一页">❯</button>
+
+        <button class="btn-jump" onclick="jumpToPage()">跳转</button>
+      </div>
+    </div>
+
+    <div style="text-align: right;">
+      <button id="batchDeleteBtn" class="action-btn btn-dark" style="opacity:0.8; font-size:0.9rem; padding:8px 16px;" onclick="batchDeleteSelected()" disabled>批量删除</button>
+    </div>
+
+    <div class="action-bar">
+      <button class="action-btn-large btn-light" onclick="exportToCSV()">导出 CSV</button>
+      <button class="action-btn-large btn-light" onclick="printCurrentPage()">打印</button>
+      <button class="action-btn-large btn-dark" onclick="confirmClearAll()">清空所有</button>
+    </div>
+  </div>
+
+  <!-- 模态框 -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">新增支出</div>
+        <button class="action-btn" style="background:none; color:#999; font-size:1.5em; padding:0;" onclick="closeAddModal()">&times;</button>
+      </div>
+      <form id="modalExpenseForm">
+        <input type="hidden" id="modalEditId" />
+        <div class="form-group">
+          <label>消费日期</label>
+          <input type="date" id="modalDate" required />
+        </div>
+        <div class="form-group">
+          <label>一级类型</label>
+          <select id="modalType1" required>
+            <option value="">-- 请选择 --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>二级类型</label>
+          <input type="text" id="modalType2" placeholder="如：奶茶" />
+        </div>
+        <div class="form-group">
+          <label>金额</label>
+          <div style="position:relative;">
+            <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#999;">¥</span>
+            <input type="number" step="0.01" id="modalAmount" required min="0.01" style="padding-left:25px;" />
+          </div>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;">
+          <button type="button" class="action-btn-large btn-cancel" style="width:auto;" onclick="closeAddModal()">取消</button>
+          <button type="submit" class="action-btn-large btn-confirm" style="width:auto;">确认保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ========== 配置与初始化 ==========
+    const BUDGET_STORAGE_KEY = 'user_monthly_budgets';
+    const APP_ID = 'dwracmq52kDlwQkRaO2jPCFJ-gzGzoHsz';     // ← 替换
+    const APP_KEY = 'DngFcXZMsMup5W3Z4QSYPMdw';   // ← 替换
+    const SERVER_URL = 'https://api.leancloud.cn';
+
+    const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '房租', '其他'];
+
+    const MORANDI_PALETTE = [
+        '#90a4ae', '#a1887f', '#e57373', '#81c784', '#64b5f6',
+        '#ffb74d', '#ba68c8', '#4db6ac', '#ffd54f', '#a1887f'
+    ];
+
+    try {
+      if (typeof AV === 'undefined') {
+        console.error('AV is not defined.');
+      } else {
+        AV.init({ appId: APP_ID, appKey: APP_KEY, serverURL: SERVER_URL });
+      }
+    } catch (e) { console.error('Init error:', e); }
+
+    const ExpenseClass = (typeof AV !== 'undefined') ? AV.Object.extend('rourou_YellowChamberPot') : null;
+
+    let allExpenses = [];
+    let filteredExpenses = [];
+    let monthlyBarChart = null;
+    let echartsPieInstance = null;
+    let activeSelectedTypes = ['全部类型'];
+    let tempSelectedTypes = ['全部类型'];
+    let currentPage = 1;
+    let pageSize = 10;
+    let currentBudget = 9000;
+
+    // ========== 下拉框逻辑 ==========
+    function initCustomDropdown() {
+      const list = document.getElementById('typeOptionsList');
+      list.innerHTML = '';
+      const allDiv = document.createElement('div');
+      allDiv.className = 'custom-option';
+      allDiv.innerHTML = `<input type="checkbox" value="全部类型" id="cb_all"><span>全部类型</span>`;
+      allDiv.onclick = (e) => toggleDropdownItem(e, '全部类型');
+      list.appendChild(allDiv);
+
+      EXPENSE_TYPES.forEach(type => {
+        const div = document.createElement('div');
+        div.className = 'custom-option';
+        div.innerHTML = `<input type="checkbox" value="${type}" id="cb_${type}"><span>${type}</span>`;
+        div.onclick = (e) => toggleDropdownItem(e, type);
+        list.appendChild(div);
+      });
+
+      const modalSelect = document.getElementById('modalType1');
+      modalSelect.innerHTML = '<option value="">-- 请选择 --</option>';
+      EXPENSE_TYPES.forEach(t => { modalSelect.add(new Option(t, t)); });
+
+      const wrapper = document.getElementById('typeSelectWrapper');
+      const trigger = document.getElementById('typeSelectTrigger');
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        wrapper.classList.toggle('open');
+        if (wrapper.classList.contains('open')) {
+          tempSelectedTypes = [...activeSelectedTypes];
+          renderDropdownCheckboxes();
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) wrapper.classList.remove('open');
+      });
+    }
+
+    function renderDropdownCheckboxes() {
+      const isAll = tempSelectedTypes.includes('全部类型');
+      document.getElementById('cb_all').checked = isAll;
+      EXPENSE_TYPES.forEach(type => {
+        const cb = document.getElementById(`cb_${type}`);
+        if (isAll) { cb.checked = true; } else { cb.checked = tempSelectedTypes.includes(type); }
+      });
+    }
+
+    function toggleDropdownItem(e, value) {
+      if (e.target.tagName !== 'INPUT') {
+        const cb = e.currentTarget.querySelector('input');
+        cb.checked = !cb.checked;
+      }
+      if (value === '全部类型') {
+        const isChecked = document.getElementById('cb_all').checked;
+        tempSelectedTypes = isChecked ? ['全部类型'] : [];
+      } else {
+        const isChecked = document.getElementById(`cb_${value}`).checked;
+        if (tempSelectedTypes.includes('全部类型')) {
+          tempSelectedTypes = [...EXPENSE_TYPES];
+          if (!isChecked) tempSelectedTypes = tempSelectedTypes.filter(t => t !== value);
+        } else {
+          if (isChecked) tempSelectedTypes.push(value);
+          else tempSelectedTypes = tempSelectedTypes.filter(t => t !== value);
+        }
+        const allSelected = EXPENSE_TYPES.every(t => tempSelectedTypes.includes(t));
+        if (allSelected) tempSelectedTypes = ['全部类型'];
+      }
+      renderDropdownCheckboxes();
+    }
+
+    function confirmTypeFilter() {
+      activeSelectedTypes = [...tempSelectedTypes];
+      if (activeSelectedTypes.length === 0) activeSelectedTypes = ['全部类型'];
+      updateTriggerText();
+      document.getElementById('typeSelectWrapper').classList.remove('open');
+      renderExpenses();
+    }
+
+    function cancelTypeFilter() {
+      document.getElementById('typeSelectWrapper').classList.remove('open');
+    }
+
+    function updateTriggerText() {
+      const trigger = document.getElementById('typeSelectTrigger');
+      if (activeSelectedTypes.includes('全部类型')) {
+        trigger.textContent = '全部类型';
+      } else if (activeSelectedTypes.length === 1) {
+        trigger.textContent = activeSelectedTypes[0];
+      } else {
+        trigger.textContent = `${activeSelectedTypes[0]} 等 ${activeSelectedTypes.length} 项`;
+      }
+    }
+
+    // ========== 数据逻辑 ==========
+    function computeStatMonth(dateStr) {
+      const d = new Date(dateStr);
+      let y = d.getFullYear(), m = d.getMonth() + 1;
+      if (d.getDate() <= 4) {
+        if (m === 1) { m = 12; y--; } else { m--; }
+      }
+      return `${y}-${String(m).padStart(2, '0')}`;
+    }
+
+    async function getExpenses() {
+      if (!ExpenseClass) return [];
+      const query = new AV.Query(ExpenseClass);
+      query.addDescending('date');
+      query.limit(1000);
+      try {
+        const results = await query.find();
+        return results.map(obj => ({
+          id: obj.id,
+          date: obj.get('date'),
+          type1: obj.get('type1'),
+          type2: obj.get('type2') || '',
+          amount: parseFloat(obj.get('amount')) || 0,
+          statMonth: computeStatMonth(obj.get('date'))
+        }));
+      } catch (err) { console.error(err); return []; }
+    }
+
+    // ========== 图表逻辑 ==========
+    function renderCharts() {
+      const groups = {};
+      allExpenses.forEach(e => {
+        if (!groups[e.statMonth]) groups[e.statMonth] = 0;
+        groups[e.statMonth] += e.amount;
+      });
+
+      const now = new Date();
+      const currentStatMonth = computeStatMonth(now.toISOString());
+
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+          let [y, m] = currentStatMonth.split('-').map(Number);
+          m = m - i;
+          while(m <= 0) { m += 12; y--; }
+          while(m > 12) { m -= 12; y++; }
+          months.push(`${y}-${String(m).padStart(2, '0')}`);
+      }
+
+      const totals = months.map(m => groups[m] || 0);
+      currentBudget = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}')[currentStatMonth] || 9000;
+      document.getElementById('budgetTitle').textContent = `各月总支出 (预算 ¥${currentBudget})`;
+
+      const ctxBar = document.getElementById('monthlyBarChart').getContext('2d');
+      if (monthlyBarChart) monthlyBarChart.destroy();
+      monthlyBarChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{
+            label: '支出',
+            data: totals,
+            backgroundColor: months.map(m => (m === currentStatMonth && (groups[m]||0) > currentBudget) ? '#e57373' : '#90a4ae'),
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {display:false},
+            annotation: { annotations: { line1: { type: 'line', yMin: currentBudget, yMax: currentBudget, borderColor: '#b0bec5', borderDash: [5,5], borderWidth: 2 }}}
+          },
+          scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
+        }
+      });
+
+      const curTotal = groups[currentStatMonth] || 0;
+      const percent = Math.min(100, (curTotal / currentBudget) * 100);
+      const remain = currentBudget - curTotal;
+      if (remain >= 0) {
+        document.getElementById('progressGreen').style.width = (remain/currentBudget*100) + '%';
+        document.getElementById('progressRed').style.width = '0%';
+        document.getElementById('progressText').textContent = `剩余 ¥${remain.toFixed(0)} (${(100-percent).toFixed(0)}%)`;
+        document.getElementById('progressText').style.color = "#2c3e50";
+      } else {
+        document.getElementById('progressGreen').style.width = '0%';
+        document.getElementById('progressRed').style.width = Math.min(100, (Math.abs(remain)/currentBudget*100)) + '%';
+        document.getElementById('progressText').textContent = `超支 ¥${Math.abs(remain).toFixed(0)}`;
+        document.getElementById('progressText').style.color = "#b71c1c";
+      }
+
+      renderEChartsPie();
+    }
+
+    function renderEChartsPie() {
+      const dom = document.getElementById('echartsPie');
+      if (!echartsPieInstance) {
+        echartsPieInstance = echarts.init(dom);
+        // 监听点击事件（扇区）
+        echartsPieInstance.on('click', function(params) { handleChartClick(params.name); });
+        // 监听图例切换事件
+        echartsPieInstance.on('legendselectchanged', function(params) { handleChartClick(params.name); });
+      }
+
+      let selectedMonth = document.getElementById('monthFilter').value;
+      if (!selectedMonth) selectedMonth = computeStatMonth(new Date().toISOString());
+
+      let pieSourceData = allExpenses.filter(e => e.statMonth === selectedMonth);
+      const typeMap = {};
+      pieSourceData.forEach(e => { typeMap[e.type1] = (typeMap[e.type1] || 0) + e.amount; });
+
+      const isAllSelected = activeSelectedTypes.includes('全部类型');
+      const dataForChart = Object.keys(typeMap).map(k => {
+        const isSelected = isAllSelected || activeSelectedTypes.includes(k);
+        return {
+          value: typeMap[k],
+          name: k,
+          // 如果被选中则不透明，否则半透明（实现高亮效果，而非隐藏）
+          itemStyle: { opacity: isSelected ? 1 : 0.1, color: isSelected ? undefined : '#cfd8dc' },
+          label: { show: isSelected, color: '#546e7a' },
+          labelLine: { show: isSelected, lineStyle: { color: '#cfd8dc' } }
+        };
+      });
+
+      // ============ 修复点：构造一个全选对象 ============
+      // 这一步非常关键，强制告诉 ECharts 所有图例都是 "True"（选中状态）。
+      // 这样点击图例时，ECharts 不会隐藏它，而是触发事件后，通过我们上面的 itemStyle.opacity 来改变视觉效果。
+      const legendSelectedState = {};
+      EXPENSE_TYPES.forEach(t => legendSelectedState[t] = true);
+
+      const option = {
+        color: MORANDI_PALETTE,
+        tooltip: {
+          trigger: 'item',
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          formatter: function(params) { return `${params.name}<br/>¥${params.value.toFixed(2)} (${params.percent}%)`; }
+        },
+        legend: {
+          bottom: 0,
+          left: 'center',
+          padding: [5, 5],
+          itemWidth: 15,
+          itemHeight: 10,
+          textStyle: { color: '#607d8b' },
+          width: '95%',
+          // 强制应用全选状态，防止点击后消失
+          selected: legendSelectedState
+        },
+        series: [
+          {
+            name: '支出类型',
+            type: 'pie',
+            radius: ['35%', '55%'],
+            center: ['50%', '40%'],
+            avoidLabelOverlap: true,
+            itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
+            data: dataForChart,
+            selectedMode: 'multiple', selectedOffset: 10
+          }
+        ]
+      };
+
+      // 使用 setOption 时不合并，确保 selected 状态重置
+      echartsPieInstance.setOption(option, true);
+    }
+
+    function handleChartClick(typeName) {
+      if (activeSelectedTypes.includes('全部类型')) {
+        activeSelectedTypes = [typeName];
+      } else {
+        if (activeSelectedTypes.includes(typeName)) {
+          activeSelectedTypes = activeSelectedTypes.filter(t => t !== typeName);
+          if (activeSelectedTypes.length === 0) activeSelectedTypes = ['全部类型'];
+        } else {
+          activeSelectedTypes.push(typeName);
+        }
+      }
+      tempSelectedTypes = [...activeSelectedTypes];
+      updateTriggerText();
+      renderDropdownCheckboxes();
+      renderExpenses();
+    }
+
+    // ========== 渲染逻辑 ==========
+    async function renderExpenses() {
+      if (allExpenses.length === 0) {
+        allExpenses = await getExpenses();
+        const months = [...new Set(allExpenses.map(e => e.statMonth))].sort().reverse();
+        const sel = document.getElementById('monthFilter');
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="">全部月份</option>';
+        months.forEach(m => sel.add(new Option(m, m)));
+        if (currentVal) sel.value = currentVal;
+      }
+
+      let temp = allExpenses;
+      const mFilter = document.getElementById('monthFilter').value;
+      if (mFilter) temp = temp.filter(e => e.statMonth === mFilter);
+
+      if (!activeSelectedTypes.includes('全部类型')) {
+        temp = temp.filter(e => activeSelectedTypes.includes(e.type1));
+      }
+
+      const kw = document.getElementById('searchInput').value.trim();
+      if (kw) temp = temp.filter(e => e.type2.includes(kw));
+
+      filteredExpenses = temp;
+
+      // 更新分页总数显示
+      const totalPages = Math.ceil(filteredExpenses.length / pageSize) || 1;
+      if (currentPage > totalPages) currentPage = 1;
+      document.getElementById('totalPagesDisplay').innerText = totalPages;
+      document.getElementById('pageJumpInput').max = totalPages;
+      document.getElementById('pageJumpInput').value = currentPage;
+
+      renderTable();
+      renderCharts();
+    }
+
+    function applyMonthOrSearchFilter() {
+      currentPage = 1;
+      renderExpenses();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('expenseList');
+      tbody.innerHTML = '';
+
+      const start = (currentPage - 1) * pageSize;
+      const pageData = filteredExpenses.slice(start, start + pageSize);
+
+      // 统计栏逻辑
+      const summaryBox = document.getElementById('summaryBox');
+      let selectedMonthVal = document.getElementById('monthFilter').value;
+      let targetMonth = selectedMonthVal || computeStatMonth(new Date().toISOString());
+      let monthName = selectedMonthVal ? "当前选定月" : "当前月";
+
+      const baseData = allExpenses.filter(e => e.statMonth === targetMonth);
+      const baseTotal = baseData.reduce((a, b) => a + b.amount, 0);
+
+      let targetData = baseData;
+      if (!activeSelectedTypes.includes('全部类型')) targetData = targetData.filter(e => activeSelectedTypes.includes(e.type1));
+      const kw = document.getElementById('searchInput').value.trim();
+      if (kw) targetData = targetData.filter(e => e.type2.includes(kw));
+
+      summaryBox.innerHTML = `
+        <span style="color:var(--primary); font-weight:bold;">
+          筛选结果：${monthName}共 ${targetData.length} 笔，总额 ¥${formatMoney(targetData.reduce((a, b) => a + b.amount, 0))}
+        </span>
+        <span style="margin-left:15px; font-size:0.9em; color:var(--text-sub);">
+          (${targetMonth}共 ${baseData.length} 笔，总消费 ¥${formatMoney(baseTotal)})
+        </span>
+      `;
+
+      const groups = {};
+      pageData.forEach(e => {
+        if(!groups[e.statMonth]) groups[e.statMonth] = [];
+        groups[e.statMonth].push(e);
+      });
+
+      Object.keys(groups).sort().reverse().forEach(mon => {
+        const list = groups[mon];
+        const subTotal = list.reduce((s,i) => s + i.amount, 0);
+        const trTitle = document.createElement('tr');
+        trTitle.innerHTML = `<td colspan="7" class="month-group-title">${mon} 当前页小计: ¥${formatMoney(subTotal)}</td>`;
+        tbody.appendChild(trTitle);
+
+        list.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><input type="checkbox" class="item-cb" value="${item.id}" onchange="checkBatchBtn()" style="height:auto;"></td>
+            <td>${item.statMonth}</td>
+            <td>${item.date.slice(0,10)}</td>
+            <td><span style="background:#eceff1; padding:2px 8px; border-radius:10px; font-size:0.85em; color:#455a64;">${item.type1}</span></td>
+            <td>${item.type2}</td>
+            <td style="font-weight:500;">¥${formatMoney(item.amount)}</td>
+            <td>
+              <div class="action-cell-content">
+                <button class="action-btn btn-brown" onclick="editExp('${item.id}')">编辑</button>
+                <button class="action-btn btn-dark" onclick="delExp('${item.id}')">删除</button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+
+      checkBatchBtn();
+    }
+
+    // ========== 分页与操作逻辑 ==========
+    function formatMoney(n) { return n.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'); }
+
+    function checkBatchBtn() {
+      const n = document.querySelectorAll('.item-cb:checked').length;
+      const btn = document.getElementById('batchDeleteBtn');
+      btn.disabled = (n === 0);
+      btn.style.opacity = n === 0 ? '0.5' : '1';
+    }
+    function toggleAllCheckboxes() {
+      const v = document.getElementById('selectAll').checked;
+      document.querySelectorAll('.item-cb').forEach(c => c.checked = v);
+      checkBatchBtn();
+    }
+
+    function changePageSize() {
+      pageSize = parseInt(document.getElementById('pageSizeSelect').value);
+      currentPage = 1;
+      renderExpenses();
+    }
+
+    function jumpToPage() {
+      const inputVal = parseInt(document.getElementById('pageJumpInput').value);
+      const maxPage = Math.ceil(filteredExpenses.length / pageSize) || 1;
+
+      if (isNaN(inputVal) || inputVal < 1) {
+        currentPage = 1;
+      } else if (inputVal > maxPage) {
+        currentPage = maxPage;
+      } else {
+        currentPage = inputVal;
+      }
+      renderTable();
+      document.getElementById('pageJumpInput').value = currentPage;
+    }
+
+    // ============ 修改点：新增相对翻页逻辑 ============
+    function changePageRelative(offset) {
+      const maxPage = Math.ceil(filteredExpenses.length / pageSize) || 1;
+      let newPage = currentPage + offset;
+      if (newPage < 1) newPage = 1;
+      if (newPage > maxPage) newPage = maxPage;
+
+      if (newPage !== currentPage) {
+        currentPage = newPage;
+        renderTable();
+        document.getElementById('pageJumpInput').value = currentPage;
+      }
+    }
+
+    // 增删改
+    function openAddModal() {
+      document.getElementById('modalExpenseForm').reset();
+      document.getElementById('modalEditId').value = '';
+      document.getElementById('modalTitle').innerText = '新增支出';
+      document.getElementById('modalDate').valueAsDate = new Date();
+      document.getElementById('addModal').classList.add('active');
+    }
+    function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
+
+    document.getElementById('modalExpenseForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('modalEditId').value;
+      const cleanAmount = Math.round(parseFloat(document.getElementById('modalAmount').value) * 100) / 100;
+      const data = {
+        date: document.getElementById('modalDate').value,
+        type1: document.getElementById('modalType1').value,
+        type2: document.getElementById('modalType2').value,
+        amount: cleanAmount
+      };
+
+      if (id) {
+        const obj = AV.Object.createWithoutData('rourou_YellowChamberPot', id);
+        obj.set(data); await obj.save();
+      } else {
+        const obj = new ExpenseClass();
+        obj.set(data); await obj.save();
+      }
+      closeAddModal();
+      allExpenses = [];
+      renderExpenses();
+    };
+
+    async function delExp(id) {
+      if(!confirm('确定删除?')) return;
+      const obj = AV.Object.createWithoutData('rourou_YellowChamberPot', id);
+      await obj.destroy();
+      allExpenses = allExpenses.filter(e => e.id !== id);
+      renderExpenses();
+    }
+
+    async function batchDeleteSelected() {
+      const ids = Array.from(document.querySelectorAll('.item-cb:checked')).map(c => c.value);
+      if(!confirm(`确定删除 ${ids.length} 条?`)) return;
+      const objs = ids.map(id => AV.Object.createWithoutData('rourou_YellowChamberPot', id));
+      await AV.Object.destroyAll(objs);
+      allExpenses = allExpenses.filter(e => !ids.includes(e.id));
+      renderExpenses();
+      document.getElementById('selectAll').checked = false;
+    }
+
+    function editExp(id) {
+      const item = allExpenses.find(e => e.id === id);
+      document.getElementById('modalEditId').value = id;
+      document.getElementById('modalDate').value = item.date.slice(0,10);
+      document.getElementById('modalType1').value = item.type1;
+      document.getElementById('modalType2').value = item.type2;
+      document.getElementById('modalAmount').value = item.amount;
+      document.getElementById('modalTitle').innerText = '编辑支出';
+      document.getElementById('addModal').classList.add('active');
+    }
+
+    document.getElementById('editBudgetBtn').onclick = () => {
+      const v = prompt('输入本月预算', currentBudget);
+      if(v && !isNaN(v)) {
+        const nowStr = computeStatMonth(new Date().toISOString().slice(0,10));
+        const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY)||'{}');
+        budgets[nowStr] = parseFloat(v);
+        localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets));
+        renderCharts();
+      }
+    };
+
+    window.onload = () => {
+      initCustomDropdown();
+      renderExpenses();
+      window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
+    };
+
+    function exportToCSV() {
+      let csv = '统计月份,日期,一级类型,二级类型,金额\n';
+      filteredExpenses.forEach(e => {
+        csv += `${e.statMonth},${e.date.slice(0,10)},${e.type1},${e.type2},${e.amount}\n`;
+      });
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = '支出明细.csv'; a.click();
+    }
+    function printCurrentPage() { window.print(); }
+    async function confirmClearAll() {
+       if(confirm('危险：清空所有数据？')) alert('为安全起见，暂未开启全库清空功能');
+    }
+  </script>
+</body>
+</html>
