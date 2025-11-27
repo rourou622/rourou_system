@@ -115,6 +115,23 @@
       align-items: center;
     }
 
+    /* Date Input Styling */
+    input[type="date"] {
+      font-family: inherit;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.6;
+      transition: 0.2s;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+    }
+
     select {
       -webkit-appearance: none;
       appearance: none;
@@ -192,6 +209,16 @@
     .btn-light:hover {
       background: #f3f4f6;
       border-color: #d1d5db;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-accent:hover {
+      background: #6b8c76;
+      transform: translateY(-1px);
     }
 
     /* 统计概览条 */
@@ -293,8 +320,8 @@
 
     .filter-bar>div {
       flex: 1;
-      min-width: 200px;
-      width: 100%;
+      min-width: 130px;
+      width: auto;
     }
 
     /* 自定义下拉框 */
@@ -434,7 +461,7 @@
       padding-bottom: 15px;
     }
 
-    /* ============ 分页样式更新 ============ */
+    /* 分页样式 */
     .pagination-container {
       display: flex;
       justify-content: space-between;
@@ -458,7 +485,6 @@
       border: 1px solid var(--border-color);
     }
 
-    /* 分页输入框 */
     .pagination-input {
       width: 50px !important;
       height: 28px !important;
@@ -471,7 +497,6 @@
       background: #fff;
     }
 
-    /* 上一页/下一页 箭头按钮 */
     .btn-page-nav {
       background: transparent;
       border: none;
@@ -491,7 +516,6 @@
       background: #e2e8f0;
     }
 
-    /* 跳转按钮 */
     .btn-jump {
       margin-left: 10px;
       padding: 4px 12px;
@@ -583,6 +607,16 @@
           </div>
         </div>
       </div>
+      <div style="flex: 2; display: flex; gap: 10px;">
+        <div style="flex: 1;">
+          <label for="startDate">明细开始日期</label>
+          <input type="date" id="startDate" onchange="applyDateRangeFilter()" />
+        </div>
+        <div style="flex: 1;">
+          <label for="endDate">明细结束日期</label>
+          <input type="date" id="endDate" onchange="applyDateRangeFilter()" />
+        </div>
+      </div>
       <div>
         <label for="monthFilter">统计月份筛选</label>
         <select id="monthFilter" onchange="applyMonthOrSearchFilter()">
@@ -592,6 +626,9 @@
       <div>
         <label for="searchInput">搜索（二级类型）</label>
         <input type="text" id="searchInput" placeholder="输入关键词..." oninput="applyMonthOrSearchFilter()" />
+      </div>
+      <div style="flex: 0 0 auto;">
+        <button class="action-btn btn-accent" onclick="resetFilters()" style="height: 42px;">恢复默认</button>
       </div>
     </div>
 
@@ -614,7 +651,7 @@
       </table>
     </div>
 
-    <!-- ============ 修改点：分页增加了箭头按钮 ============ -->
+    <!-- 分页 -->
     <div class="pagination-container">
       <div style="display:flex; align-items:center;">
         <span style="color:var(--text-sub); font-size:0.9rem; margin-right:5px;">每页:</span>
@@ -627,17 +664,12 @@
       </div>
 
       <div class="pagination-jumper">
-        <!-- 上一页 -->
         <button class="btn-page-nav" onclick="changePageRelative(-1)" title="上一页">❮</button>
-
         <span style="margin: 0 6px;">第</span>
         <input type="number" id="pageJumpInput" class="pagination-input" value="1" min="1"
           onkeypress="if(event.keyCode==13) jumpToPage()">
         <span style="margin: 0 6px;">页 / 共 <span id="totalPagesDisplay" style="font-weight:bold;">1</span> 页</span>
-
-        <!-- 下一页 -->
         <button class="btn-page-nav" onclick="changePageRelative(1)" title="下一页">❯</button>
-
         <button class="btn-jump" onclick="jumpToPage()">跳转</button>
       </div>
     </div>
@@ -697,8 +729,8 @@
   <script>
     // ========== 配置与初始化 ==========
     const BUDGET_STORAGE_KEY = 'user_monthly_budgets';
-    const APP_ID = 'dwracmq52kDlwQkRaO2jPCFJ-gzGzoHsz';     // ← 替换
-    const APP_KEY = 'DngFcXZMsMup5W3Z4QSYPMdw';   // ← 替换
+    const APP_ID = 'dwracmq52kDlwQkRaO2jPCFJ-gzGzoHsz';
+    const APP_KEY = 'DngFcXZMsMup5W3Z4QSYPMdw';
     const SERVER_URL = 'https://api.leancloud.cn';
 
     const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '房租', '宠物', '其他'];
@@ -920,16 +952,13 @@
       const dom = document.getElementById('echartsPie');
       if (!echartsPieInstance) {
         echartsPieInstance = echarts.init(dom);
-        // 监听点击事件（扇区）
         echartsPieInstance.on('click', function (params) { handleChartClick(params.name); });
-        // 监听图例切换事件
         echartsPieInstance.on('legendselectchanged', function (params) { handleChartClick(params.name); });
       }
 
-      let selectedMonth = document.getElementById('monthFilter').value;
-      if (!selectedMonth) selectedMonth = computeStatMonth(new Date().toISOString());
+      // 使用时间筛选后的数据（月份+日期）
+      let pieSourceData = getTimeFilteredExpenses();
 
-      let pieSourceData = allExpenses.filter(e => e.statMonth === selectedMonth);
       const typeMap = {};
       pieSourceData.forEach(e => { typeMap[e.type1] = (typeMap[e.type1] || 0) + e.amount; });
 
@@ -939,16 +968,12 @@
         return {
           value: typeMap[k],
           name: k,
-          // 如果被选中则不透明，否则半透明（实现高亮效果，而非隐藏）
           itemStyle: { opacity: isSelected ? 1 : 0.1, color: isSelected ? undefined : '#cfd8dc' },
           label: { show: isSelected, color: '#546e7a' },
           labelLine: { show: isSelected, lineStyle: { color: '#cfd8dc' } }
         };
       });
 
-      // ============ 修复点：构造一个全选对象 ============
-      // 这一步非常关键，强制告诉 ECharts 所有图例都是 "True"（选中状态）。
-      // 这样点击图例时，ECharts 不会隐藏它，而是触发事件后，通过我们上面的 itemStyle.opacity 来改变视觉效果。
       const legendSelectedState = {};
       EXPENSE_TYPES.forEach(t => legendSelectedState[t] = true);
 
@@ -967,7 +992,6 @@
           itemHeight: 10,
           textStyle: { color: '#607d8b' },
           width: '95%',
-          // 强制应用全选状态，防止点击后消失
           selected: legendSelectedState
         },
         series: [
@@ -984,7 +1008,6 @@
         ]
       };
 
-      // 使用 setOption 时不合并，确保 selected 状态重置
       echartsPieInstance.setOption(option, true);
     }
 
@@ -1006,25 +1029,49 @@
     }
 
     // ========== 渲染逻辑 ==========
+
+    // 辅助函数：获取经过时间筛选（月份 + 日期范围）的数据
+    function getTimeFilteredExpenses() {
+      let temp = allExpenses;
+      const mFilter = document.getElementById('monthFilter').value;
+      if (mFilter) temp = temp.filter(e => e.statMonth === mFilter);
+
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      if (startDate) temp = temp.filter(e => e.date >= startDate);
+      if (endDate) temp = temp.filter(e => e.date <= endDate);
+
+      return temp;
+    }
+
     async function renderExpenses() {
       if (allExpenses.length === 0) {
         allExpenses = await getExpenses();
         const months = [...new Set(allExpenses.map(e => e.statMonth))].sort().reverse();
         const sel = document.getElementById('monthFilter');
-        const currentVal = sel.value;
+
+        let targetVal = sel.value;
         sel.innerHTML = '<option value="">全部月份</option>';
         months.forEach(m => sel.add(new Option(m, m)));
-        if (currentVal) sel.value = currentVal;
+
+        // 默认选中当前月份（如果存在且当前未选中特定月份）
+        const currentMonth = computeStatMonth(new Date().toISOString());
+        if (!targetVal && months.includes(currentMonth)) {
+          targetVal = currentMonth;
+        }
+
+        if (targetVal) sel.value = targetVal;
       }
 
-      let temp = allExpenses;
-      const mFilter = document.getElementById('monthFilter').value;
-      if (mFilter) temp = temp.filter(e => e.statMonth === mFilter);
+      // 1. 先进行时间筛选（月份 + 日期）
+      let temp = getTimeFilteredExpenses();
 
+      // 2. 类型筛选
       if (!activeSelectedTypes.includes('全部类型')) {
         temp = temp.filter(e => activeSelectedTypes.includes(e.type1));
       }
 
+      // 3. 搜索筛选
       const kw = document.getElementById('searchInput').value.trim();
       if (kw) temp = temp.filter(e => e.type2.includes(kw));
 
@@ -1046,6 +1093,51 @@
       renderExpenses();
     }
 
+    function applyDateRangeFilter() {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      if (start && end && start > end) {
+        alert('开始时间不能晚于结束时间');
+        document.getElementById('startDate').value = '';
+        return;
+      }
+      currentPage = 1;
+      renderExpenses();
+    }
+
+    function resetFilters() {
+      // 1. 重置类型
+      activeSelectedTypes = ['全部类型'];
+      tempSelectedTypes = ['全部类型'];
+      updateTriggerText();
+      renderDropdownCheckboxes();
+      document.getElementById('typeSelectWrapper').classList.remove('open');
+
+      // 2. 重置日期
+      document.getElementById('startDate').value = '';
+      document.getElementById('endDate').value = '';
+
+      // 3. 重置月份为当前月（如果存在）
+      const sel = document.getElementById('monthFilter');
+      const currentMonth = computeStatMonth(new Date().toISOString());
+      let found = false;
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === currentMonth) {
+          sel.value = currentMonth;
+          found = true;
+          break;
+        }
+      }
+      if (!found) sel.value = "";
+
+      // 4. 重置搜索
+      document.getElementById('searchInput').value = '';
+
+      // 5. 重新渲染
+      currentPage = 1;
+      renderExpenses();
+    }
+
     function renderTable() {
       const tbody = document.getElementById('expenseList');
       tbody.innerHTML = '';
@@ -1055,26 +1147,46 @@
 
       // 统计栏逻辑
       const summaryBox = document.getElementById('summaryBox');
-      let selectedMonthVal = document.getElementById('monthFilter').value;
-      let targetMonth = selectedMonthVal || computeStatMonth(new Date().toISOString());
-      let monthName = selectedMonthVal ? "当前选定月" : "当前月";
 
-      const baseData = allExpenses.filter(e => e.statMonth === targetMonth);
+      // 基础数据：仅应用了时间筛选（月份+日期）的数据，用于显示“总消费”
+      const baseData = getTimeFilteredExpenses();
       const baseTotal = baseData.reduce((a, b) => a + b.amount, 0);
+      const baseCount = baseData.length;
 
-      let targetData = baseData;
-      if (!activeSelectedTypes.includes('全部类型')) targetData = targetData.filter(e => activeSelectedTypes.includes(e.type1));
-      const kw = document.getElementById('searchInput').value.trim();
-      if (kw) targetData = targetData.filter(e => e.type2.includes(kw));
+      // 目标数据：filteredExpenses (已经包含了所有筛选条件：时间+类型+搜索)
+      // 用于显示“筛选结果”
+      const targetData = filteredExpenses;
+      const targetTotal = targetData.reduce((a, b) => a + b.amount, 0);
+      const targetCount = targetData.length;
 
-      summaryBox.innerHTML = `
-        <span style="color:var(--primary); font-weight:bold;">
-          筛选结果：${monthName}共 ${targetData.length} 笔，总额 ¥${formatMoney(targetData.reduce((a, b) => a + b.amount, 0))}
-        </span>
-        <span style="margin-left:15px; font-size:0.9em; color:var(--text-sub);">
-          (${targetMonth}共 ${baseData.length} 笔，总消费 ¥${formatMoney(baseTotal)})
-        </span>
-      `;
+      // 构造提示文案
+      let contextText = "当前范围";
+      const mFilter = document.getElementById('monthFilter').value;
+      const sDate = document.getElementById('startDate').value;
+      const eDate = document.getElementById('endDate').value;
+
+      if (sDate || eDate) {
+        contextText = "选定日期范围";
+      } else if (mFilter) {
+        contextText = `${mFilter}`;
+      } else {
+        contextText = "全部数据";
+      }
+
+      let summaryHtml = `<span style="color:var(--primary); font-weight:bold;">筛选结果：共 ${targetCount} 笔，总额 ¥${formatMoney(targetTotal)}</span>`;
+
+      // 增加笔均显示
+      if (targetCount > 0) {
+        const avg = targetTotal / targetCount;
+        summaryHtml += `<span style="margin-left:15px; font-size:0.9em; color:var(--text-main);">笔均 ¥${formatMoney(avg)}</span>`;
+      }
+
+      // 仅当筛选结果与基础范围数据不一致时，才显示括号内的对比数据
+      if (targetCount !== baseCount || Math.abs(targetTotal - baseTotal) > 0.01) {
+        summaryHtml += `<span style="margin-left:15px; font-size:0.9em; color:var(--text-sub);">(${contextText}共 ${baseCount} 笔，总消费 ¥${formatMoney(baseTotal)})</span>`;
+      }
+
+      summaryBox.innerHTML = summaryHtml;
 
       const groups = {};
       pageData.forEach(e => {
@@ -1148,7 +1260,6 @@
       document.getElementById('pageJumpInput').value = currentPage;
     }
 
-    // ============ 修改点：新增相对翻页逻辑 ============
     function changePageRelative(offset) {
       const maxPage = Math.ceil(filteredExpenses.length / pageSize) || 1;
       let newPage = currentPage + offset;
