@@ -4,83 +4,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>云端错题本 (修复版)</title>
-
-    <!-- 1. Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <title>云端错题本</title>
+    <!-- 引入库文件 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/leancloud-storage@4.15.0/dist/av-min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#4f46e5', secondary: '#64748b' }
+                    colors: {
+                        primary: '#64748b',
+                        secondary: '#94a3b8',
+                        accent: '#e2e8f0',
+                        surface: '#ffffff',
+                        background: '#f8fafc',
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.5s ease-out',
+                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        pop: {
+                            '0%': { transform: 'scale(0.95)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
                 }
             }
         }
     </script>
-
-    <!-- 2. Vue 3 -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
-    <!-- 3. LeanCloud Storage SDK -->
-    <script src="https://unpkg.com/leancloud-storage@4.15.0/dist/av-min.js"></script>
-
-    <!-- 4. Marked.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-
     <style>
+        [v-cloak] {
+            display: none;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Card Hover Effect */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* View Transitions */
+        .view-enter-active,
+        .view-leave-active {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .view-enter-from,
+        .view-leave-to {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        /* Markdown Styles Inside Prose */
+        .prose pre {
+            background-color: #f1f5f9;
+            color: #334155;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            overflow-x: auto;
+        }
+
         @media print {
             .no-print {
                 display: none !important;
             }
 
-            .print-only {
-                display: block !important;
-            }
-
             body {
-                background-color: white;
-            }
-
-            .prose {
-                max-width: 100% !important;
+                background: white;
             }
 
             .question-item {
                 break-inside: avoid;
-                border-bottom: 1px solid #ddd;
-                padding-bottom: 20px;
+                border: 1px solid #eee;
+                box-shadow: none;
                 margin-bottom: 20px;
             }
-        }
-
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        [v-cloak] {
-            display: none;
-        }
-
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
         }
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-800 h-screen overflow-hidden">
-
+<body>
     <div id="app" v-cloak class="h-full flex flex-col md:flex-row">
 
         <!-- ================= 0. 初始化/登录 ================= -->
         <div v-if="!isReady || !currentUser"
-            class="fixed inset-0 z-50 bg-slate-100 flex items-center justify-center p-4">
+            class="fixed inset-0 z-[100] bg-slate-100 flex items-center justify-center p-4">
             <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
                 <h1 class="text-2xl font-bold text-center mb-6 text-primary">云端错题本</h1>
                 <div v-if="!hasConfig" class="space-y-4">
@@ -91,7 +135,7 @@
                     <input v-model="configForm.serverURL" placeholder="REST API (https://...)"
                         class="w-full p-2 border rounded text-sm">
                     <button @click="saveConfig"
-                        class="w-full bg-primary text-white py-2 rounded hover:bg-indigo-700 mt-2">保存配置</button>
+                        class="w-full bg-primary text-white py-2 rounded hover:bg-slate-700 mt-2">保存配置</button>
                 </div>
                 <div v-else class="space-y-4">
                     <div class="flex border-b mb-4">
@@ -103,7 +147,7 @@
                     <input v-model="authForm.username" placeholder="用户名" class="w-full p-2 border rounded">
                     <input v-model="authForm.password" type="password" placeholder="密码"
                         class="w-full p-2 border rounded">
-                    <button @click="handleAuth" class="w-full bg-primary text-white py-2 rounded hover:bg-indigo-700">{{
+                    <button @click="handleAuth" class="w-full bg-primary text-white py-2 rounded hover:bg-slate-700">{{
                         authMode === 'login' ? '进入系统' : '立即注册' }}</button>
                     <button @click="clearConfig"
                         class="text-xs text-slate-400 underline w-full text-center">重置配置</button>
@@ -111,34 +155,6 @@
             </div>
         </div>
 
-        <!-- ================= 导航栏 ================= -->
-        <nav v-if="currentUser"
-            class="no-print md:w-64 bg-white border-r border-slate-200 flex-shrink-0 flex md:flex-col justify-between fixed bottom-0 w-full md:relative md:h-full z-40 shadow-inner md:shadow-none">
-            <div class="hidden md:flex items-center justify-center h-16 border-b border-slate-100">
-                <span class="text-xl font-bold text-primary">Mistake Note</span>
-            </div>
-            <div class="flex md:flex-col justify-around w-full md:w-auto md:p-4 md:space-y-2">
-                <button @click="switchView('list')" :class="navClass('list')"
-                    class="p-3 md:px-4 md:py-3 rounded-lg flex flex-col md:flex-row items-center md:space-x-3 transition">
-                    <span class="text-2xl md:text-lg">📚</span><span class="text-xs md:text-base">错题本</span>
-                </button>
-                <button @click="switchView('quiz')" :class="navClass('quiz')"
-                    class="p-3 md:px-4 md:py-3 rounded-lg flex flex-col md:flex-row items-center md:space-x-3 transition">
-                    <span class="text-2xl md:text-lg">🧠</span><span class="text-xs md:text-base">刷题</span>
-                </button>
-                <button @click="switchView('knowledge')" :class="navClass('knowledge')"
-                    class="p-3 md:px-4 md:py-3 rounded-lg flex flex-col md:flex-row items-center md:space-x-3 transition">
-                    <span class="text-2xl md:text-lg">💡</span><span class="text-xs md:text-base">知识库</span>
-                </button>
-                <button @click="switchView('settings')" :class="navClass('settings')"
-                    class="p-3 md:px-4 md:py-3 rounded-lg flex flex-col md:flex-row items-center md:space-x-3 transition">
-                    <span class="text-2xl md:text-lg">⚙️</span><span class="text-xs md:text-base">设置</span>
-                </button>
-            </div>
-            <div class="hidden md:block p-4 border-t border-slate-100">
-                <div class="text-sm text-slate-600 mb-2">User: {{ currentUser.getUsername() }}</div>
-            </div>
-        </nav>
 
         <!-- ================= 主内容区 ================= -->
         <main v-if="currentUser" class="flex-1 h-full overflow-y-auto bg-slate-50 relative pb-20 md:pb-0 scroll-smooth">
@@ -162,257 +178,286 @@
                     <button v-if="currentView === 'list'" @click="printMode"
                         class="px-3 py-1 text-sm bg-slate-200 rounded hover:bg-slate-300">导出</button>
                     <button v-if="['list', 'knowledge'].includes(currentView)" @click="openAddModal"
-                        class="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-indigo-700 shadow-md flex items-center">
+                        class="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-slate-700 shadow-md flex items-center">
                         <span class="text-lg mr-1 leading-none">+</span> 新增
                     </button>
                     <button v-if="currentView === 'quiz'" @click="refreshQuiz"
-                        class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 shadow-md">🔄
+                        class="px-3 py-1 text-sm bg-emerald-500 text-white rounded hover:bg-emerald-600 shadow-md">🔄
                         换一批</button>
                 </div>
             </header>
 
-            <!-- View: List (错题列表) -->
-            <div v-if="currentView === 'list'" class="p-4 max-w-4xl mx-auto flex flex-col h-full">
+            <transition name="view" mode="out-in">
+                <!-- View: List (错题列表) -->
+                <div v-if="currentView === 'list'" key="list" class="p-4 max-w-4xl mx-auto flex flex-col h-full">
 
-                <!-- 筛选工具栏 -->
-                <div
-                    class="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 mb-2 no-print gap-4">
-                    <div class="flex flex-wrap gap-2">
-                        <button @click="toggleListFilter('')"
-                            class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors border"
-                            :class="listFilter === '' ? 'bg-primary text-white shadow-md border-transparent' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'">全部</button>
-                        <button v-for="cat in categoryList" :key="cat.id" @click="toggleListFilter(cat.get('name'))"
-                            class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors border"
-                            :class="listFilter === cat.get('name') ? 'bg-primary text-white shadow-md border-transparent' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'">{{
-                            cat.get('name') }}</button>
-                        <button v-if="categoryList.length === 0" @click="currentView='settings'"
-                            class="px-4 py-1.5 rounded-full text-sm font-medium border border-dashed border-slate-300 text-slate-400 hover:text-primary hover:border-primary">+
-                            添加分类</button>
-                    </div>
-
-                    <div class="flex items-center space-x-2">
-                        <select v-model="masteryFilter" @change="resetPageAndFetch"
-                            class="text-sm border-slate-200 rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary/20 bg-white py-1.5 pl-3 pr-8 text-slate-600">
-                            <option :value="-1">全部状态</option>
-                            <option :value="0">未斩杀 (进行中)</option>
-                            <option :value="1">已斩杀 (已掌握)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div v-if="loading" class="text-center py-10 text-slate-400">加载中...</div>
-                <div v-else-if="questions.length === 0" class="text-center py-10 text-slate-400">
-                    暂无数据
-                </div>
-
-                <div class="space-y-4">
-                    <div v-for="q in questions" :key="q.id"
-                        class="question-item bg-white p-6 rounded-xl shadow-sm border border-slate-100 relative overflow-hidden group/item">
-                        <div
-                            class="absolute top-0 right-0 bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded-bl-lg font-bold">
-                            {{ q.get('category') || '未分类' }}</div>
-                        <div class="absolute top-8 right-4 hidden group-hover/item:flex space-x-2 no-print">
-                            <button @click="openEditModal(q, 'question')"
-                                class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded border border-blue-200 hover:bg-blue-100">编辑</button>
-                        </div>
-                        <div class="flex justify-between items-start mb-2 pr-8">
-                            <div class="flex space-x-2">
-                                <span v-for="tag in q.get('tags')"
-                                    class="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-xs rounded-full">#{{ tag
-                                    }}</span>
-                            </div>
-                            <span v-if="q.get('masteryLevel') === 1"
-                                class="text-green-500 text-xs font-bold border border-green-500 px-2 rounded ml-2">已斩杀</span>
-                        </div>
-                        <div class="prose prose-slate max-w-none mb-4" v-html="renderMarkdown(q.get('content'))"></div>
-                        <details class="group bg-slate-50 rounded-lg p-3">
-                            <summary class="cursor-pointer font-medium text-slate-700 select-none flex justify-between">
-                                <span>查看答案 & 解析</span><span>▼</span></summary>
-                            <div class="border-t border-slate-200 pt-2 mt-2">
-                                <p class="font-bold text-sm text-slate-500">答案：</p>
-                                <div class="prose prose-sm mb-2" v-html="renderMarkdown(q.get('answer'))"></div>
-                                <p class="font-bold text-sm text-slate-500">解析：</p>
-                                <div class="prose prose-sm" v-html="renderMarkdown(q.get('analysis'))"></div>
-                                <div v-if="q.get('linkedKnowledge')"
-                                    class="mt-3 text-xs text-slate-500 flex items-center"><span
-                                        class="mr-1">🔗</span>关联知识点: {{ q.get('linkedKnowledge').get('title') }}</div>
-                            </div>
-                        </details>
-                        <div class="mt-4 flex justify-end space-x-3 no-print">
-                            <button @click="toggleMastery(q)" class="text-xs text-slate-500 hover:text-green-600">{{
-                                q.get('masteryLevel') === 1 ? '恢复未掌握' : '斩杀 (Master)' }}</button>
-                            <button @click="deleteQuestion(q)"
-                                class="text-xs text-red-400 hover:text-red-600">删除</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 分页 -->
-                <div v-if="!loading && questions.length > 0"
-                    class="mt-8 mb-4 no-print bg-white p-3 rounded-lg border border-slate-200 flex flex-wrap justify-between items-center gap-4 text-sm text-slate-600">
-                    <div class="flex items-center space-x-2">
-                        <span>每页:</span>
-                        <select v-model="pagination.pageSize" @change="resetPageAndFetch" class="border rounded p-1">
-                            <option :value="5">5</option>
-                            <option :value="10">10</option>
-                            <option :value="20">20</option>
-                            <option :value="50">50</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <button @click="changePage(pagination.current - 1)" :disabled="pagination.current <= 1"
-                            class="px-2 py-1 border rounded hover:bg-slate-50 disabled:opacity-50">&lt;</button>
-                        <span>第 {{ pagination.current }} 页 / 共 {{ pagination.total }} 页</span>
-                        <button @click="changePage(pagination.current + 1)"
-                            :disabled="pagination.current >= pagination.total"
-                            class="px-2 py-1 border rounded hover:bg-slate-50 disabled:opacity-50">&gt;</button>
-                        <div class="flex items-center space-x-1 ml-2">
-                            <input type="number" v-model.number="jumpPageNum"
-                                class="w-12 border rounded p-1 text-center" min="1" :max="pagination.total">
-                            <button @click="changePage(jumpPageNum)"
-                                class="px-2 py-1 border rounded bg-slate-50 hover:bg-slate-100 text-xs">跳转</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- View: Quiz -->
-            <div v-if="currentView === 'quiz'" class="p-4 max-w-2xl mx-auto h-full flex flex-col">
-                <div class="text-center mb-4"><span
-                        class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded">当前分类: {{
-                        quizCategory || '全部' }}</span></div>
-                <div v-if="quizList.length > 0" class="flex-1 flex flex-col items-center justify-center">
-                    <div class="w-full text-center mb-4 text-slate-500 text-sm">剩余题目: {{ quizList.length }}</div>
+                    <!-- 筛选工具栏 -->
                     <div
-                        class="w-full bg-white rounded-2xl shadow-xl p-8 border border-slate-100 min-h-[400px] flex flex-col relative">
-                        <span
-                            class="absolute top-4 right-4 text-xs text-slate-300 font-bold border border-slate-100 px-2 rounded">{{
-                            quizList[0].get('category') || '未分类' }}</span>
-                        <div class="flex-1">
-                            <div class="prose prose-lg max-w-none" v-html="renderMarkdown(quizList[0].get('content'))">
+                        class="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 mb-2 no-print gap-4">
+                        <div class="flex flex-wrap gap-2">
+                            <button @click="toggleListFilter('')"
+                                class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors border"
+                                :class="listFilter === '' ? 'bg-primary text-white shadow-md border-transparent' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'">全部</button>
+                            <button v-for="cat in categoryList" :key="cat.id" @click="toggleListFilter(cat.get('name'))"
+                                class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors border"
+                                :class="listFilter === cat.get('name') ? 'bg-primary text-white shadow-md border-transparent' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'">{{
+                                cat.get('name') }}</button>
+                            <button v-if="categoryList.length === 0" @click="currentView='settings'"
+                                class="px-4 py-1.5 rounded-full text-sm font-medium border border-dashed border-slate-300 text-slate-400 hover:text-primary hover:border-primary">+
+                                添加分类</button>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <select v-model="masteryFilter" @change="resetPageAndFetch"
+                                class="text-sm border-slate-200 rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary/20 bg-white py-1.5 pl-3 pr-8 text-slate-600">
+                                <option :value="-1">全部状态</option>
+                                <option :value="0">未斩杀 (进行中)</option>
+                                <option :value="1">已斩杀 (已掌握)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div v-if="loading" class="text-center py-10 text-slate-400">加载中...</div>
+                    <div v-else-if="questions.length === 0" class="text-center py-10 text-slate-400">
+                        暂无数据
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- 错题卡片：context 为 'view' (查看详情) -->
+                        <div v-for="q in questions" :key="q.id" @click="openDetailModal(q, 'view')"
+                            class="question-item bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group/item card-hover animate-fade-in-up cursor-pointer">
+                            <div
+                                class="absolute top-0 right-0 bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded-bl-lg font-bold">
+                                {{ q.get('category') || '未分类' }}</div>
+
+                            <div class="flex justify-between items-start mb-2 pr-8">
+                                <div class="flex space-x-2">
+                                    <span v-for="tag in q.get('tags')"
+                                        class="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full">#{{ tag
+                                        }}</span>
+                                </div>
+                                <span v-if="q.get('masteryLevel') === 1"
+                                    class="text-emerald-500 text-xs font-bold border border-emerald-500 px-2 rounded ml-2">已斩杀</span>
+                            </div>
+
+                            <!-- 题目预览（限制高度，防止列表过长） -->
+                            <div class="prose prose-slate max-w-none mb-4 line-clamp-4"
+                                v-html="renderMarkdown(q.get('content'))">
+                            </div>
+
+                            <div class="flex items-center text-xs text-slate-400 mt-2">
+                                <span>点击查看详情与解析...</span>
+                            </div>
+
+                            <div class="mt-4 flex justify-end space-x-3 no-print border-t pt-3 border-slate-50">
+                                <button @click.stop="toggleMastery(q)"
+                                    class="text-xs text-slate-500 hover:text-emerald-600 px-2 py-1 rounded hover:bg-slate-50">{{
+                                    q.get('masteryLevel') === 1 ? '恢复未掌握' : '斩杀 (Master)' }}</button>
+                                <button @click.stop="openEditModal(q, 'question')"
+                                    class="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
+                                <button @click.stop="deleteQuestion(q)"
+                                    class="text-xs text-rose-400 hover:text-rose-600 px-2 py-1 rounded hover:bg-rose-50">删除</button>
                             </div>
                         </div>
-                        <div v-if="showQuizAnswer"
-                            class="mt-8 pt-6 border-t border-slate-100 bg-slate-50 p-4 rounded-lg">
-                            <div class="font-bold text-green-700">答案：</div>
-                            <div class="prose prose-sm" v-html="renderMarkdown(quizList[0].get('answer'))"></div>
-                            <div class="mt-2 font-bold text-indigo-700">解析：</div>
-                            <div class="prose prose-sm" v-html="renderMarkdown(quizList[0].get('analysis'))"></div>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div v-if="!loading && questions.length > 0"
+                        class="mt-8 mb-4 no-print bg-white p-3 rounded-lg border border-slate-200 flex flex-wrap justify-between items-center gap-4 text-sm text-slate-600">
+                        <div class="flex items-center space-x-2">
+                            <span>每页:</span>
+                            <select v-model="pagination.pageSize" @change="resetPageAndFetch"
+                                class="border rounded p-1">
+                                <option :value="5">5</option>
+                                <option :value="10">10</option>
+                                <option :value="20">20</option>
+                                <option :value="50">50</option>
+                            </select>
                         </div>
-                    </div>
-                    <div class="mt-6 flex space-x-4 w-full">
-                        <button v-if="!showQuizAnswer" @click="showQuizAnswer = true"
-                            class="flex-1 bg-white border border-slate-300 py-3 rounded-lg hover:bg-slate-50">查看答案</button>
-                        <template v-else>
-                            <button @click="handleQuizResult(false)"
-                                class="flex-1 bg-red-50 text-red-600 border border-red-200 py-3 rounded-lg hover:bg-red-100">记不清</button>
-                            <button @click="handleQuizResult(true)"
-                                class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 shadow-lg">斩杀!</button>
-                        </template>
-                    </div>
-                </div>
-                <div v-else class="flex flex-col items-center justify-center h-full text-slate-400">
-                    <div class="text-6xl mb-4">🎉</div>
-                    <p>暂无待复习题目</p><button @click="refreshQuiz" class="mt-4 text-primary underline">刷新</button>
-                </div>
-            </div>
-
-            <!-- View: Knowledge -->
-            <div v-if="currentView === 'knowledge'" class="p-4 max-w-4xl mx-auto flex flex-col h-full">
-                <div class="flex flex-wrap gap-2 pb-4 mb-2 no-print">
-                    <button @click="toggleKnowledgeFilter('')"
-                        class="px-4 py-2 rounded-full text-sm font-medium transition-colors border"
-                        :class="knowledgeFilter === '' ? 'bg-primary text-white shadow-md border-transparent' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'">全部</button>
-                    <button v-for="cat in categoryList" :key="cat.id" @click="toggleKnowledgeFilter(cat.get('name'))"
-                        class="px-4 py-2 rounded-full text-sm font-medium transition-colors border"
-                        :class="knowledgeFilter === cat.get('name') ? 'bg-primary text-white shadow-md border-transparent' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'">{{
-                        cat.get('name') }}</button>
-                </div>
-
-                <div v-if="loading" class="text-center py-10 text-slate-400">加载中...</div>
-                <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div v-if="knowledgeList.length === 0" class="col-span-full text-center py-10 text-slate-400">{{
-                        knowledgeFilter ? `“${knowledgeFilter}”下暂无内容` : '暂无内容' }}</div>
-                    <div v-for="k in knowledgeList" :key="k.id"
-                        class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition relative group/kitem">
-                        <span class="absolute top-4 right-4 text-[10px] text-slate-400 border px-1.5 rounded">{{
-                            k.get('category') || '未分类' }}</span>
-                        <h3 class="font-bold text-lg text-slate-800 mb-2 mr-8">{{ k.get('title') }}</h3>
-                        <div class="prose prose-sm line-clamp-3 text-slate-600"
-                            v-html="renderMarkdown(k.get('content'))"></div>
-                        <div class="mt-3 pt-2 border-t flex justify-end space-x-2">
-                            <button @click="openEditModal(k, 'knowledge')"
-                                class="text-xs text-blue-500 hover:text-blue-700">编辑</button>
-                            <button @click="deleteKnowledge(k)"
-                                class="text-xs text-red-400 hover:text-red-600">删除</button>
+                        <div class="flex items-center space-x-3">
+                            <button @click="changePage(pagination.current - 1)" :disabled="pagination.current <= 1"
+                                class="px-2 py-1 border rounded hover:bg-slate-50 disabled:opacity-50">&lt;</button>
+                            <span>第 {{ pagination.current }} 页 / 共 {{ pagination.total }} 页</span>
+                            <button @click="changePage(pagination.current + 1)"
+                                :disabled="pagination.current >= pagination.total"
+                                class="px-2 py-1 border rounded hover:bg-slate-50 disabled:opacity-50">&gt;</button>
+                            <div class="flex items-center space-x-1 ml-2">
+                                <input type="number" v-model.number="jumpPageNum"
+                                    class="w-12 border rounded p-1 text-center" min="1" :max="pagination.total">
+                                <button @click="changePage(jumpPageNum)"
+                                    class="px-2 py-1 border rounded bg-slate-50 hover:bg-slate-100 text-xs">跳转</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 分页 -->
-                <div v-if="!loading && knowledgeList.length > 0"
-                    class="mt-8 mb-4 no-print bg-white p-3 rounded-lg border border-slate-200 flex flex-wrap justify-between items-center gap-4 text-sm text-slate-600">
-                    <div class="flex items-center space-x-2">
-                        <span>每页:</span>
-                        <select v-model="pagination.pageSize" @change="resetPageAndFetch" class="border rounded p-1">
-                            <option :value="5">5</option>
-                            <option :value="10">10</option>
-                            <option :value="20">20</option>
-                            <option :value="50">50</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <button @click="changePage(pagination.current - 1)" :disabled="pagination.current <= 1"
-                            class="px-2 py-1 border rounded hover:bg-slate-50 disabled:opacity-50">&lt;</button>
-                        <span>第 {{ pagination.current }} 页 / 共 {{ pagination.total }} 页</span>
-                        <button @click="changePage(pagination.current + 1)"
-                            :disabled="pagination.current >= pagination.total"
-                            class="px-2 py-1 border rounded hover:bg-slate-50 disabled:opacity-50">&gt;</button>
-                        <div class="flex items-center space-x-1 ml-2">
-                            <input type="number" v-model.number="jumpPageNum"
-                                class="w-12 border rounded p-1 text-center" min="1" :max="pagination.total">
-                            <button @click="changePage(jumpPageNum)"
-                                class="px-2 py-1 border rounded bg-slate-50 hover:bg-slate-100 text-xs">跳转</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <!-- View: Quiz -->
+                <div v-if="currentView === 'quiz'" key="quiz" class="p-4 max-w-2xl mx-auto h-full flex flex-col">
+                    <div class="text-center mb-4"><span
+                            class="bg-slate-100 text-slate-800 text-xs font-medium px-2.5 py-0.5 rounded">当前分类: {{
+                            quizCategory || '全部' }}</span></div>
+                    <div v-if="quizList.length > 0" class="flex-1 flex flex-col items-center justify-center">
+                        <div class="w-full text-center mb-4 text-slate-500 text-sm">剩余题目: {{ quizList.length }}</div>
 
-            <!-- View: Settings (保持不变) -->
-            <div v-if="currentView === 'settings'" class="p-4 max-w-md mx-auto space-y-4">
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="font-bold mb-4 border-b pb-2">账号信息</h3>
-                    <p class="text-sm text-slate-600 mb-1">User: {{ currentUser.getUsername() }}</p>
-                    <button @click="handleLogout"
-                        class="text-xs text-red-500 border border-red-500 px-2 py-1 rounded hover:bg-red-50">退出登录</button>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="font-bold mb-4 border-b pb-2 flex justify-between">
-                        <span>分类管理</span>
-                        <span class="text-xs text-slate-400 font-normal">{{ categoryList.length }}/20</span>
-                    </h3>
-                    <div class="bg-yellow-50 text-yellow-700 text-xs p-2 mb-4 rounded">分类独立存储，数据更安全。</div>
-                    <div class="flex space-x-2 mb-4">
-                        <input v-model="newCategoryName" placeholder="输入新分类名称"
-                            class="flex-1 p-2 border rounded text-sm">
-                        <button @click="addCategory"
-                            class="bg-primary text-white px-3 py-2 rounded text-sm hover:bg-indigo-700"
-                            :disabled="categoryList.length >= 20">添加</button>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <div v-for="cat in categoryList" :key="cat.id"
-                            class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm flex items-center">
-                            {{ cat.get('name') }}
-                            <button @click="removeCategory(cat)"
-                                class="ml-2 text-slate-400 hover:text-red-500 font-bold leading-none">&times;</button>
+                        <!-- 刷题卡片：点击 -> 'quiz_only' (只看题目) -->
+                        <div @click="openDetailModal(quizList[0], 'quiz_only')"
+                            class="w-full bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 border border-slate-100 min-h-[400px] flex flex-col relative animate-pop cursor-pointer hover:shadow-2xl transition-shadow">
+                            <span
+                                class="absolute top-4 right-4 text-xs text-slate-300 font-bold border border-slate-100 px-2 rounded">{{
+                                quizList[0].get('category') || '未分类' }}</span>
+                            <div class="flex-1 flex flex-col justify-center">
+                                <div class="prose prose-lg max-w-none text-slate-700"
+                                    v-html="renderMarkdown(quizList[0].get('content'))">
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center text-xs text-slate-300">
+                                (点击卡片展开阅读完整题目)
+                            </div>
                         </div>
-                        <div v-if="categoryList.length === 0" class="text-slate-400 text-sm">暂无分类，请添加。</div>
+
+                        <!-- 按钮区：点击 -> 'quiz' (查看答案&判题) -->
+                        <div class="mt-8 w-full max-w-md">
+                            <button @click="openDetailModal(quizList[0], 'quiz')"
+                                class="w-full bg-white border-2 border-primary text-primary font-bold text-lg py-4 rounded-xl hover:bg-primary hover:text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                👀 查看答案 & 判题
+                            </button>
+                        </div>
+                    </div>
+                    <div v-else class="flex flex-col items-center justify-center h-full text-slate-400">
+                        <div class="text-6xl mb-4">🎉</div>
+                        <p>暂无待复习题目</p><button @click="refreshQuiz" class="mt-4 text-primary underline">刷新</button>
                     </div>
                 </div>
-            </div>
+
+                <!-- View: Knowledge -->
+                <div v-if="currentView === 'knowledge'" key="knowledge"
+                    class="p-4 max-w-4xl mx-auto flex flex-col h-full">
+                    <div class="flex flex-wrap gap-2 pb-4 mb-2 no-print">
+                        <button @click="toggleKnowledgeFilter('')"
+                            class="px-4 py-2 rounded-full text-sm font-medium transition-colors border"
+                            :class="knowledgeFilter === '' ? 'bg-primary text-white shadow-md border-transparent' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'">全部</button>
+                        <button v-for="cat in categoryList" :key="cat.id"
+                            @click="toggleKnowledgeFilter(cat.get('name'))"
+                            class="px-4 py-2 rounded-full text-sm font-medium transition-colors border"
+                            :class="knowledgeFilter === cat.get('name') ? 'bg-primary text-white shadow-md border-transparent' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'">{{
+                            cat.get('name') }}</button>
+                    </div>
+
+                    <div v-if="loading" class="text-center py-10 text-slate-400">加载中...</div>
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-if="knowledgeList.length === 0" class="col-span-full text-center py-10 text-slate-400">{{
+                            knowledgeFilter ? `“${knowledgeFilter}”下暂无内容` : '暂无内容' }}</div>
+
+                        <div v-for="k in knowledgeList" :key="k.id" @click="openDetailModal(k, 'view')"
+                            class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md card-hover transition relative group/kitem animate-fade-in-up cursor-pointer">
+                            <span class="absolute top-4 right-4 text-[10px] text-slate-400 border px-1.5 rounded">{{
+                                k.get('category') || '未分类' }}</span>
+                            <h3 class="font-bold text-lg text-slate-800 mb-2 mr-8">{{ k.get('title') }}</h3>
+                            <div class="prose prose-sm line-clamp-3 text-slate-600"
+                                v-html="renderMarkdown(k.get('content'))"></div>
+
+                            <div class="mt-3 pt-2 border-t flex justify-end space-x-2">
+                                <button @click.stop="openEditModal(k, 'knowledge')"
+                                    class="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50">编辑</button>
+                                <button @click.stop="deleteKnowledge(k)"
+                                    class="text-xs text-rose-400 hover:text-rose-600 px-2 py-1 rounded hover:bg-rose-50">删除</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div v-if="!loading && knowledgeList.length > 0"
+                        class="mt-8 mb-4 no-print bg-white p-3 rounded-lg border border-slate-200 flex flex-wrap justify-between items-center gap-4 text-sm text-slate-600">
+                        <div class="flex items-center space-x-2">
+                            <span>每页:</span>
+                            <select v-model="pagination.pageSize" @change="resetPageAndFetch"
+                                class="border rounded p-1">
+                                <option :value="5">5</option>
+                                <option :value="10">10</option>
+                                <option :value="20">20</option>
+                                <option :value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button @click="changePage(pagination.current - 1)" :disabled="pagination.current <= 1"
+                                class="px-2 py-1 border rounded hover:bg-slate-50 disabled:opacity-50">&lt;</button>
+                            <span>第 {{ pagination.current }} 页 / 共 {{ pagination.total }} 页</span>
+                            <button @click="changePage(pagination.current + 1)"
+                                :disabled="pagination.current >= pagination.total"
+                                class="px-2 py-1 border rounded hover:bg-slate-50 disabled:opacity-50">&gt;</button>
+                            <div class="flex items-center space-x-1 ml-2">
+                                <input type="number" v-model.number="jumpPageNum"
+                                    class="w-12 border rounded p-1 text-center" min="1" :max="pagination.total">
+                                <button @click="changePage(jumpPageNum)"
+                                    class="px-2 py-1 border rounded bg-slate-50 hover:bg-slate-100 text-xs">跳转</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View: Settings -->
+                <div v-if="currentView === 'settings'" key="settings" class="p-4 max-w-md mx-auto space-y-4">
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="font-bold mb-4 border-b pb-2">账号信息</h3>
+                        <p class="text-sm text-slate-600 mb-1">User: {{ currentUser.getUsername() }}</p>
+                        <button @click="handleLogout"
+                            class="text-xs text-rose-500 border border-rose-500 px-2 py-1 rounded hover:bg-rose-50">退出登录</button>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="font-bold mb-4 border-b pb-2 flex justify-between">
+                            <span>分类管理</span>
+                            <span class="text-xs text-slate-400 font-normal">{{ categoryList.length }}/20</span>
+                        </h3>
+                        <div class="bg-yellow-50 text-yellow-700 text-xs p-2 mb-4 rounded">分类独立存储，数据更安全。</div>
+                        <div class="flex space-x-2 mb-4">
+                            <input v-model="newCategoryName" placeholder="输入新分类名称"
+                                class="flex-1 p-2 border rounded text-sm">
+                            <button @click="addCategory"
+                                class="bg-primary text-white px-3 py-2 rounded text-sm hover:bg-slate-700"
+                                :disabled="categoryList.length >= 20">添加</button>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <div v-for="cat in categoryList" :key="cat.id"
+                                class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm flex items-center">
+                                {{ cat.get('name') }}
+                                <button @click="removeCategory(cat)"
+                                    class="ml-2 text-slate-400 hover:text-rose-500 font-bold leading-none">&times;</button>
+                            </div>
+                            <div v-if="categoryList.length === 0" class="text-slate-400 text-sm">暂无分类，请添加。</div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
         </main>
 
-        <!-- Modal (保持不变) -->
+        <!-- Navigation Sidebar (Desktop) / Bottom Bar (Mobile) -->
+        <nav
+            class="bg-white border-r border-slate-200 flex flex-col justify-between w-full md:w-20 md:h-full fixed bottom-0 md:static z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none">
+            <div class="flex md:flex-col justify-around md:justify-start md:space-y-6 md:pt-8 p-2 md:p-0">
+                <button @click="currentView='list'" :class="navClass('list')"
+                    class="nav-card p-3 rounded-2xl transition-all duration-300 flex flex-col items-center group">
+                    <span class="text-2xl mb-1 transition-transform group-hover:scale-110">📚</span>
+                    <span class="text-[10px] font-medium">错题本</span>
+                </button>
+                <button @click="currentView='quiz'" :class="navClass('quiz')"
+                    class="nav-card p-3 rounded-2xl transition-all duration-300 flex flex-col items-center group">
+                    <span class="text-2xl mb-1 transition-transform group-hover:scale-110">🎯</span>
+                    <span class="text-[10px] font-medium">刷题</span>
+                </button>
+                <button @click="currentView='knowledge'" :class="navClass('knowledge')"
+                    class="nav-card p-3 rounded-2xl transition-all duration-300 flex flex-col items-center group">
+                    <span class="text-2xl mb-1 transition-transform group-hover:scale-110">🧠</span>
+                    <span class="text-[10px] font-medium">知识点</span>
+                </button>
+                <button @click="currentView='settings'" :class="navClass('settings')"
+                    class="nav-card p-3 rounded-2xl transition-all duration-300 flex flex-col items-center group">
+                    <span class="text-2xl mb-1 transition-transform group-hover:scale-110">⚙️</span>
+                    <span class="text-[10px] font-medium">设置</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- ================= 新增/编辑 弹窗 ================= -->
         <div v-if="showModal" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
                 <div class="p-4 border-b bg-slate-50 flex justify-between items-center">
@@ -423,7 +468,7 @@
                 <div class="p-6 overflow-y-auto space-y-4">
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-500 block mb-1">所属分类 <span
-                                class="text-red-500">*</span></label>
+                                class="text-rose-500">*</span></label>
                         <select v-model="form.category"
                             class="w-full p-2 border rounded bg-white focus:ring-2 ring-primary/50 outline-none">
                             <option value="" disabled>-- 请选择 --</option>
@@ -479,11 +524,116 @@
                 <div class="p-4 border-t bg-slate-50 flex justify-end space-x-3">
                     <button @click="closeModal" class="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded">取消</button>
                     <button @click="submitData"
-                        class="px-6 py-2 bg-primary text-white rounded shadow hover:bg-indigo-700"
+                        class="px-6 py-2 bg-primary text-white rounded shadow hover:bg-slate-700"
                         :disabled="categoryList.length === 0">保存</button>
                 </div>
             </div>
         </div>
+
+        <!-- ================= 统一详情浮窗 ================= -->
+        <div v-if="showDetailModal && currentDetail"
+            class="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4"
+            @click.self="showDetailModal = false">
+
+            <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl flex flex-col max-h-[90vh] animate-pop">
+
+                <!-- 头部 -->
+                <div class="p-4 border-b bg-slate-50 flex justify-between items-center rounded-t-xl">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center">
+                        <span class="mr-2">
+                            {{ detailContext === 'quiz' ? '判题模式' : (detailContext === 'quiz_only' ? '题目详情' : '详情查看') }}
+                        </span>
+                        <span class="text-xs font-normal text-slate-500 bg-white border px-1.5 py-0.5 rounded">
+                            {{ currentDetail.get('category') }}
+                        </span>
+                    </h3>
+                    <button @click="showDetailModal = false"
+                        class="text-2xl text-slate-400 hover:text-slate-600">&times;</button>
+                </div>
+
+                <!-- 内容滚动区 -->
+                <div class="p-6 overflow-y-auto custom-scrollbar bg-white flex-1">
+
+                    <!-- 知识点展示模式 -->
+                    <template v-if="currentDetail.className === 'Knowledge'">
+                        <h2 class="text-2xl font-bold mb-4">{{ currentDetail.get('title') }}</h2>
+                        <div class="prose prose-slate max-w-none" v-html="renderMarkdown(currentDetail.get('content'))">
+                        </div>
+                    </template>
+
+                    <!-- 错题/刷题展示模式 -->
+                    <template v-else>
+                        <div class="mb-6">
+                            <div class="text-sm font-bold text-slate-400 mb-2">题目</div>
+                            <div class="prose prose-slate prose-lg max-w-none text-slate-800"
+                                v-html="renderMarkdown(currentDetail.get('content'))">
+                            </div>
+                        </div>
+
+                        <!-- 答案与解析 (只有在不是 "只看题目" 模式下才显示) -->
+                        <div v-if="detailContext !== 'quiz_only'"
+                            class="bg-emerald-50/50 p-5 rounded-xl border border-emerald-100/50 animate-fade-in-up">
+                            <div class="mb-4">
+                                <div class="text-sm font-bold text-emerald-600 mb-1">标准答案</div>
+                                <div class="prose prose-sm max-w-none text-emerald-900"
+                                    v-html="renderMarkdown(currentDetail.get('answer'))"></div>
+                            </div>
+
+                            <div class="border-t border-emerald-100/50 pt-4">
+                                <div class="text-sm font-bold text-slate-500 mb-1">解析</div>
+                                <div class="prose prose-sm max-w-none text-slate-700"
+                                    v-html="renderMarkdown(currentDetail.get('analysis'))"></div>
+                            </div>
+                        </div>
+
+                        <!-- 关联知识点 (也隐藏，防止剧透) -->
+                        <div v-if="detailContext !== 'quiz_only' && currentDetail.get('linkedKnowledge')"
+                            class="mt-4 p-3 bg-blue-50/50 rounded-lg text-sm flex items-center text-blue-800 animate-fade-in-up">
+                            <span class="mr-2">🔗</span>
+                            <span>关联知识点：{{ currentDetail.get('linkedKnowledge').get('title') }}</span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- 底部操作区：根据场景动态变化 -->
+                <div class="p-4 border-t bg-slate-50 flex justify-end space-x-3 rounded-b-xl">
+
+                    <!-- 场景1: 刷题-判分模式 (显示判分按钮) -->
+                    <template v-if="detailContext === 'quiz'">
+                        <button @click="handleQuizResultInModal(false)"
+                            class="flex-1 md:flex-none px-6 py-2 bg-rose-50 text-rose-600 border border-rose-200 rounded hover:bg-rose-100 transition-colors">
+                            记不清
+                        </button>
+                        <button @click="handleQuizResultInModal(true)"
+                            class="flex-1 md:flex-none px-6 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 shadow-md hover:shadow-lg transition-all">
+                            斩杀 (下一题)
+                        </button>
+                    </template>
+
+                    <!-- 场景2: 刷题-只看题目模式 (只显示关闭) -->
+                    <template v-else-if="detailContext === 'quiz_only'">
+                        <button @click="showDetailModal = false"
+                            class="px-6 py-2 bg-slate-800 text-white rounded shadow hover:bg-slate-700">
+                            关闭
+                        </button>
+                    </template>
+
+                    <!-- 场景3: 普通查看模式 (错题本/知识点) -->
+                    <template v-else>
+                        <button
+                            @click="showDetailModal = false; openEditModal(currentDetail, currentDetail.className === 'Knowledge' ? 'knowledge' : 'question')"
+                            class="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded">
+                            编辑此条
+                        </button>
+                        <button @click="showDetailModal = false"
+                            class="px-4 py-2 bg-slate-800 text-white rounded shadow hover:bg-slate-700">
+                            关闭
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -491,38 +641,48 @@
 
         createApp({
             setup() {
+                // ================= 状态变量定义 =================
                 const isReady = ref(false);
                 const hasConfig = ref(false);
                 const currentUser = ref(null);
                 const currentView = ref('list');
                 const loading = ref(false);
 
-                const showModal = ref(false);
-                const isEditing = ref(false);
-                const editingObject = ref(null);
-                const targetType = ref('question');
-                const showQuizAnswer = ref(false);
-
+                // 列表数据
                 const questions = ref([]);
                 const knowledgeList = ref([]);
                 const knowledgeListAll = ref([]);
                 const quizList = ref([]);
                 const categoryList = ref([]);
 
+                // 筛选与分页
                 const quizCategory = ref('');
                 const knowledgeFilter = ref('');
                 const listFilter = ref('');
                 const newCategoryName = ref('');
                 const masteryFilter = ref(-1);
-
                 const pagination = reactive({ current: 1, pageSize: 10, total: 0, count: 0 });
                 const jumpPageNum = ref(1);
 
+                // 弹窗控制
+                const showModal = ref(false);
+                const isEditing = ref(false);
+                const editingObject = ref(null);
+                const targetType = ref('question');
+                const showQuizAnswer = ref(false);
+
+                // 统一详情浮窗控制
+                const showDetailModal = ref(false);
+                const currentDetail = ref(null);
+                const detailContext = ref('view'); // 'view' | 'quiz' | 'quiz_only'
+
+                // 表单数据
                 const configForm = reactive({ appId: '', appKey: '', serverURL: '' });
                 const authMode = ref('login');
                 const authForm = reactive({ username: '', password: '' });
                 const form = reactive({ category: '', q_content: '', q_answer: '', q_analysis: '', q_tags: '', q_knowledgeId: '', k_title: '', k_content: '' });
 
+                // ================= 初始化与配置 =================
                 onMounted(() => {
                     const storedId = localStorage.getItem('lc_app_id');
                     const storedKey = localStorage.getItem('lc_app_key');
@@ -547,27 +707,52 @@
                     } catch (error) { console.error(error); alert('配置错误'); clearConfig(); }
                 };
 
+                const saveConfig = () => {
+                    localStorage.setItem('lc_app_id', configForm.appId);
+                    localStorage.setItem('lc_app_key', configForm.appKey);
+                    localStorage.setItem('lc_server_url', configForm.serverURL);
+                    initLeanCloud(configForm.appId, configForm.appKey, configForm.serverURL);
+                };
+                const clearConfig = () => {
+                    localStorage.removeItem('lc_app_id');
+                    localStorage.removeItem('lc_app_key');
+                    localStorage.removeItem('lc_server_url');
+                    hasConfig.value = false;
+                    isReady.value = false;
+                    location.reload();
+                };
+
+                // ================= 认证 =================
+                const handleAuth = async () => {
+                    try {
+                        if (authMode.value === 'login') {
+                            await AV.User.logIn(authForm.username, authForm.password);
+                        } else {
+                            const user = new AV.User();
+                            user.setUsername(authForm.username);
+                            user.setPassword(authForm.password);
+                            await user.signUp();
+                        }
+                        currentUser.value = AV.User.current();
+                        loadCategories();
+                        loadInitialData();
+                        loadKnowledgeForSelect();
+                    } catch (e) { alert('认证失败: ' + e.message); }
+                };
+
+                const handleLogout = () => {
+                    AV.User.logOut();
+                    currentUser.value = null;
+                    questions.value = [];
+                    knowledgeList.value = [];
+                };
+
+                // ================= 数据加载 =================
                 const loadCategories = async () => {
                     const query = new AV.Query('Category');
                     query.equalTo('owner', currentUser.value);
                     query.limit(100);
                     try { categoryList.value = await query.find(); } catch (e) { console.error(e); }
-                };
-
-                const addCategory = async () => {
-                    const val = newCategoryName.value.trim();
-                    if (!val) return;
-                    if (categoryList.value.some(c => c.get('name') === val)) return alert('分类已存在');
-                    if (categoryList.value.length >= 20) return alert('最多20个分类');
-                    const Category = AV.Object.extend('Category');
-                    const cat = new Category();
-                    cat.set('name', val); cat.set('owner', currentUser.value); cat.setACL(new AV.ACL(currentUser.value));
-                    try { await cat.save(); newCategoryName.value = ''; loadCategories(); } catch (e) { alert('添加失败: ' + e.message); }
-                };
-
-                const removeCategory = async (catObj) => {
-                    if (!confirm(`确定删除“${catObj.get('name')}”吗？`)) return;
-                    try { await catObj.destroy(); loadCategories(); } catch (e) { alert('删除失败: ' + e.message); }
                 };
 
                 const loadInitialData = () => {
@@ -584,18 +769,18 @@
                     try { knowledgeListAll.value = await query.find(); } catch (e) { }
                 };
 
-                const buildQuestionQuery = () => {
-                    const q = new AV.Query('Question');
-                    q.equalTo('owner', currentUser.value);
-                    if (listFilter.value) q.equalTo('category', listFilter.value);
-                    if (masteryFilter.value !== -1) q.equalTo('masteryLevel', masteryFilter.value);
-                    return q;
-                };
-
+                // 错题获取
                 const fetchQuestions = async () => {
                     loading.value = true;
-                    const query = buildQuestionQuery();
-                    const countQuery = buildQuestionQuery(); // Separate query for count
+                    const query = new AV.Query('Question');
+                    query.equalTo('owner', currentUser.value);
+                    if (listFilter.value) query.equalTo('category', listFilter.value);
+                    if (masteryFilter.value !== -1) query.equalTo('masteryLevel', masteryFilter.value);
+
+                    const countQuery = new AV.Query('Question');
+                    countQuery.equalTo('owner', currentUser.value);
+                    if (listFilter.value) countQuery.equalTo('category', listFilter.value);
+                    if (masteryFilter.value !== -1) countQuery.equalTo('masteryLevel', masteryFilter.value);
 
                     query.skip((pagination.current - 1) * pagination.pageSize);
                     query.limit(pagination.pageSize);
@@ -611,17 +796,16 @@
                     loading.value = false;
                 };
 
-                const buildKnowledgeQuery = () => {
-                    const q = new AV.Query('Knowledge');
-                    q.equalTo('owner', currentUser.value);
-                    if (knowledgeFilter.value) q.equalTo('category', knowledgeFilter.value);
-                    return q;
-                };
-
+                // 知识点获取
                 const fetchKnowledge = async () => {
                     loading.value = true;
-                    const query = buildKnowledgeQuery();
-                    const countQuery = buildKnowledgeQuery();
+                    const query = new AV.Query('Knowledge');
+                    query.equalTo('owner', currentUser.value);
+                    if (knowledgeFilter.value) query.equalTo('category', knowledgeFilter.value);
+
+                    const countQuery = new AV.Query('Knowledge');
+                    countQuery.equalTo('owner', currentUser.value);
+                    if (knowledgeFilter.value) countQuery.equalTo('category', knowledgeFilter.value);
 
                     query.skip((pagination.current - 1) * pagination.pageSize);
                     query.limit(pagination.pageSize);
@@ -636,118 +820,180 @@
                     loading.value = false;
                 };
 
-                const changePage = (page) => {
-                    let p = parseInt(page);
-                    if (isNaN(p)) p = 1;
-                    if (p < 1) p = 1;
-                    if (p > pagination.total) p = pagination.total;
-                    pagination.current = p;
-                    jumpPageNum.value = p;
-                    if (currentView.value === 'list') fetchQuestions();
-                    else if (currentView.value === 'knowledge') fetchKnowledge();
+                // ================= 交互逻辑 =================
+                const addCategory = async () => {
+                    const val = newCategoryName.value.trim();
+                    if (!val) return;
+                    if (categoryList.value.some(c => c.get('name') === val)) return alert('分类已存在');
+                    if (categoryList.value.length >= 20) return alert('最多20个分类');
+                    const Category = AV.Object.extend('Category');
+                    const cat = new Category();
+                    cat.set('name', val); cat.set('owner', currentUser.value); cat.setACL(new AV.ACL(currentUser.value));
+                    try { await cat.save(); newCategoryName.value = ''; loadCategories(); } catch (e) { alert('添加失败: ' + e.message); }
                 };
 
-                const resetPageAndFetch = () => {
-                    pagination.current = 1; jumpPageNum.value = 1;
-                    if (currentView.value === 'list') fetchQuestions();
-                    else if (currentView.value === 'knowledge') fetchKnowledge();
-                };
-
-                const switchView = (view) => {
-                    currentView.value = view;
-                    if (view === 'list' || view === 'knowledge') resetPageAndFetch();
-                    if (view === 'quiz' && quizList.value.length === 0) refreshQuiz();
-                };
-
-                const toggleListFilter = (catName) => { listFilter.value = (listFilter.value === catName) ? '' : catName; resetPageAndFetch(); };
-                const toggleKnowledgeFilter = (catName) => { knowledgeFilter.value = (knowledgeFilter.value === catName) ? '' : catName; resetPageAndFetch(); };
-
-                const openAddModal = () => {
-                    isEditing.value = false; editingObject.value = null;
-                    targetType.value = currentView.value === 'knowledge' ? 'knowledge' : 'question';
-                    form.q_content = ''; form.q_answer = ''; form.q_analysis = ''; form.q_tags = '';
-                    form.k_title = ''; form.k_content = ''; form.q_knowledgeId = '';
-                    form.category = categoryList.value.length > 0 ? categoryList.value[0].get('name') : '';
-                    showModal.value = true;
-                };
-
-                const openEditModal = (item, type) => {
-                    isEditing.value = true; editingObject.value = item; targetType.value = type;
-                    form.category = item.get('category');
-                    if (type === 'knowledge') { form.k_title = item.get('title'); form.k_content = item.get('content'); }
-                    else {
-                        form.q_content = item.get('content'); form.q_answer = item.get('answer');
-                        form.q_analysis = item.get('analysis'); form.q_tags = (item.get('tags') || []).join(',');
-                        const link = item.get('linkedKnowledge'); form.q_knowledgeId = link ? link.id : '';
-                    }
-                    showModal.value = true;
-                };
-
-                const submitData = async () => {
-                    if (!form.category) return alert('请选择一个分类！');
-                    try {
-                        let obj;
-                        if (targetType.value === 'knowledge') {
-                            const Knowledge = AV.Object.extend('Knowledge');
-                            obj = isEditing.value ? editingObject.value : new Knowledge();
-                            obj.set('title', form.k_title); obj.set('content', form.k_content);
-                        } else {
-                            const Question = AV.Object.extend('Question');
-                            obj = isEditing.value ? editingObject.value : new Question();
-                            obj.set('content', form.q_content); obj.set('answer', form.q_answer);
-                            obj.set('analysis', form.q_analysis);
-                            obj.set('tags', form.q_tags.split(/,|，/).map(t => t.trim()).filter(t => t));
-                            if (!isEditing.value) obj.set('masteryLevel', 0);
-                            if (form.q_knowledgeId) obj.set('linkedKnowledge', AV.Object.createWithoutData('Knowledge', form.q_knowledgeId));
-                            else obj.unset('linkedKnowledge');
-                        }
-                        obj.set('category', form.category);
-                        if (!isEditing.value) { obj.set('owner', currentUser.value); obj.setACL(new AV.ACL(currentUser.value)); }
-                        await obj.save();
-                        if (targetType.value === 'knowledge') { loadKnowledgeForSelect(); fetchKnowledge(); }
-                        else fetchQuestions();
-                        closeModal();
-                    } catch (error) { alert('保存失败: ' + error.message); }
+                const removeCategory = async (catObj) => {
+                    if (!confirm(`确定删除“${catObj.get('name')}”吗？`)) return;
+                    try { await catObj.destroy(); loadCategories(); } catch (e) { alert('删除失败: ' + e.message); }
                 };
 
                 const refreshQuiz = async () => {
-                    showQuizAnswer.value = false;
                     const query = new AV.Query('Question');
                     query.equalTo('owner', currentUser.value);
                     query.notEqualTo('masteryLevel', 1);
                     if (quizCategory.value) query.equalTo('category', quizCategory.value);
-                    query.include('linkedKnowledge');
-                    query.limit(20);
-                    try { const results = await query.find(); quizList.value = results.sort(() => Math.random() - 0.5); } catch (e) { console.error(e); }
-                };
-                const handleQuizResult = (killed) => {
-                    if (killed) { quizList.value[0].set('masteryLevel', 1); quizList.value[0].save(); }
-                    quizList.value.shift(); showQuizAnswer.value = false;
+                    query.limit(100);
+                    try {
+                        const results = await query.find();
+                        if (results.length > 0) {
+                            quizList.value = [results[Math.floor(Math.random() * results.length)]];
+                            showQuizAnswer.value = false;
+                        } else { quizList.value = []; }
+                    } catch (e) { console.error(e); }
                 };
 
-                const saveConfig = () => { localStorage.setItem('lc_app_id', configForm.appId); localStorage.setItem('lc_app_key', configForm.appKey); localStorage.setItem('lc_server_url', configForm.serverURL); initLeanCloud(configForm.appId, configForm.appKey, configForm.serverURL); };
-                const clearConfig = () => { localStorage.clear(); window.location.reload(); };
-                const handleAuth = async () => { try { if (authMode.value === 'login') currentUser.value = await AV.User.logIn(authForm.username, authForm.password); else { const u = new AV.User(); u.setUsername(authForm.username); u.setPassword(authForm.password); currentUser.value = await u.signUp(); } loadCategories(); loadInitialData(); loadKnowledgeForSelect(); } catch (e) { alert(e.message); } };
-                const handleLogout = async () => { await AV.User.logOut(); window.location.reload(); };
-                const toggleMastery = async (item) => { item.set('masteryLevel', item.get('masteryLevel') === 1 ? 0 : 1); await item.save(); };
-                const deleteQuestion = async (item) => { if (confirm('删除?')) { await item.destroy(); fetchQuestions(); } };
-                const deleteKnowledge = async (item) => { if (confirm('删除?')) { await item.destroy(); fetchKnowledge(); } };
+                const handleQuizResult = async (success) => {
+                    if (!quizList.value.length) return;
+                    const q = quizList.value[0];
+                    if (success) {
+                        q.set('masteryLevel', 1);
+                        try { await q.save(); } catch (e) { }
+                    }
+                    refreshQuiz();
+                };
+
+                // 在浮窗内判题的包装函数
+                const handleQuizResultInModal = async (success) => {
+                    await handleQuizResult(success);
+                    showDetailModal.value = false;
+                };
+
+                const toggleMastery = async (q) => {
+                    const level = q.get('masteryLevel') === 1 ? 0 : 1;
+                    q.set('masteryLevel', level);
+                    try { await q.save(); } catch (e) { }
+                };
+
+                // ================= 模态框操作 =================
+                const openAddModal = () => {
+                    isEditing.value = false;
+                    editingObject.value = null;
+                    targetType.value = currentView.value === 'knowledge' ? 'knowledge' : 'question';
+                    Object.assign(form, { category: '', q_content: '', q_answer: '', q_analysis: '', q_tags: '', q_knowledgeId: '', k_title: '', k_content: '' });
+                    showModal.value = true;
+                };
+
+                const openEditModal = (obj, type) => {
+                    isEditing.value = true;
+                    editingObject.value = obj;
+                    targetType.value = type;
+                    form.category = obj.get('category');
+                    if (type === 'question') {
+                        form.q_content = obj.get('content');
+                        form.q_answer = obj.get('answer');
+                        form.q_analysis = obj.get('analysis');
+                        form.q_tags = (obj.get('tags') || []).join(',');
+                        const linked = obj.get('linkedKnowledge');
+                        form.q_knowledgeId = linked ? linked.id : '';
+                    } else {
+                        form.k_title = obj.get('title');
+                        form.k_content = obj.get('content');
+                    }
+                    showModal.value = true;
+                };
+
+                // 打开详情浮窗（支持错题和刷题模式）
+                const openDetailModal = (item, context = 'view') => {
+                    currentDetail.value = item;
+                    detailContext.value = context;
+                    showDetailModal.value = true;
+                };
+
+                const submitData = async () => {
+                    if (!form.category) return alert('请选择分类');
+                    const ObjClass = AV.Object.extend(targetType.value === 'knowledge' ? 'Knowledge' : 'Question');
+                    const obj = isEditing.value ? editingObject.value : new ObjClass();
+
+                    if (!isEditing.value) {
+                        obj.set('owner', currentUser.value);
+                        obj.setACL(new AV.ACL(currentUser.value));
+                    }
+                    obj.set('category', form.category);
+
+                    if (targetType.value === 'question') {
+                        obj.set('content', form.q_content);
+                        obj.set('answer', form.q_answer);
+                        obj.set('analysis', form.q_analysis);
+                        obj.set('tags', form.q_tags.split(/[,，]/).map(t => t.trim()).filter(t => t));
+                        if (form.q_knowledgeId) {
+                            const k = AV.Object.createWithoutData('Knowledge', form.q_knowledgeId);
+                            obj.set('linkedKnowledge', k);
+                        } else { obj.unset('linkedKnowledge'); }
+                        if (!isEditing.value) obj.set('masteryLevel', 0);
+                    } else {
+                        obj.set('title', form.k_title);
+                        obj.set('content', form.k_content);
+                    }
+
+                    try {
+                        await obj.save();
+                        closeModal();
+                        loadInitialData();
+                    } catch (e) { alert('保存失败: ' + e.message); }
+                };
+
+                const deleteQuestion = async (q) => {
+                    if (!confirm('确定删除?')) return;
+                    try { await q.destroy(); fetchQuestions(); } catch (e) { }
+                };
+                const deleteKnowledge = async (k) => {
+                    if (!confirm('确定删除?')) return;
+                    try { await k.destroy(); fetchKnowledge(); } catch (e) { }
+                };
+
+                // ================= 辅助函数 =================
+                const changePage = (p) => {
+                    if (p < 1 || p > pagination.total) return;
+                    pagination.current = p;
+                    resetPageAndFetch();
+                };
+                const resetPageAndFetch = () => {
+                    if (currentView.value === 'list') fetchQuestions();
+                    else if (currentView.value === 'knowledge') fetchKnowledge();
+                };
+                const toggleListFilter = (cat) => { listFilter.value = cat; pagination.current = 1; fetchQuestions(); };
+                const toggleKnowledgeFilter = (cat) => { knowledgeFilter.value = cat; pagination.current = 1; fetchKnowledge(); };
+
                 const renderMarkdown = (text) => (text && typeof marked !== 'undefined') ? marked.parse(text) : (text || '');
                 const closeModal = () => showModal.value = false;
                 const printMode = () => window.print();
-                const navClass = (v) => currentView.value === v ? 'bg-primary text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:bg-slate-100';
+                const navClass = (v) => currentView.value === v ? 'bg-primary text-white shadow-lg shadow-slate-300 scale-105' : 'text-slate-500 hover:bg-slate-100 hover:shadow-md hover:-translate-y-0.5';
                 const viewTitle = computed(() => ({ 'list': '错题本', 'quiz': '智能刷题', 'knowledge': '知识库', 'settings': '设置' }[currentView.value]));
                 const goToSettings = () => { closeModal(); currentView.value = 'settings'; };
 
+                watch(currentView, (newVal) => {
+                    if (newVal === 'list' || newVal === 'knowledge') {
+                        pagination.current = 1;
+                        loadInitialData();
+                    }
+                });
+
+                // ================= 返回给模板 =================
                 return {
-                    isReady, hasConfig, currentUser, currentView, loading, configForm, authMode, authForm,
-                    questions, knowledgeList, knowledgeListAll, quizList, showModal, form, showQuizAnswer, viewTitle,
-                    categoryList, newCategoryName, quizCategory, knowledgeFilter, isEditing, targetType,
-                    listFilter, masteryFilter, pagination, jumpPageNum,
-                    saveConfig, clearConfig, handleAuth, handleLogout, renderMarkdown, navClass, switchView,
-                    openAddModal, openEditModal, closeModal, submitData, toggleMastery, deleteQuestion, deleteKnowledge,
-                    refreshQuiz, handleQuizResult, printMode, addCategory, removeCategory, goToSettings,
-                    toggleListFilter, toggleKnowledgeFilter, resetPageAndFetch, changePage
+                    isReady, hasConfig, currentUser, currentView, loading,
+                    configForm, authMode, authForm, form,
+                    questions, knowledgeList, knowledgeListAll, quizList, categoryList,
+                    quizCategory, knowledgeFilter, listFilter, newCategoryName, masteryFilter,
+                    pagination, jumpPageNum,
+                    showModal, isEditing, targetType, showQuizAnswer,
+                    showDetailModal, currentDetail, detailContext, // 详情浮窗相关
+                    saveConfig, clearConfig, handleAuth, handleLogout,
+                    addCategory, removeCategory,
+                    refreshQuiz, handleQuizResult, handleQuizResultInModal, // 方法
+                    openAddModal, openEditModal, openDetailModal, submitData,
+                    deleteQuestion, deleteKnowledge, toggleMastery,
+                    changePage, resetPageAndFetch, toggleListFilter, toggleKnowledgeFilter,
+                    renderMarkdown, closeModal, printMode, navClass, viewTitle, goToSettings
                 };
             }
         }).mount('#app');
