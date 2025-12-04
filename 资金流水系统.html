@@ -221,7 +221,7 @@
       transform: translateY(-1px);
     }
 
-    /* 统计概览条 */
+    /* 统计概览条 - 修改版 */
     .summary {
       background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
       padding: 16px 20px;
@@ -230,6 +230,57 @@
       font-weight: 500;
       color: var(--text-main);
       border-left: 5px solid var(--primary);
+      /* 新增 Flex 布局 */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .summary-left {
+      flex: 1;
+    }
+
+    .summary-right {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.4);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      color: var(--text-main);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .refresh-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 1.1em;
+      margin-left: 8px;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      transition: transform 0.3s ease;
+    }
+
+    .refresh-btn:hover {
+      transform: rotate(180deg);
+      color: var(--primary-hover);
+    }
+
+    @media (max-width: 768px) {
+      .summary {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .summary-right {
+        width: 100%;
+        justify-content: space-between;
+      }
     }
 
     /* 表格样式 */
@@ -559,7 +610,10 @@
       </button>
     </div>
 
-    <div class="summary" id="summaryBox">当前：共 0 笔支出，总额 ¥0.00</div>
+    <!-- 统计栏区域 (已修改) -->
+    <div class="summary" id="summaryBox">
+      <!-- 动态内容将通过 JS 渲染 -->
+    </div>
 
     <!-- 图表区域 -->
     <div class="charts-section">
@@ -571,7 +625,8 @@
         </div>
         <canvas id="monthlyBarChart" height="180"></canvas>
         <div id="budgetProgressBar">
-          <div id="budgetBase" style="height:100%; width:100%; background:#cfd8dc; position:relative; overflow:hidden;">
+          <div id="budgetBase"
+            style="height:100%; width:100%; background:#cfd8dc; position:relative; overflow:hidden;">
             <div id="progressGreen"
               style="height:100%; width:0%; background:linear-gradient(to right, #a5d6a7, #81c784); position:absolute; left:0; top:0; transition: width 0.5s ease;">
             </div>
@@ -729,8 +784,8 @@
   <script>
     // ========== 配置与初始化 ==========
     const BUDGET_STORAGE_KEY = 'user_monthly_budgets';
-    const APP_ID = 'dwracmq52kDlwQkRaO2jPCFJ-gzGzoHsz';
-    const APP_KEY = 'DngFcXZMsMup5W3Z4QSYPMdw';
+    const APP_ID = 'dwracmq52kDlwQkRaO2jPCFJ-gzGzoHsz';     // ← 替换
+    const APP_KEY = 'DngFcXZMsMup5W3Z4QSYPMdw';   // ← 替换
     const SERVER_URL = 'https://api.leancloud.cn';
 
     const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '房租', '宠物', '其他'];
@@ -759,6 +814,9 @@
     let currentPage = 1;
     let pageSize = 10;
     let currentBudget = 9000;
+
+    // 分析报告相关变量
+    let analysisModeIndex = 0; // 0-12 分别对应多种模式
 
     // ========== 下拉框逻辑 ==========
     function initCustomDropdown() {
@@ -1086,6 +1144,7 @@
 
       renderTable();
       renderCharts();
+      updateAnalysis(); // 更新分析报告
     }
 
     function applyMonthOrSearchFilter() {
@@ -1145,48 +1204,27 @@
       const start = (currentPage - 1) * pageSize;
       const pageData = filteredExpenses.slice(start, start + pageSize);
 
-      // 统计栏逻辑
+      // --- 统计栏逻辑更新 ---
       const summaryBox = document.getElementById('summaryBox');
 
-      // 基础数据：仅应用了时间筛选（月份+日期）的数据，用于显示“总消费”
-      const baseData = getTimeFilteredExpenses();
-      const baseTotal = baseData.reduce((a, b) => a + b.amount, 0);
-      const baseCount = baseData.length;
-
-      // 目标数据：filteredExpenses (已经包含了所有筛选条件：时间+类型+搜索)
-      // 用于显示“筛选结果”
+      // 目标数据：filteredExpenses (已经包含了所有筛选条件)
       const targetData = filteredExpenses;
       const targetTotal = targetData.reduce((a, b) => a + b.amount, 0);
       const targetCount = targetData.length;
 
-      // 构造提示文案
-      let contextText = "当前范围";
-      const mFilter = document.getElementById('monthFilter').value;
-      const sDate = document.getElementById('startDate').value;
-      const eDate = document.getElementById('endDate').value;
+      // 构建统计HTML：左侧统计，右侧分析
+      const leftContent = `
+        <div class="summary-left">
+          <span style="color:var(--primary); font-weight:bold;">筛选结果：共 ${targetCount} 笔，总额 ¥${formatMoney(targetTotal)}</span>
+        </div>`;
 
-      if (sDate || eDate) {
-        contextText = "选定日期范围";
-      } else if (mFilter) {
-        contextText = `${mFilter}`;
-      } else {
-        contextText = "全部数据";
-      }
+      const rightContent = `
+        <div class="summary-right">
+            <span id="analysisText" style="margin-right:5px;">正在生成分析...</span>
+            <button class="refresh-btn" onclick="switchAnalysisMode()" title="刷新分析">↻</button>
+        </div>`;
 
-      let summaryHtml = `<span style="color:var(--primary); font-weight:bold;">筛选结果：共 ${targetCount} 笔，总额 ¥${formatMoney(targetTotal)}</span>`;
-
-      // 增加笔均显示
-      if (targetCount > 0) {
-        const avg = targetTotal / targetCount;
-        summaryHtml += `<span style="margin-left:15px; font-size:0.9em; color:var(--text-main);">笔均 ¥${formatMoney(avg)}</span>`;
-      }
-
-      // 仅当筛选结果与基础范围数据不一致时，才显示括号内的对比数据
-      if (targetCount !== baseCount || Math.abs(targetTotal - baseTotal) > 0.01) {
-        summaryHtml += `<span style="margin-left:15px; font-size:0.9em; color:var(--text-sub);">(${contextText}共 ${baseCount} 笔，总消费 ¥${formatMoney(baseTotal)})</span>`;
-      }
-
-      summaryBox.innerHTML = summaryHtml;
+      summaryBox.innerHTML = leftContent + rightContent;
 
       const groups = {};
       pageData.forEach(e => {
@@ -1222,6 +1260,168 @@
       });
 
       checkBatchBtn();
+    }
+
+    // ========== 分析报告逻辑 (大幅增强版) ==========
+
+    function switchAnalysisMode() {
+      // 增加模式数量：0-12
+      analysisModeIndex = (analysisModeIndex + 1) % 13;
+      updateAnalysis();
+    }
+
+    function updateAnalysis() {
+      const textEl = document.getElementById('analysisText');
+      if (!textEl) return;
+
+      const data = filteredExpenses;
+
+      if (data.length === 0) {
+        textEl.textContent = "暂无数据可分析";
+        return;
+      }
+
+      // 基础计算（金额不除去房租，包含所有数据）
+      const dates = data.map(e => new Date(e.date).getTime());
+      const minDate = Math.min(...dates);
+      const maxDate = Math.max(...dates);
+      const daySpan = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + (minDate === maxDate ? 0 : 1));
+      const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
+
+      let resultText = "";
+
+      // 预处理：单笔排行 (除去房租，从大到小)
+      const sortedByAmount = data.filter(item => item.type1 !== '房租').sort((a, b) => b.amount - a.amount);
+
+      // 预处理：类别统计 (统计每个类别的总额)
+      const typeGroups = {};
+      const typeCounts = {}; // 用于频次统计
+      data.forEach(item => {
+        typeGroups[item.type1] = (typeGroups[item.type1] || 0) + item.amount;
+        typeCounts[item.type1] = (typeCounts[item.type1] || 0) + 1;
+      });
+
+      // 类别排行数组（排除房租用于排序，但计算百分比时分母含房租）
+      const sortedTypes = Object.entries(typeGroups)
+        .filter(([t]) => t !== '房租')
+        .sort((a, b) => b[1] - a[1]);
+
+      switch (analysisModeIndex) {
+        case 0: // 1. 日均支出 (包含房租)
+          const dailyAvg = totalAmount / daySpan;
+          resultText = `日均支出${dailyAvg.toFixed(2)}元`;
+          break;
+
+        case 1: // 2. 单笔最高 (除去房租) - 第一名
+          if (sortedByAmount.length > 0) {
+            const item = sortedByAmount[0];
+            resultText = `单笔最高：${item.type1}${item.type2}消费${item.amount}元`;
+          } else { resultText = "除房租外暂无消费"; }
+          break;
+
+        case 2: // 3. 单笔第二 (除去房租)
+          if (sortedByAmount.length > 1) {
+            const item = sortedByAmount[1];
+            resultText = `单笔第二：${item.type1}${item.type2}消费${item.amount}元`;
+          } else { resultText = "暂无单笔消费第二名"; }
+          break;
+
+        case 3: // 4. 单笔第三 (除去房租)
+          if (sortedByAmount.length > 2) {
+            const item = sortedByAmount[2];
+            resultText = `单笔第三：${item.type1}${item.type2}消费${item.amount}元`;
+          } else { resultText = "暂无单笔消费第三名"; }
+          break;
+
+        case 4: // 5. 单笔最小 (除去房租)
+          if (sortedByAmount.length > 0) {
+            const item = sortedByAmount[sortedByAmount.length - 1];
+            resultText = `单笔最小：${item.type1}${item.type2}消费${item.amount}元`;
+          } else { resultText = "暂无数据"; }
+          break;
+
+        case 5: // 6. 最大支出类别占比 (类别除房租)
+          if (sortedTypes.length > 0) {
+            const [name, amt] = sortedTypes[0];
+            const percent = ((amt / totalAmount) * 100).toFixed(1);
+            resultText = `第一大类：${name}占${percent}%`;
+          } else { resultText = "除房租外暂无主要分类"; }
+          break;
+
+        case 6: // 7. 第二大支出类别占比
+          if (sortedTypes.length > 1) {
+            const [name, amt] = sortedTypes[1];
+            const percent = ((amt / totalAmount) * 100).toFixed(1);
+            resultText = `第二大类：${name}占${percent}%`;
+          } else { resultText = "暂无第二大分类"; }
+          break;
+
+        case 7: // 8. 第三大支出类别占比
+          if (sortedTypes.length > 2) {
+            const [name, amt] = sortedTypes[2];
+            const percent = ((amt / totalAmount) * 100).toFixed(1);
+            resultText = `第三大类：${name}占${percent}%`;
+          } else { resultText = "暂无第三大分类"; }
+          break;
+
+        case 8: // 9. 最小支出类别占比
+           if (sortedTypes.length > 0) {
+            const [name, amt] = sortedTypes[sortedTypes.length - 1];
+            const percent = ((amt / totalAmount) * 100).toFixed(1);
+            resultText = `最小分类：${name}占${percent}%`;
+          } else { resultText = "暂无数据"; }
+          break;
+
+        case 9: // 10. 周末 vs 工作日分析 (新创意)
+          let weekDayTotal = 0, weekDayCount = 0;
+          let weekendTotal = 0, weekendCount = 0;
+          // 这里的 Count 是指天数，不是笔数，为了算日均
+          // 简化逻辑：直接遍历每笔交易，虽然不严谨（同一天多笔），但能反映趋势
+          // 严谨逻辑：计算范围内有几个工作日和几个周末
+          // 这里采用"平均单笔金额"对比，或者"总额对比"
+          data.forEach(item => {
+             const day = new Date(item.date).getDay();
+             if (day === 0 || day === 6) { weekendTotal += item.amount; weekendCount++; }
+             else { weekDayTotal += item.amount; weekDayCount++; }
+          });
+          const wdAvg = weekDayCount ? (weekDayTotal / weekDayCount) : 0;
+          const weAvg = weekendCount ? (weekendTotal / weekendCount) : 0;
+          if (weAvg > wdAvg) resultText = `周末笔均支出比工作日高${(weAvg - wdAvg).toFixed(0)}元`;
+          else if (wdAvg > weAvg) resultText = `工作日笔均支出比周末高${(wdAvg - weAvg).toFixed(0)}元`;
+          else resultText = "周末与工作日消费持平";
+          break;
+
+        case 10: // 11. 频次之王 (新创意)
+          const sortedCounts = Object.entries(typeCounts).sort((a,b) => b[1] - a[1]);
+          if (sortedCounts.length > 0) {
+             const [name, count] = sortedCounts[0];
+             resultText = `频次之王：${name}类共消费${count}次`;
+          } else { resultText = "暂无频次数据"; }
+          break;
+
+        case 11: // 12. 消费密度 (包含房租)
+          const density = data.length / daySpan;
+          resultText = `消费密度为${density.toFixed(1)}次/天`;
+          break;
+
+        case 12: // 13. 结余预测 (包含房租)
+          const dailyExpense = totalAmount / daySpan;
+          const balance = currentBudget - totalAmount;
+
+          if (balance < 0) {
+            resultText = `已超额${Math.abs(balance).toFixed(2)}元`;
+          } else {
+            if (dailyExpense <= 0) {
+              resultText = "余额充足（暂无日均支出）";
+            } else {
+              const daysLeft = balance / dailyExpense;
+              resultText = `余额仅够花${daysLeft.toFixed(0)}天`;
+            }
+          }
+          break;
+      }
+
+      textEl.textContent = resultText;
     }
 
     // ========== 分页与操作逻辑 ==========
@@ -1343,6 +1543,7 @@
         budgets[nowStr] = parseFloat(v);
         localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets));
         renderCharts();
+        updateAnalysis(); // 预算改变后更新分析报告
       }
     };
 
