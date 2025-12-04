@@ -221,7 +221,7 @@
       transform: translateY(-1px);
     }
 
-    /* 统计概览条 - 修改版 */
+    /* 统计概览条 */
     .summary {
       background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
       padding: 16px 20px;
@@ -230,7 +230,7 @@
       font-weight: 500;
       color: var(--text-main);
       border-left: 5px solid var(--primary);
-      /* 新增 Flex 布局 */
+      /* Flex 布局 */
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -816,7 +816,8 @@
     let currentBudget = 9000;
 
     // 分析报告相关变量
-    let analysisModeIndex = 0; // 0-12 分别对应多种模式
+    let analysisModeIndex = 0;
+    const ANALYSIS_MODE_COUNT = 17; // 总共的模式数量
 
     // ========== 下拉框逻辑 ==========
     function initCustomDropdown() {
@@ -1221,7 +1222,7 @@
       const rightContent = `
         <div class="summary-right">
             <span id="analysisText" style="margin-right:5px;">正在生成分析...</span>
-            <button class="refresh-btn" onclick="switchAnalysisMode()" title="刷新分析">↻</button>
+            <button class="refresh-btn" onclick="switchAnalysisMode()" title="随机刷新分析">↻</button>
         </div>`;
 
       summaryBox.innerHTML = leftContent + rightContent;
@@ -1262,11 +1263,15 @@
       checkBatchBtn();
     }
 
-    // ========== 分析报告逻辑 (大幅增强版) ==========
+    // ========== 分析报告逻辑 (深度优化版) ==========
 
     function switchAnalysisMode() {
-      // 增加模式数量：0-12
-      analysisModeIndex = (analysisModeIndex + 1) % 13;
+      // 需求1：随机切换，避免重复
+      let newIndex;
+      do {
+          newIndex = Math.floor(Math.random() * ANALYSIS_MODE_COUNT);
+      } while (newIndex === analysisModeIndex && ANALYSIS_MODE_COUNT > 1);
+      analysisModeIndex = newIndex;
       updateAnalysis();
     }
 
@@ -1293,54 +1298,55 @@
       // 预处理：单笔排行 (除去房租，从大到小)
       const sortedByAmount = data.filter(item => item.type1 !== '房租').sort((a, b) => b.amount - a.amount);
 
-      // 预处理：类别统计 (统计每个类别的总额)
+      // 预处理：类别统计
       const typeGroups = {};
-      const typeCounts = {}; // 用于频次统计
+      const typeCounts = {};
       data.forEach(item => {
         typeGroups[item.type1] = (typeGroups[item.type1] || 0) + item.amount;
         typeCounts[item.type1] = (typeCounts[item.type1] || 0) + 1;
       });
 
-      // 类别排行数组（排除房租用于排序，但计算百分比时分母含房租）
+      // 类别排行数组（排除房租用于排序）
       const sortedTypes = Object.entries(typeGroups)
         .filter(([t]) => t !== '房租')
         .sort((a, b) => b[1] - a[1]);
 
       switch (analysisModeIndex) {
-        case 0: // 1. 日均支出 (包含房租)
+        case 0: // 1. 日均支出
           const dailyAvg = totalAmount / daySpan;
           resultText = `日均支出${dailyAvg.toFixed(2)}元`;
           break;
 
-        case 1: // 2. 单笔最高 (除去房租) - 第一名
+        // 需求2：优化单笔消费展示格式 【Type1】Type2
+        case 1: // 2. 单笔最高
           if (sortedByAmount.length > 0) {
             const item = sortedByAmount[0];
-            resultText = `单笔最高：${item.type1}${item.type2}消费${item.amount}元`;
+            resultText = `单笔最高：【${item.type1}】${item.type2} 消费${item.amount}元`;
           } else { resultText = "除房租外暂无消费"; }
           break;
 
-        case 2: // 3. 单笔第二 (除去房租)
+        case 2: // 3. 单笔第二
           if (sortedByAmount.length > 1) {
             const item = sortedByAmount[1];
-            resultText = `单笔第二：${item.type1}${item.type2}消费${item.amount}元`;
+            resultText = `单笔第二：【${item.type1}】${item.type2} 消费${item.amount}元`;
           } else { resultText = "暂无单笔消费第二名"; }
           break;
 
-        case 3: // 4. 单笔第三 (除去房租)
+        case 3: // 4. 单笔第三
           if (sortedByAmount.length > 2) {
             const item = sortedByAmount[2];
-            resultText = `单笔第三：${item.type1}${item.type2}消费${item.amount}元`;
+            resultText = `单笔第三：【${item.type1}】${item.type2} 消费${item.amount}元`;
           } else { resultText = "暂无单笔消费第三名"; }
           break;
 
-        case 4: // 5. 单笔最小 (除去房租)
+        case 4: // 5. 单笔最小
           if (sortedByAmount.length > 0) {
             const item = sortedByAmount[sortedByAmount.length - 1];
-            resultText = `单笔最小：${item.type1}${item.type2}消费${item.amount}元`;
+            resultText = `单笔最小：【${item.type1}】${item.type2} 消费${item.amount}元`;
           } else { resultText = "暂无数据"; }
           break;
 
-        case 5: // 6. 最大支出类别占比 (类别除房租)
+        case 5: // 6. 第一大类
           if (sortedTypes.length > 0) {
             const [name, amt] = sortedTypes[0];
             const percent = ((amt / totalAmount) * 100).toFixed(1);
@@ -1348,7 +1354,7 @@
           } else { resultText = "除房租外暂无主要分类"; }
           break;
 
-        case 6: // 7. 第二大支出类别占比
+        case 6: // 7. 第二大类
           if (sortedTypes.length > 1) {
             const [name, amt] = sortedTypes[1];
             const percent = ((amt / totalAmount) * 100).toFixed(1);
@@ -1356,7 +1362,7 @@
           } else { resultText = "暂无第二大分类"; }
           break;
 
-        case 7: // 8. 第三大支出类别占比
+        case 7: // 8. 第三大类
           if (sortedTypes.length > 2) {
             const [name, amt] = sortedTypes[2];
             const percent = ((amt / totalAmount) * 100).toFixed(1);
@@ -1364,7 +1370,7 @@
           } else { resultText = "暂无第三大分类"; }
           break;
 
-        case 8: // 9. 最小支出类别占比
+        case 8: // 9. 最小分类
            if (sortedTypes.length > 0) {
             const [name, amt] = sortedTypes[sortedTypes.length - 1];
             const percent = ((amt / totalAmount) * 100).toFixed(1);
@@ -1372,26 +1378,39 @@
           } else { resultText = "暂无数据"; }
           break;
 
-        case 9: // 10. 周末 vs 工作日分析 (新创意)
-          let weekDayTotal = 0, weekDayCount = 0;
+        // 需求3：工作日 vs 周末 (仅统计 吃、喝、交通)
+        case 9:
+          let weekDayTotal = 0, weekDayCount = 0; // Count 为天数不准确，这里简化用笔数或总额平均，为更有意义我们用日均
           let weekendTotal = 0, weekendCount = 0;
-          // 这里的 Count 是指天数，不是笔数，为了算日均
-          // 简化逻辑：直接遍历每笔交易，虽然不严谨（同一天多笔），但能反映趋势
-          // 严谨逻辑：计算范围内有几个工作日和几个周末
-          // 这里采用"平均单笔金额"对比，或者"总额对比"
+          // 注意：这里需要更严谨地计算时间跨度内的“工作日天数”和“周末天数”比较复杂
+          // 这里采用简化算法：只比较“日均消费额”是不准确的，因为不知道具体多少天。
+          // 改为比较“单笔均价”或者“总额”。
+          // 既然用户想要对比，我们用总额对比不太公平(天数不同)，用“笔均”比较合适。
+
+          let wdItems = 0, weItems = 0;
+          const targetTypes = ['吃', '喝', '交通'];
+
           data.forEach(item => {
+             // 过滤：必须是吃喝交通
+             if (!targetTypes.includes(item.type1)) return;
+
              const day = new Date(item.date).getDay();
-             if (day === 0 || day === 6) { weekendTotal += item.amount; weekendCount++; }
-             else { weekDayTotal += item.amount; weekDayCount++; }
+             const isWeekend = (day === 0 || day === 6);
+
+             if (isWeekend) { weekendTotal += item.amount; weItems++; }
+             else { weekDayTotal += item.amount; wdItems++; }
           });
-          const wdAvg = weekDayCount ? (weekDayTotal / weekDayCount) : 0;
-          const weAvg = weekendCount ? (weekendTotal / weekendCount) : 0;
-          if (weAvg > wdAvg) resultText = `周末笔均支出比工作日高${(weAvg - wdAvg).toFixed(0)}元`;
-          else if (wdAvg > weAvg) resultText = `工作日笔均支出比周末高${(wdAvg - weAvg).toFixed(0)}元`;
-          else resultText = "周末与工作日消费持平";
+
+          const wdAvg = wdItems ? (weekDayTotal / wdItems) : 0;
+          const weAvg = weItems ? (weekendTotal / weItems) : 0;
+          const diff = Math.abs(wdAvg - weAvg).toFixed(0);
+
+          if (wdAvg > weAvg) resultText = `工作日(吃喝交通)笔均比周末高${diff}元`;
+          else if (weAvg > wdAvg) resultText = `周末(吃喝交通)笔均比工作日高${diff}元`;
+          else resultText = "周末与工作日(吃喝交通)消费持平";
           break;
 
-        case 10: // 11. 频次之王 (新创意)
+        case 10: // 11. 频次之王
           const sortedCounts = Object.entries(typeCounts).sort((a,b) => b[1] - a[1]);
           if (sortedCounts.length > 0) {
              const [name, count] = sortedCounts[0];
@@ -1399,26 +1418,64 @@
           } else { resultText = "暂无频次数据"; }
           break;
 
-        case 11: // 12. 消费密度 (包含房租)
+        case 11: // 12. 消费密度
           const density = data.length / daySpan;
           resultText = `消费密度为${density.toFixed(1)}次/天`;
           break;
 
-        case 12: // 13. 结余预测 (包含房租)
+        case 12: // 13. 结余预测
           const dailyExpense = totalAmount / daySpan;
           const balance = currentBudget - totalAmount;
-
           if (balance < 0) {
             resultText = `已超额${Math.abs(balance).toFixed(2)}元`;
           } else {
-            if (dailyExpense <= 0) {
-              resultText = "余额充足（暂无日均支出）";
-            } else {
+            if (dailyExpense <= 0) resultText = "余额充足（暂无日均支出）";
+            else {
               const daysLeft = balance / dailyExpense;
               resultText = `余额仅够花${daysLeft.toFixed(0)}天`;
             }
           }
           break;
+
+        // 需求4：新增分析维度
+        case 13:
+            const dayMap = {};
+            data.forEach(item => {
+                // 关键改动：如果是一级类型是房租，直接跳过不统计
+                if (item.type1 === '房租') return;
+
+                const d = item.date.slice(0, 10);
+                dayMap[d] = (dayMap[d] || 0) + item.amount;
+            });
+            let maxDay = "", maxDayAmt = 0;
+            for (let d in dayMap) {
+                if (dayMap[d] > maxDayAmt) { maxDayAmt = dayMap[d]; maxDay = d; }
+            }
+            if (maxDay) resultText = `单日之王(除房租)：${maxDay} 花费${maxDayAmt.toFixed(0)}元`;
+            else resultText = "除房租外暂无消费数据";
+            break;
+
+        case 14: // 15. 平均单价 (判断整体消费水平)
+             const avgPrice = data.length ? (totalAmount / data.length) : 0;
+             resultText = `平均单价：每笔消费约${avgPrice.toFixed(1)}元`;
+             break;
+
+        case 15: // 16. 奶茶指数/小额消费 (统计 < 30元的笔数)
+             const smallCount = data.filter(i => i.amount < 30).length;
+             const smallPercent = data.length ? ((smallCount / data.length) * 100).toFixed(0) : 0;
+             resultText = `琐碎消费：30元以下占比${smallPercent}% (${smallCount}笔)`;
+             break;
+        case 16:
+            // 过滤：金额 > 500 且 类型不为房租 (通常高额分析也建议排除房租，如需包含房租去掉 && 后面即可)
+            const highValueItems = data.filter(i => i.amount > 500);
+            const hvCount = highValueItems.length;
+            if (hvCount > 0) {
+                const hvTotal = highValueItems.reduce((sum, i) => sum + i.amount, 0);
+                resultText = `高额消费(>500)：共${hvCount}笔，合计${hvTotal.toFixed(0)}元`;
+            } else {
+                resultText = "暂无单笔超500元的大额消费";
+            }
+            break;
       }
 
       textEl.textContent = resultText;
