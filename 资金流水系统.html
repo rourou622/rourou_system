@@ -48,7 +48,51 @@
       --radius-md: 8px;
       --radius-lg: 16px;
     }
+/* === 头部布局修正样式 (修复标题偏移) === */
+    .app-header {
+      position: relative;
+      display: flex;
+      justify-content: center; /* 让 h1 绝对居中 */
+      align-items: center;
+      margin-bottom: 30px;
+      min-height: 40px;
+    }
 
+    .app-header h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      color: var(--primary);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .user-info-box {
+      position: absolute; /* 绝对定位到右侧，不占流式空间 */
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      background: rgba(255, 255, 255, 0.8); /* 防止背景遮挡 */
+    }
+
+    /* 手机端适配：屏幕窄时取消绝对定位，改为垂直排列 */
+    @media (max-width: 600px) {
+      .app-header {
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+      .user-info-box {
+        position: static;
+        transform: none;
+        width: 100%;
+        justify-content: center;
+      }
+    }
     * {
       box-sizing: border-box;
       outline: none;
@@ -63,6 +107,73 @@
       color: var(--text-main);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* 登录/配置容器样式 */
+    #authContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 90vh;
+    }
+
+    .auth-card {
+      background: var(--bg-card);
+      padding: 40px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 450px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 25px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text-sub);
+      transition: all 0.3s;
+    }
+
+    .auth-tab.active {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      margin-bottom: -2px;
+    }
+
+    .auth-title {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    .helper-text {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-bottom: 15px;
+      background: #f0f4f8;
+      padding: 10px;
+      border-radius: var(--radius-md);
+    }
+
+    /* 主应用容器，默认隐藏 */
+    #appContainer {
+      display: none;
     }
 
     .container {
@@ -178,6 +289,12 @@
       font-size: 1rem;
       min-width: 100px;
       border-radius: var(--radius-md);
+      width: 100%; /* Make default width full for mobile/auth */
+    }
+
+    @media(min-width: 768px) {
+        .action-btn-large { width: auto; }
+        .auth-card .action-btn-large { width: 100%; }
     }
 
     .btn-brown {
@@ -601,22 +718,92 @@
 </head>
 
 <body>
-  <div class="container">
-    <h1>费用明细清单 <span style="font-size:0.6em; font-weight:400; color:var(--text-sub);"></span></h1>
 
+  <!-- ================= 0. 登录/配置 界面 ================= -->
+  <div id="authContainer">
+    <div class="auth-card">
+      <h2 class="auth-title">费用明细清单</h2>
+
+      <!-- 配置表单 (如果没有 appId/key) -->
+      <div id="configSection" style="display: none;">
+        <div class="helper-text">
+            请前往 LeanCloud 控制台获取应用的 App ID 和 App Key。<br>
+            控制台 > 设置 > 应用凭证
+        </div>
+        <div class="form-group">
+            <label>App ID</label>
+            <input type="text" id="configAppId" placeholder="输入 App ID">
+        </div>
+        <div class="form-group">
+            <label>App Key</label>
+            <input type="password" id="configAppKey" placeholder="输入 App Key">
+        </div>
+        <div class="form-group">
+            <label>REST API Server URL</label>
+            <input type="text" id="configServerUrl" placeholder="https://..." value="https://api.leancloud.cn">
+        </div>
+        <button class="action-btn-large btn-brown" onclick="saveConfig()">保存配置</button>
+      </div>
+
+      <!-- 登录/注册表单 (如果已有配置) -->
+      <div id="authSection" style="display: none;">
+        <div class="auth-tabs">
+            <div class="auth-tab active" id="tabLogin" onclick="switchAuthMode('login')">登录</div>
+            <div class="auth-tab" id="tabSignup" onclick="switchAuthMode('signup')">注册</div>
+        </div>
+
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="authUsername" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="authPassword" placeholder="请输入密码">
+        </div>
+
+        <button class="action-btn-large btn-brown" id="authActionBtn" onclick="handleAuthAction()">登录</button>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="action-btn" style="color: var(--text-sub); text-decoration: underline;" onclick="clearConfig()">重置 App 配置</button>
+        </div>
+      </div>
+
+      <!-- 加载中 -->
+      <div id="loadingSection" style="display: none; text-align: center; color: var(--text-sub);">
+        正在初始化...
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ================= 主应用界面 ================= -->
+  <div class="container" id="appContainer">
+
+    <!-- 1. 头部区域：已修复 UI 偏移 -->
+    <div class="app-header">
+        <h1>费用明细清单</h1>
+        <div class="user-info-box">
+            <span id="currentUserDisplay" style="font-weight: 500; color: var(--primary);"></span>
+            <button class="action-btn btn-light" onclick="logout()" style="padding: 4px 12px; font-size: 0.85rem;">退出</button>
+        </div>
+    </div>
+
+    <!-- 2. 新增按钮 -->
     <div style="text-align: center; margin-bottom: 25px;">
       <button class="action-btn-large btn-brown" onclick="openAddModal()">
-        <span style="margin-right:5px; font-size:1.2em;">+</span> 新增支出
+        <span style="margin-right:5px; font-size:1.2em; line-height:1;">+</span> 新增支出
       </button>
     </div>
 
-    <!-- 统计栏区域 (已修改) -->
+    <!-- 3. 统计栏区域 (JS动态渲染) -->
     <div class="summary" id="summaryBox">
       <!-- 动态内容将通过 JS 渲染 -->
     </div>
 
-    <!-- 图表区域 -->
+    <!-- 4. 图表区域 -->
     <div class="charts-section">
+      <!-- 柱状图 & 预算条 -->
       <div class="chart-container">
         <div class="chart-title">
           <span id="budgetTitle">各月总支出</span>
@@ -640,6 +827,7 @@
         </div>
       </div>
 
+      <!-- 饼图 -->
       <div class="chart-container">
         <div class="chart-title">类型占比 <span
             style="font-size:0.8em; color:var(--text-sub); font-weight:400;">(点击扇区筛选)</span></div>
@@ -647,7 +835,7 @@
       </div>
     </div>
 
-    <!-- 筛选栏 -->
+    <!-- 5. 筛选栏 -->
     <div class="filter-bar">
       <div>
         <label>类型筛选 (多选)</label>
@@ -687,7 +875,7 @@
       </div>
     </div>
 
-    <!-- 表格 -->
+    <!-- 6. 表格区域 -->
     <div style="overflow-x: auto;">
       <table id="expenseTable">
         <thead>
@@ -706,7 +894,7 @@
       </table>
     </div>
 
-    <!-- 分页 -->
+    <!-- 7. 分页区域 -->
     <div class="pagination-container">
       <div style="display:flex; align-items:center;">
         <span style="color:var(--text-sub); font-size:0.9rem; margin-right:5px;">每页:</span>
@@ -729,16 +917,23 @@
       </div>
     </div>
 
+    <!-- 8. 批量操作按钮 -->
     <div style="text-align: right;">
       <button id="batchDeleteBtn" class="action-btn btn-dark" style="opacity:0.8; font-size:0.9rem; padding:8px 16px;"
         onclick="batchDeleteSelected()" disabled>批量删除</button>
     </div>
 
+    <!-- 9. 底部功能栏 (含数据迁移) -->
     <div class="action-bar">
       <button class="action-btn-large btn-light" onclick="exportToCSV()">导出 CSV</button>
       <button class="action-btn-large btn-light" onclick="printCurrentPage()">打印</button>
-      <button class="action-btn-large btn-dark" onclick="confirmClearAll()">清空所有</button>
+
+      <!-- 认领旧数据按钮 -->
+      <button class="action-btn-large btn-accent" onclick="migrateOldData()" style="margin-left: 10px;" title="将无主数据归属到当前账号">
+        📥 认领旧数据
+      </button>
     </div>
+
   </div>
 
   <!-- 模态框 -->
@@ -782,11 +977,11 @@
   </div>
 
   <script>
-    // ========== 配置与初始化 ==========
-    const BUDGET_STORAGE_KEY = 'user_monthly_budgets';
-    const APP_ID = 'dwracmq52kDlwQkRaO2jPCFJ-gzGzoHsz';     // ← 替换
-    const APP_KEY = 'DngFcXZMsMup5W3Z4QSYPMdw';   // ← 替换
-    const SERVER_URL = 'https://api.leancloud.cn';
+    // ========== 配置与全局变量 ==========
+    // 预算 Key 会在登录后追加 UserID 以区分多用户
+    let BUDGET_STORAGE_KEY_BASE = 'expense_budget_';
+    let BUDGET_STORAGE_KEY = '';
+    const EXPENSE_CLASS_NAME = 'rourou_YellowChamberPot';
 
     const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '房租', '宠物', '其他'];
 
@@ -795,15 +990,8 @@
       '#ffb74d', '#ba68c8', '#4db6ac', '#ffd54f', '#a1887f', '#7986cb'
     ];
 
-    try {
-      if (typeof AV === 'undefined') {
-        console.error('AV is not defined.');
-      } else {
-        AV.init({ appId: APP_ID, appKey: APP_KEY, serverURL: SERVER_URL });
-      }
-    } catch (e) { console.error('Init error:', e); }
-
-    const ExpenseClass = (typeof AV !== 'undefined') ? AV.Object.extend('rourou_YellowChamberPot') : null;
+    let ExpenseClass = null; // 初始化 AV 后赋值
+    let currentUser = null;
 
     let allExpenses = [];
     let filteredExpenses = [];
@@ -815,11 +1003,224 @@
     let pageSize = 10;
     let currentBudget = 9000;
 
-    // 分析报告相关变量
     let analysisModeIndex = 0;
-    const ANALYSIS_MODE_COUNT = 17; // 总共的模式数量
+    const ANALYSIS_MODE_COUNT = 17;
 
-    // ========== 下拉框逻辑 ==========
+    let authMode = 'login'; // 'login' | 'signup'
+
+    // ========== 认证与初始化逻辑 ==========
+
+    window.onload = () => {
+        checkAppConfig();
+    };
+    // ========== 数据迁移脚本 ==========
+    async function migrateOldData() {
+        if (!currentUser) return alert("请先登录！");
+
+        if (!confirm("确定要将所有【无主数据】归属到【当前账号】名下吗？\n注意：这通常只需要在新账号第一次登录时操作一次。")) {
+            return;
+        }
+
+        const loadingText = document.createElement('div');
+        loadingText.style.position = 'fixed';
+        loadingText.style.top = '10px';
+        loadingText.style.left = '50%';
+        loadingText.style.transform = 'translateX(-50%)';
+        loadingText.style.background = 'rgba(0,0,0,0.8)';
+        loadingText.style.color = 'white';
+        loadingText.style.padding = '10px 20px';
+        loadingText.style.borderRadius = '5px';
+        loadingText.style.zIndex = '9999';
+        loadingText.innerText = '正在扫描并迁移旧数据，请勿关闭页面...';
+        document.body.appendChild(loadingText);
+
+        try {
+            // 1. 查询所有没有 owner 字段的数据
+            const query = new AV.Query(EXPENSE_CLASS_NAME);
+            query.doesNotExist('owner');
+            query.limit(1000); // 一次最多处理1000条
+
+            const results = await query.find();
+
+            if (results.length === 0) {
+                alert("没有发现需要迁移的旧数据（所有数据都已有归属）。");
+                loadingText.remove();
+                return;
+            }
+
+            // 2. 批量更新
+            const updates = results.map(item => {
+                // 设置拥有者为当前用户
+                item.set('owner', currentUser);
+
+                // 设置 ACL 权限（变成私有，只有你能看）
+                const acl = new AV.ACL(currentUser);
+                acl.setPublicReadAccess(false);
+                acl.setPublicWriteAccess(false);
+                item.setACL(acl);
+
+                return item;
+            });
+
+            await AV.Object.saveAll(updates);
+
+            loadingText.remove();
+            alert(`成功迁移了 ${results.length} 条旧数据！\n页面将刷新。`);
+
+            // 3. 刷新页面显示数据
+            allExpenses = [];
+            renderExpenses();
+
+        } catch (error) {
+            console.error(error);
+            loadingText.remove();
+            alert("迁移失败，请检查控制台错误信息。\n可能原因：旧数据权限不足或表名设置错误。");
+        }
+    }
+
+    function checkAppConfig() {
+        const id = localStorage.getItem('lc_app_id');
+        const key = localStorage.getItem('lc_app_key');
+        const url = localStorage.getItem('lc_server_url');
+
+        if (id && key && url) {
+            initLeanCloud(id, key, url);
+        } else {
+            showConfigForm();
+        }
+    }
+
+    function initLeanCloud(id, key, url) {
+        document.getElementById('configSection').style.display = 'none';
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('loadingSection').style.display = 'block';
+
+        try {
+            if (typeof AV === 'undefined') {
+                alert('LeanCloud SDK 加载失败，请检查网络');
+                return;
+            }
+            AV.init({ appId: id, appKey: key, serverURLs: url });
+            ExpenseClass = AV.Object.extend(EXPENSE_CLASS_NAME);
+
+            checkLoginStatus();
+        } catch (e) {
+            console.error(e);
+            alert('初始化失败，请检查配置');
+            clearConfig();
+        }
+    }
+
+    function checkLoginStatus() {
+        currentUser = AV.User.current();
+        document.getElementById('loadingSection').style.display = 'none';
+
+        if (currentUser) {
+            enterApp();
+        } else {
+            showAuthForm();
+        }
+    }
+
+    function enterApp() {
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        document.getElementById('currentUserDisplay').textContent = `用户: ${currentUser.getUsername()}`;
+
+        // 设置用户隔离的预算 Key
+        BUDGET_STORAGE_KEY = BUDGET_STORAGE_KEY_BASE + currentUser.id;
+
+        // 初始化 APP 逻辑
+        initCustomDropdown();
+        renderExpenses(); // 加载数据
+        window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
+    }
+
+    function logout() {
+        AV.User.logOut();
+        location.reload();
+    }
+
+    // --- 配置表单逻辑 ---
+    function showConfigForm() {
+        document.getElementById('configSection').style.display = 'block';
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('loadingSection').style.display = 'none';
+    }
+
+    function saveConfig() {
+        const id = document.getElementById('configAppId').value.trim();
+        const key = document.getElementById('configAppKey').value.trim();
+        const url = document.getElementById('configServerUrl').value.trim();
+
+        if (!id || !key || !url) {
+            alert('请填写完整配置');
+            return;
+        }
+
+        localStorage.setItem('lc_app_id', id);
+        localStorage.setItem('lc_app_key', key);
+        localStorage.setItem('lc_server_url', url);
+
+        initLeanCloud(id, key, url);
+    }
+
+    function clearConfig() {
+        localStorage.removeItem('lc_app_id');
+        localStorage.removeItem('lc_app_key');
+        localStorage.removeItem('lc_server_url');
+        location.reload();
+    }
+
+    // --- 登录/注册逻辑 ---
+    function showAuthForm() {
+        document.getElementById('authSection').style.display = 'block';
+        switchAuthMode('login');
+    }
+
+    function switchAuthMode(mode) {
+        authMode = mode;
+        const btn = document.getElementById('authActionBtn');
+        const tabLogin = document.getElementById('tabLogin');
+        const tabSignup = document.getElementById('tabSignup');
+
+        if (mode === 'login') {
+            tabLogin.classList.add('active');
+            tabSignup.classList.remove('active');
+            btn.textContent = '立即登录';
+            btn.className = 'action-btn-large btn-brown';
+        } else {
+            tabLogin.classList.remove('active');
+            tabSignup.classList.add('active');
+            btn.textContent = '注册并登录';
+            btn.className = 'action-btn-large btn-accent';
+        }
+    }
+
+    async function handleAuthAction() {
+        const u = document.getElementById('authUsername').value.trim();
+        const p = document.getElementById('authPassword').value.trim();
+
+        if (!u || !p) return alert('请输入用户名和密码');
+
+        try {
+            if (authMode === 'login') {
+                await AV.User.logIn(u, p);
+            } else {
+                const user = new AV.User();
+                user.setUsername(u);
+                user.setPassword(p);
+                await user.signUp();
+            }
+            checkLoginStatus();
+        } catch (error) {
+            alert('操作失败: ' + error.message);
+        }
+    }
+
+
+    // ========== 业务逻辑 (下拉框/表格/图表) ==========
+
     function initCustomDropdown() {
       const list = document.getElementById('typeOptionsList');
       list.innerHTML = '';
@@ -913,7 +1314,7 @@
       }
     }
 
-    // ========== 数据逻辑 ==========
+    // ========== 数据操作 (已修改 ACL) ==========
     function computeStatMonth(dateStr) {
       const d = new Date(dateStr);
       let y = d.getFullYear(), m = d.getMonth() + 1;
@@ -924,8 +1325,11 @@
     }
 
     async function getExpenses() {
-      if (!ExpenseClass) return [];
+      if (!ExpenseClass || !currentUser) return [];
       const query = new AV.Query(ExpenseClass);
+      // 关键：只查询自己的数据
+      query.equalTo('owner', currentUser);
+
       query.addDescending('date');
       query.addDescending('createdAt');
       query.limit(1000);
@@ -963,7 +1367,10 @@
       }
 
       const totals = months.map(m => groups[m] || 0);
+
+      // 读取预算，注意使用基于 UserID 的 Key
       currentBudget = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}')[currentStatMonth] || 9000;
+
       document.getElementById('budgetTitle').textContent = `各月总支出 (预算 ¥${currentBudget})`;
 
       const ctxBar = document.getElementById('monthlyBarChart').getContext('2d');
@@ -1015,7 +1422,6 @@
         echartsPieInstance.on('legendselectchanged', function (params) { handleChartClick(params.name); });
       }
 
-      // 使用时间筛选后的数据（月份+日期）
       let pieSourceData = getTimeFilteredExpenses();
 
       const typeMap = {};
@@ -1089,7 +1495,6 @@
 
     // ========== 渲染逻辑 ==========
 
-    // 辅助函数：获取经过时间筛选（月份 + 日期范围）的数据
     function getTimeFilteredExpenses() {
       let temp = allExpenses;
       const mFilter = document.getElementById('monthFilter').value;
@@ -1104,6 +1509,9 @@
     }
 
     async function renderExpenses() {
+      if (!currentUser) return; // 未登录不渲染
+
+      // 如果是刚登录进来，allExpenses 为空，先获取数据
       if (allExpenses.length === 0) {
         allExpenses = await getExpenses();
         const months = [...new Set(allExpenses.map(e => e.statMonth))].sort().reverse();
@@ -1113,7 +1521,6 @@
         sel.innerHTML = '<option value="">全部月份</option>';
         months.forEach(m => sel.add(new Option(m, m)));
 
-        // 默认选中当前月份（如果存在且当前未选中特定月份）
         const currentMonth = computeStatMonth(new Date().toISOString());
         if (!targetVal && months.includes(currentMonth)) {
           targetVal = currentMonth;
@@ -1122,21 +1529,17 @@
         if (targetVal) sel.value = targetVal;
       }
 
-      // 1. 先进行时间筛选（月份 + 日期）
       let temp = getTimeFilteredExpenses();
 
-      // 2. 类型筛选
       if (!activeSelectedTypes.includes('全部类型')) {
         temp = temp.filter(e => activeSelectedTypes.includes(e.type1));
       }
 
-      // 3. 搜索筛选
       const kw = document.getElementById('searchInput').value.trim();
       if (kw) temp = temp.filter(e => e.type2.includes(kw));
 
       filteredExpenses = temp;
 
-      // 更新分页总数显示
       const totalPages = Math.ceil(filteredExpenses.length / pageSize) || 1;
       if (currentPage > totalPages) currentPage = 1;
       document.getElementById('totalPagesDisplay').innerText = totalPages;
@@ -1145,7 +1548,7 @@
 
       renderTable();
       renderCharts();
-      updateAnalysis(); // 更新分析报告
+      updateAnalysis();
     }
 
     function applyMonthOrSearchFilter() {
@@ -1166,18 +1569,15 @@
     }
 
     function resetFilters() {
-      // 1. 重置类型
       activeSelectedTypes = ['全部类型'];
       tempSelectedTypes = ['全部类型'];
       updateTriggerText();
       renderDropdownCheckboxes();
       document.getElementById('typeSelectWrapper').classList.remove('open');
 
-      // 2. 重置日期
       document.getElementById('startDate').value = '';
       document.getElementById('endDate').value = '';
 
-      // 3. 重置月份为当前月（如果存在）
       const sel = document.getElementById('monthFilter');
       const currentMonth = computeStatMonth(new Date().toISOString());
       let found = false;
@@ -1190,10 +1590,8 @@
       }
       if (!found) sel.value = "";
 
-      // 4. 重置搜索
       document.getElementById('searchInput').value = '';
 
-      // 5. 重新渲染
       currentPage = 1;
       renderExpenses();
     }
@@ -1205,15 +1603,12 @@
       const start = (currentPage - 1) * pageSize;
       const pageData = filteredExpenses.slice(start, start + pageSize);
 
-      // --- 统计栏逻辑更新 ---
       const summaryBox = document.getElementById('summaryBox');
 
-      // 目标数据：filteredExpenses (已经包含了所有筛选条件)
       const targetData = filteredExpenses;
       const targetTotal = targetData.reduce((a, b) => a + b.amount, 0);
       const targetCount = targetData.length;
 
-      // 构建统计HTML：左侧统计，右侧分析
       const leftContent = `
         <div class="summary-left">
           <span style="color:var(--primary); font-weight:bold;">筛选结果：共 ${targetCount} 笔，总额 ¥${formatMoney(targetTotal)}</span>
@@ -1263,10 +1658,9 @@
       checkBatchBtn();
     }
 
-    // ========== 分析报告逻辑 (深度优化版) ==========
+    // ========== 分析报告逻辑 ==========
 
     function switchAnalysisMode() {
-      // 需求1：随机切换，避免重复
       let newIndex;
       do {
           newIndex = Math.floor(Math.random() * ANALYSIS_MODE_COUNT);
@@ -1286,7 +1680,6 @@
         return;
       }
 
-      // 基础计算（金额不除去房租，包含所有数据）
       const dates = data.map(e => new Date(e.date).getTime());
       const minDate = Math.min(...dates);
       const maxDate = Math.max(...dates);
@@ -1295,10 +1688,7 @@
 
       let resultText = "";
 
-      // 预处理：单笔排行 (除去房租，从大到小)
       const sortedByAmount = data.filter(item => item.type1 !== '房租').sort((a, b) => b.amount - a.amount);
-
-      // 预处理：类别统计
       const typeGroups = {};
       const typeCounts = {};
       data.forEach(item => {
@@ -1306,97 +1696,77 @@
         typeCounts[item.type1] = (typeCounts[item.type1] || 0) + 1;
       });
 
-      // 类别排行数组（排除房租用于排序）
       const sortedTypes = Object.entries(typeGroups)
         .filter(([t]) => t !== '房租')
         .sort((a, b) => b[1] - a[1]);
 
       switch (analysisModeIndex) {
-        case 0: // 1. 日均支出
+        case 0:
           const dailyAvg = totalAmount / daySpan;
           resultText = `日均支出${dailyAvg.toFixed(2)}元`;
           break;
-
-        // 需求2：优化单笔消费展示格式 【Type1】Type2
-        case 1: // 2. 单笔最高
+        case 1:
           if (sortedByAmount.length > 0) {
             const item = sortedByAmount[0];
             resultText = `单笔最高：【${item.type1}】${item.type2} 消费${item.amount}元`;
           } else { resultText = "除房租外暂无消费"; }
           break;
-
-        case 2: // 3. 单笔第二
+        case 2:
           if (sortedByAmount.length > 1) {
             const item = sortedByAmount[1];
             resultText = `单笔第二：【${item.type1}】${item.type2} 消费${item.amount}元`;
           } else { resultText = "暂无单笔消费第二名"; }
           break;
-
-        case 3: // 4. 单笔第三
+        case 3:
           if (sortedByAmount.length > 2) {
             const item = sortedByAmount[2];
             resultText = `单笔第三：【${item.type1}】${item.type2} 消费${item.amount}元`;
           } else { resultText = "暂无单笔消费第三名"; }
           break;
-
-        case 4: // 5. 单笔最小
+        case 4:
           if (sortedByAmount.length > 0) {
             const item = sortedByAmount[sortedByAmount.length - 1];
             resultText = `单笔最小：【${item.type1}】${item.type2} 消费${item.amount}元`;
           } else { resultText = "暂无数据"; }
           break;
-
-        case 5: // 6. 第一大类
+        case 5:
           if (sortedTypes.length > 0) {
             const [name, amt] = sortedTypes[0];
             const percent = ((amt / totalAmount) * 100).toFixed(1);
             resultText = `第一大类：${name}占${percent}%`;
           } else { resultText = "除房租外暂无主要分类"; }
           break;
-
-        case 6: // 7. 第二大类
+        case 6:
           if (sortedTypes.length > 1) {
             const [name, amt] = sortedTypes[1];
             const percent = ((amt / totalAmount) * 100).toFixed(1);
             resultText = `第二大类：${name}占${percent}%`;
           } else { resultText = "暂无第二大分类"; }
           break;
-
-        case 7: // 8. 第三大类
+        case 7:
           if (sortedTypes.length > 2) {
             const [name, amt] = sortedTypes[2];
             const percent = ((amt / totalAmount) * 100).toFixed(1);
             resultText = `第三大类：${name}占${percent}%`;
           } else { resultText = "暂无第三大分类"; }
           break;
-
-        case 8: // 9. 最小分类
+        case 8:
            if (sortedTypes.length > 0) {
             const [name, amt] = sortedTypes[sortedTypes.length - 1];
             const percent = ((amt / totalAmount) * 100).toFixed(1);
             resultText = `最小分类：${name}占${percent}%`;
           } else { resultText = "暂无数据"; }
           break;
-
-        // 需求3：工作日 vs 周末 (仅统计 吃、喝、交通)
         case 9:
-          let weekDayTotal = 0, weekDayCount = 0; // Count 为天数不准确，这里简化用笔数或总额平均，为更有意义我们用日均
+          let weekDayTotal = 0, weekDayCount = 0;
           let weekendTotal = 0, weekendCount = 0;
-          // 注意：这里需要更严谨地计算时间跨度内的“工作日天数”和“周末天数”比较复杂
-          // 这里采用简化算法：只比较“日均消费额”是不准确的，因为不知道具体多少天。
-          // 改为比较“单笔均价”或者“总额”。
-          // 既然用户想要对比，我们用总额对比不太公平(天数不同)，用“笔均”比较合适。
-
           let wdItems = 0, weItems = 0;
           const targetTypes = ['吃', '喝', '交通'];
 
           data.forEach(item => {
-             // 过滤：必须是吃喝交通
              if (!targetTypes.includes(item.type1)) return;
-
              const day = new Date(item.date).getDay();
              const isWeekend = (day === 0 || day === 6);
-
              if (isWeekend) { weekendTotal += item.amount; weItems++; }
              else { weekDayTotal += item.amount; wdItems++; }
           });
@@ -1409,21 +1779,18 @@
           else if (weAvg > wdAvg) resultText = `周末(吃喝交通)笔均比工作日高${diff}元`;
           else resultText = "周末与工作日(吃喝交通)消费持平";
           break;
-
-        case 10: // 11. 频次之王
+        case 10:
           const sortedCounts = Object.entries(typeCounts).sort((a,b) => b[1] - a[1]);
           if (sortedCounts.length > 0) {
              const [name, count] = sortedCounts[0];
              resultText = `频次之王：${name}类共消费${count}次`;
           } else { resultText = "暂无频次数据"; }
           break;
-
-        case 11: // 12. 消费密度
+        case 11:
           const density = data.length / daySpan;
           resultText = `消费密度为${density.toFixed(1)}次/天`;
           break;
-
-        case 12: // 13. 结余预测
+        case 12:
           const dailyExpense = totalAmount / daySpan;
           const balance = currentBudget - totalAmount;
           if (balance < 0) {
@@ -1436,14 +1803,10 @@
             }
           }
           break;
-
-        // 需求4：新增分析维度
         case 13:
             const dayMap = {};
             data.forEach(item => {
-                // 关键改动：如果是一级类型是房租，直接跳过不统计
                 if (item.type1 === '房租') return;
-
                 const d = item.date.slice(0, 10);
                 dayMap[d] = (dayMap[d] || 0) + item.amount;
             });
@@ -1454,19 +1817,16 @@
             if (maxDay) resultText = `单日之王(除房租)：${maxDay} 花费${maxDayAmt.toFixed(0)}元`;
             else resultText = "除房租外暂无消费数据";
             break;
-
-        case 14: // 15. 平均单价 (判断整体消费水平)
+        case 14:
              const avgPrice = data.length ? (totalAmount / data.length) : 0;
              resultText = `平均单价：每笔消费约${avgPrice.toFixed(1)}元`;
              break;
-
-        case 15: // 16. 奶茶指数/小额消费 (统计 < 30元的笔数)
+        case 15:
              const smallCount = data.filter(i => i.amount < 30).length;
              const smallPercent = data.length ? ((smallCount / data.length) * 100).toFixed(0) : 0;
              resultText = `琐碎消费：30元以下占比${smallPercent}% (${smallCount}笔)`;
              break;
         case 16:
-            // 过滤：金额 > 500 且 类型不为房租 (通常高额分析也建议排除房租，如需包含房租去掉 && 后面即可)
             const highValueItems = data.filter(i => i.amount > 500);
             const hvCount = highValueItems.length;
             if (hvCount > 0) {
@@ -1542,6 +1902,8 @@
 
     document.getElementById('modalExpenseForm').onsubmit = async (e) => {
       e.preventDefault();
+      if (!currentUser) return alert('未登录');
+
       const id = document.getElementById('modalEditId').value;
       const cleanAmount = Math.round(parseFloat(document.getElementById('modalAmount').value) * 100) / 100;
       const data = {
@@ -1551,21 +1913,34 @@
         amount: cleanAmount
       };
 
-      if (id) {
-        const obj = AV.Object.createWithoutData('rourou_YellowChamberPot', id);
-        obj.set(data); await obj.save();
-      } else {
-        const obj = new ExpenseClass();
-        obj.set(data); await obj.save();
+      try {
+        if (id) {
+            const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id);
+            obj.set(data);
+            await obj.save();
+        } else {
+            const obj = new ExpenseClass();
+            obj.set(data);
+            // 关键：设置拥有者和 ACL
+            obj.set('owner', currentUser);
+            const acl = new AV.ACL(currentUser);
+            acl.setPublicReadAccess(false); // 仅创建者可读
+            acl.setPublicWriteAccess(false); // 仅创建者可写
+            obj.setACL(acl);
+
+            await obj.save();
+        }
+        closeAddModal();
+        allExpenses = [];
+        renderExpenses();
+      } catch (err) {
+        alert('保存失败: ' + err.message);
       }
-      closeAddModal();
-      allExpenses = [];
-      renderExpenses();
     };
 
     async function delExp(id) {
       if (!confirm('确定删除?')) return;
-      const obj = AV.Object.createWithoutData('rourou_YellowChamberPot', id);
+      const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id);
       await obj.destroy();
       allExpenses = allExpenses.filter(e => e.id !== id);
       renderExpenses();
@@ -1574,7 +1949,7 @@
     async function batchDeleteSelected() {
       const ids = Array.from(document.querySelectorAll('.item-cb:checked')).map(c => c.value);
       if (!confirm(`确定删除 ${ids.length} 条?`)) return;
-      const objs = ids.map(id => AV.Object.createWithoutData('rourou_YellowChamberPot', id));
+      const objs = ids.map(id => AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id));
       await AV.Object.destroyAll(objs);
       allExpenses = allExpenses.filter(e => !ids.includes(e.id));
       renderExpenses();
@@ -1600,14 +1975,8 @@
         budgets[nowStr] = parseFloat(v);
         localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets));
         renderCharts();
-        updateAnalysis(); // 预算改变后更新分析报告
+        updateAnalysis();
       }
-    };
-
-    window.onload = () => {
-      initCustomDropdown();
-      renderExpenses();
-      window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
     };
 
     function exportToCSV() {
@@ -1620,9 +1989,7 @@
       const a = document.createElement('a'); a.href = url; a.download = '支出明细.csv'; a.click();
     }
     function printCurrentPage() { window.print(); }
-    async function confirmClearAll() {
-      if (confirm('危险：清空所有数据？')) alert('为安全起见，暂未开启全库清空功能');
-    }
+
   </script>
 </body>
 
