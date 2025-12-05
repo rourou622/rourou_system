@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>家庭费用清单 - Big Banana House</title>
+  <title>家庭费用清单</title>
 
   <!-- 1. 引入 LeanCloud SDK -->
   <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.14.0/dist/av-min.js"></script>
@@ -808,7 +808,7 @@
 
     <!-- 1. 头部区域：已修复 UI 偏移 -->
     <div class="app-header">
-        <h1>家庭费用清单 <span class="family-badge">Big Banana House</span></h1>
+        <h1>家庭费用清单</h1>
         <div class="user-info-box">
             <span id="currentUserDisplay" style="font-weight: 500; color: var(--primary);"></span>
             <button class="action-btn btn-light" onclick="logout()" style="padding: 4px 12px; font-size: 0.85rem;">退出</button>
@@ -950,19 +950,12 @@
         onclick="batchDeleteSelected()" disabled>批量删除</button>
     </div>
 
-    <!-- 9. 底部功能栏 (含数据迁移) -->
+    <!-- 9. 底部功能栏 (删除同步功能，仅保留导出和打印) -->
     <div class="action-bar">
       <button class="action-btn-large btn-light" onclick="exportToCSV()">导出 CSV</button>
       <button class="action-btn-large btn-light" onclick="printCurrentPage()">打印</button>
 
-      <!-- 共享数据按钮 -->
-      <button class="action-btn-large btn-accent" onclick="syncToFamily()" style="margin-left: 10px;" title="将我的私有数据公开给家庭成员">
-        👨‍👩‍👧‍👦 同步到家庭
-      </button>
-        <!-- 解绑按钮 -->
-      <button class="action-btn-large btn-dark" onclick="releaseData()" style="margin-left: 10px; display:none;">
-        🔓 释放数据(合并用)
-      </button>
+      <!-- 之前的同步按钮已移除 -->
     </div>
 
   </div>
@@ -1030,9 +1023,18 @@
         { bg: '#f3e5f5', text: '#7b1fa2' }, // 紫
         { bg: '#e8f5e9', text: '#2e7d32' }, // 绿
         { bg: '#fff3e0', text: '#ef6c00' }, // 橙
-        { bg: '#e0f7fa', text: '#006064' }  // 青
+        { bg: '#e0f7fa', text: '#006064' }, // 青
+        { bg: '#ffebee', text: '#b71c1c' }, // 鲜红
+        { bg: '#e3f2fd', text: '#0d47a1' }, // 深蓝
+        { bg: '#f3e5f5', text: '#4a148c' }, // 深紫
+        { bg: '#fffde7', text: '#f57f17' }, // 深黄
+        { bg: '#e0f2f1', text: '#004d40' }  // 深青
     ];
-
+    const USER_COLOR_MAP = {
+      "hundun":    { bg: '#fce4ec', text: '#c2185b' },
+      "rourou622": { bg: '#e8f5e9', text: '#2e7d32' },
+      "其他":       { bg: '#f5f5f5', text: '#616161' }  // 默认灰色
+    };
     let ExpenseClass = null;
     let currentUser = null;
 
@@ -1058,73 +1060,13 @@
     };
 
     // --- 辅助函数：根据用户名生成固定的颜色 ---
+    // 【修改建议】根据名字直接查表
     function getUserColor(username) {
-        if (!username) return { bg: '#eeeeee', text: '#9e9e9e' };
-        let hash = 0;
-        for (let i = 0; i < username.length; i++) {
-            hash = username.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        const index = Math.abs(hash) % USER_PALETTE.length;
-        return USER_PALETTE[index];
+        // 如果名字在表里，就用表里的颜色；找不到就用默认的“其他”
+        return USER_COLOR_MAP[username] || USER_COLOR_MAP["其他"];
     }
 
-    async function syncToFamily() {
-        if (!currentUser) return alert("请先登录！");
-
-        if (!confirm(`确定要将当前账号的所有私有数据同步到家庭【${MY_FAMILY_ID}】吗？\n\n同步后，其他登录此App的家庭成员将可以查看并编辑这些数据。`)) {
-            return;
-        }
-
-        const loadingText = document.createElement('div');
-        loadingText.style.position = 'fixed';
-        loadingText.style.top = '10px';
-        loadingText.style.left = '50%';
-        loadingText.style.transform = 'translateX(-50%)';
-        loadingText.style.background = 'rgba(0,0,0,0.8)';
-        loadingText.style.color = 'white';
-        loadingText.style.padding = '10px 20px';
-        loadingText.style.borderRadius = '5px';
-        loadingText.style.zIndex = '9999';
-        loadingText.innerText = '正在同步数据权限，请勿关闭页面...';
-        document.body.appendChild(loadingText);
-
-        try {
-            const query = new AV.Query(EXPENSE_CLASS_NAME);
-            query.equalTo('owner', currentUser);
-            query.limit(1000);
-
-            const results = await query.find();
-
-            if (results.length === 0) {
-                alert("当前账号下没有找到需要同步的数据。");
-                loadingText.remove();
-                return;
-            }
-
-            const updates = results.map(item => {
-                item.set('familyId', MY_FAMILY_ID);
-                const acl = new AV.ACL();
-                acl.setPublicReadAccess(true);
-                acl.setPublicWriteAccess(true);
-                item.setACL(acl);
-
-                return item;
-            });
-
-            await AV.Object.saveAll(updates);
-
-            loadingText.remove();
-            alert(`成功同步了 ${results.length} 条数据到家庭！\n现在账号B也可以看到这些数据了。页面将刷新。`);
-
-            allExpenses = [];
-            renderExpenses();
-
-        } catch (error) {
-            console.error(error);
-            loadingText.remove();
-            alert("同步失败，请检查网络或控制台错误信息。");
-        }
-    }
+    // --- 同步函数已移除 ---
 
     function checkAppConfig() {
         const id = localStorage.getItem('lc_app_id');
