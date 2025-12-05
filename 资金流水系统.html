@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>费用明细清单</title>
+  <title>家庭费用清单 - Big Banana House</title>
 
   <!-- 1. 引入 LeanCloud SDK -->
   <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.14.0/dist/av-min.js"></script>
@@ -444,6 +444,18 @@
       padding-left: 15px;
     }
 
+    /* 新增：记账人 Badge 样式 */
+    .user-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px; /* 圆角矩形，类似药丸的一半 */
+        font-size: 0.8em;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
     /* 布局与图表 */
     .charts-section {
       margin: 30px 0;
@@ -714,6 +726,17 @@
     #budgetBase {
       border-radius: 18px !important;
     }
+
+    /* 家庭共享提示 */
+    .family-badge {
+        background: #fff3e0;
+        color: #e65100;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        border: 1px solid #ffe0b2;
+        margin-left: 10px;
+    }
   </style>
 </head>
 
@@ -722,7 +745,10 @@
   <!-- ================= 0. 登录/配置 界面 ================= -->
   <div id="authContainer">
     <div class="auth-card">
-      <h2 class="auth-title">费用明细清单</h2>
+      <h2 class="auth-title">家庭费用清单</h2>
+      <p style="text-align: center; color: var(--text-sub); margin-bottom: 20px;">
+          Family: Big Banana House
+      </p>
 
       <!-- 配置表单 (如果没有 appId/key) -->
       <div id="configSection" style="display: none;">
@@ -782,7 +808,7 @@
 
     <!-- 1. 头部区域：已修复 UI 偏移 -->
     <div class="app-header">
-        <h1>费用明细清单</h1>
+        <h1>家庭费用清单 <span class="family-badge">Big Banana House</span></h1>
         <div class="user-info-box">
             <span id="currentUserDisplay" style="font-weight: 500; color: var(--primary);"></span>
             <button class="action-btn btn-light" onclick="logout()" style="padding: 4px 12px; font-size: 0.85rem;">退出</button>
@@ -885,6 +911,7 @@
             <th>统计月份</th>
             <th>消费日期</th>
             <th>一级类型</th>
+            <th>记账人</th> <!-- 新增：记账人列 -->
             <th>二级类型</th>
             <th>金额</th>
             <th style="width: 160px;">操作</th>
@@ -928,9 +955,13 @@
       <button class="action-btn-large btn-light" onclick="exportToCSV()">导出 CSV</button>
       <button class="action-btn-large btn-light" onclick="printCurrentPage()">打印</button>
 
-      <!-- 认领旧数据按钮 -->
-      <button class="action-btn-large btn-accent" onclick="migrateOldData()" style="margin-left: 10px;" title="将无主数据归属到当前账号">
-        📥 认领旧数据
+      <!-- 共享数据按钮 -->
+      <button class="action-btn-large btn-accent" onclick="syncToFamily()" style="margin-left: 10px;" title="将我的私有数据公开给家庭成员">
+        👨‍👩‍👧‍👦 同步到家庭
+      </button>
+        <!-- 解绑按钮 -->
+      <button class="action-btn-large btn-dark" onclick="releaseData()" style="margin-left: 10px; display:none;">
+        🔓 释放数据(合并用)
       </button>
     </div>
 
@@ -978,9 +1009,10 @@
 
   <script>
     // ========== 配置与全局变量 ==========
-    // 预算 Key 会在登录后追加 UserID 以区分多用户
-    let BUDGET_STORAGE_KEY_BASE = 'expense_budget_';
-    let BUDGET_STORAGE_KEY = '';
+    const MY_FAMILY_ID = "big banana house";
+
+    let BUDGET_STORAGE_KEY = 'expense_budget_' + MY_FAMILY_ID;
+
     const EXPENSE_CLASS_NAME = 'rourou_YellowChamberPot';
 
     const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '房租', '宠物', '其他'];
@@ -990,7 +1022,18 @@
       '#ffb74d', '#ba68c8', '#4db6ac', '#ffd54f', '#a1887f', '#7986cb'
     ];
 
-    let ExpenseClass = null; // 初始化 AV 后赋值
+    // --- 新增：用户标签颜色盘（区别于图表颜色）---
+    // 类似于微信/钉钉头像的随机底色，看起来比较柔和
+    const USER_PALETTE = [
+        { bg: '#e3f2fd', text: '#1565c0' }, // 蓝
+        { bg: '#fce4ec', text: '#c2185b' }, // 粉
+        { bg: '#f3e5f5', text: '#7b1fa2' }, // 紫
+        { bg: '#e8f5e9', text: '#2e7d32' }, // 绿
+        { bg: '#fff3e0', text: '#ef6c00' }, // 橙
+        { bg: '#e0f7fa', text: '#006064' }  // 青
+    ];
+
+    let ExpenseClass = null;
     let currentUser = null;
 
     let allExpenses = [];
@@ -1006,18 +1049,29 @@
     let analysisModeIndex = 0;
     const ANALYSIS_MODE_COUNT = 17;
 
-    let authMode = 'login'; // 'login' | 'signup'
+    let authMode = 'login';
 
     // ========== 认证与初始化逻辑 ==========
 
     window.onload = () => {
         checkAppConfig();
     };
-    // ========== 数据迁移脚本 ==========
-    async function migrateOldData() {
+
+    // --- 辅助函数：根据用户名生成固定的颜色 ---
+    function getUserColor(username) {
+        if (!username) return { bg: '#eeeeee', text: '#9e9e9e' };
+        let hash = 0;
+        for (let i = 0; i < username.length; i++) {
+            hash = username.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % USER_PALETTE.length;
+        return USER_PALETTE[index];
+    }
+
+    async function syncToFamily() {
         if (!currentUser) return alert("请先登录！");
 
-        if (!confirm("确定要将所有【无主数据】归属到【当前账号】名下吗？\n注意：这通常只需要在新账号第一次登录时操作一次。")) {
+        if (!confirm(`确定要将当前账号的所有私有数据同步到家庭【${MY_FAMILY_ID}】吗？\n\n同步后，其他登录此App的家庭成员将可以查看并编辑这些数据。`)) {
             return;
         }
 
@@ -1031,32 +1085,27 @@
         loadingText.style.padding = '10px 20px';
         loadingText.style.borderRadius = '5px';
         loadingText.style.zIndex = '9999';
-        loadingText.innerText = '正在扫描并迁移旧数据，请勿关闭页面...';
+        loadingText.innerText = '正在同步数据权限，请勿关闭页面...';
         document.body.appendChild(loadingText);
 
         try {
-            // 1. 查询所有没有 owner 字段的数据
             const query = new AV.Query(EXPENSE_CLASS_NAME);
-            query.doesNotExist('owner');
-            query.limit(1000); // 一次最多处理1000条
+            query.equalTo('owner', currentUser);
+            query.limit(1000);
 
             const results = await query.find();
 
             if (results.length === 0) {
-                alert("没有发现需要迁移的旧数据（所有数据都已有归属）。");
+                alert("当前账号下没有找到需要同步的数据。");
                 loadingText.remove();
                 return;
             }
 
-            // 2. 批量更新
             const updates = results.map(item => {
-                // 设置拥有者为当前用户
-                item.set('owner', currentUser);
-
-                // 设置 ACL 权限（变成私有，只有你能看）
-                const acl = new AV.ACL(currentUser);
-                acl.setPublicReadAccess(false);
-                acl.setPublicWriteAccess(false);
+                item.set('familyId', MY_FAMILY_ID);
+                const acl = new AV.ACL();
+                acl.setPublicReadAccess(true);
+                acl.setPublicWriteAccess(true);
                 item.setACL(acl);
 
                 return item;
@@ -1065,16 +1114,15 @@
             await AV.Object.saveAll(updates);
 
             loadingText.remove();
-            alert(`成功迁移了 ${results.length} 条旧数据！\n页面将刷新。`);
+            alert(`成功同步了 ${results.length} 条数据到家庭！\n现在账号B也可以看到这些数据了。页面将刷新。`);
 
-            // 3. 刷新页面显示数据
             allExpenses = [];
             renderExpenses();
 
         } catch (error) {
             console.error(error);
             loadingText.remove();
-            alert("迁移失败，请检查控制台错误信息。\n可能原因：旧数据权限不足或表名设置错误。");
+            alert("同步失败，请检查网络或控制台错误信息。");
         }
     }
 
@@ -1127,12 +1175,8 @@
         document.getElementById('appContainer').style.display = 'block';
         document.getElementById('currentUserDisplay').textContent = `用户: ${currentUser.getUsername()}`;
 
-        // 设置用户隔离的预算 Key
-        BUDGET_STORAGE_KEY = BUDGET_STORAGE_KEY_BASE + currentUser.id;
-
-        // 初始化 APP 逻辑
         initCustomDropdown();
-        renderExpenses(); // 加载数据
+        renderExpenses();
         window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
     }
 
@@ -1314,7 +1358,7 @@
       }
     }
 
-    // ========== 数据操作 (已修改 ACL) ==========
+    // ========== 数据操作 (已修改：查询家庭ID) ==========
     function computeStatMonth(dateStr) {
       const d = new Date(dateStr);
       let y = d.getFullYear(), m = d.getMonth() + 1;
@@ -1327,22 +1371,32 @@
     async function getExpenses() {
       if (!ExpenseClass || !currentUser) return [];
       const query = new AV.Query(ExpenseClass);
-      // 关键：只查询自己的数据
-      query.equalTo('owner', currentUser);
+
+      query.equalTo('familyId', MY_FAMILY_ID);
+      // --- 关键修改：包含 owner 字段，以便获取用户名 ---
+      query.include('owner');
 
       query.addDescending('date');
       query.addDescending('createdAt');
       query.limit(1000);
       try {
         const results = await query.find();
-        return results.map(obj => ({
-          id: obj.id,
-          date: obj.get('date'),
-          type1: obj.get('type1'),
-          type2: obj.get('type2') || '',
-          amount: parseFloat(obj.get('amount')) || 0,
-          statMonth: computeStatMonth(obj.get('date'))
-        }));
+        return results.map(obj => {
+          // 获取关联的用户对象
+          const ownerObj = obj.get('owner');
+          // 如果有 owner 对象则取 username，否则显示未知
+          const username = ownerObj ? ownerObj.getUsername() : '未知';
+
+          return {
+            id: obj.id,
+            date: obj.get('date'),
+            type1: obj.get('type1'),
+            type2: obj.get('type2') || '',
+            amount: parseFloat(obj.get('amount')) || 0,
+            statMonth: computeStatMonth(obj.get('date')),
+            username: username // 增加 username 字段
+          };
+        });
       } catch (err) { console.error(err); return []; }
     }
 
@@ -1368,7 +1422,7 @@
 
       const totals = months.map(m => groups[m] || 0);
 
-      // 读取预算，注意使用基于 UserID 的 Key
+      // 读取预算，使用家庭公用 Key
       currentBudget = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}')[currentStatMonth] || 9000;
 
       document.getElementById('budgetTitle').textContent = `各月总支出 (预算 ¥${currentBudget})`;
@@ -1632,16 +1686,27 @@
         const list = groups[mon];
         const subTotal = list.reduce((s, i) => s + i.amount, 0);
         const trTitle = document.createElement('tr');
-        trTitle.innerHTML = `<td colspan="7" class="month-group-title">${mon} 当前页小计: ¥${formatMoney(subTotal)}</td>`;
+        trTitle.innerHTML = `<td colspan="8" class="month-group-title">${mon} 当前页小计: ¥${formatMoney(subTotal)}</td>`; // 注意 colspan=8
         tbody.appendChild(trTitle);
 
         list.forEach(item => {
+          // --- 关键修改：获取当前用户的颜色配置 ---
+          const userColor = getUserColor(item.username);
+
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td><input type="checkbox" class="item-cb" value="${item.id}" onchange="checkBatchBtn()" style="height:auto;"></td>
             <td>${item.statMonth}</td>
             <td>${item.date.slice(0, 10)}</td>
             <td><span style="background:#eceff1; padding:2px 8px; border-radius:10px; font-size:0.85em; color:#455a64;">${item.type1}</span></td>
+
+            <!-- 新增：记账人列 -->
+            <td>
+                <span class="user-badge" style="background:${userColor.bg}; color:${userColor.text};">
+                    ${item.username}
+                </span>
+            </td>
+
             <td>${item.type2}</td>
             <td style="font-weight:500;">¥${formatMoney(item.amount)}</td>
             <td>
@@ -1910,7 +1975,8 @@
         date: document.getElementById('modalDate').value,
         type1: document.getElementById('modalType1').value,
         type2: document.getElementById('modalType2').value,
-        amount: cleanAmount
+        amount: cleanAmount,
+        familyId: MY_FAMILY_ID
       };
 
       try {
@@ -1921,11 +1987,11 @@
         } else {
             const obj = new ExpenseClass();
             obj.set(data);
-            // 关键：设置拥有者和 ACL
             obj.set('owner', currentUser);
-            const acl = new AV.ACL(currentUser);
-            acl.setPublicReadAccess(false); // 仅创建者可读
-            acl.setPublicWriteAccess(false); // 仅创建者可写
+
+            const acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
             obj.setACL(acl);
 
             await obj.save();
@@ -1980,9 +2046,9 @@
     };
 
     function exportToCSV() {
-      let csv = '统计月份,日期,一级类型,二级类型,金额\n';
+      let csv = '统计月份,日期,一级类型,记账人,二级类型,金额\n';
       filteredExpenses.forEach(e => {
-        csv += `${e.statMonth},${e.date.slice(0, 10)},${e.type1},${e.type2},${e.amount}\n`;
+        csv += `${e.statMonth},${e.date.slice(0, 10)},${e.type1},${e.username},${e.type2},${e.amount}\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
