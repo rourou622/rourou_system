@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>云端错题本 (支持图文)</title>
+    <title>云端错题本</title>
     <!-- 引入库文件 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -50,7 +50,6 @@
             color: #334155;
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -69,7 +68,6 @@
             background: #94a3b8;
         }
 
-        /* Card Hover Effect */
         .card-hover {
             transition: all 0.3s ease;
         }
@@ -79,7 +77,6 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
-        /* View Transitions */
         .view-enter-active,
         .view-leave-active {
             transition: opacity 0.3s ease, transform 0.3s ease;
@@ -91,7 +88,6 @@
             transform: translateY(10px);
         }
 
-        /* Markdown Styles */
         .prose pre {
             background-color: #f1f5f9;
             color: #334155;
@@ -100,7 +96,6 @@
             overflow-x: auto;
         }
 
-        /* 图片样式增强 */
         .prose img {
             max-width: 100%;
             height: auto;
@@ -108,10 +103,8 @@
             margin: 8px 0;
             border: 1px solid #e2e8f0;
             display: inline-block;
-            /* 防止图片独占太大空间 */
         }
 
-        /* 列表页限制图片高度，防止太长 */
         .line-clamp-4 img {
             max-height: 150px;
             object-fit: cover;
@@ -229,10 +222,10 @@
                         </div>
                     </div>
 
-                    <div v-if="loading" class="text-center py-10 text-slate-400">加载中...</div>
+                    <div v-if="loading" class="text-center py-10 text-slate-400">处理中...</div>
                     <div v-else-if="questions.length === 0" class="text-center py-10 text-slate-400">暂无数据</div>
 
-                    <div class="space-y-4">
+                    <div class="space-y-4" v-else>
                         <div v-for="q in questions" :key="q.id" @click="openDetailModal(q, 'view')"
                             class="question-item bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group/item card-hover animate-fade-in-up cursor-pointer">
                             <div
@@ -318,7 +311,6 @@
                 <!-- View: Knowledge (知识库) -->
                 <div v-if="currentView === 'knowledge'" key="knowledge"
                     class="p-4 max-w-4xl mx-auto flex flex-col h-full">
-                    <!-- 省略 Knowledge 视图细节，与 List 类似，保持原样即可 -->
                     <div class="flex flex-wrap gap-2 pb-4 mb-2 no-print">
                         <button @click="toggleKnowledgeFilter('')"
                             class="px-4 py-2 rounded-full text-sm font-medium transition-colors border"
@@ -329,7 +321,7 @@
                             :class="knowledgeFilter === cat.get('name') ? 'bg-primary text-white shadow-md border-transparent' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'">{{
                             cat.get('name') }}</button>
                     </div>
-                    <div v-if="loading" class="text-center py-10 text-slate-400">加载中...</div>
+                    <div v-if="loading" class="text-center py-10 text-slate-400">处理中...</div>
                     <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div v-if="knowledgeList.length === 0" class="col-span-full text-center py-10 text-slate-400">{{
                             knowledgeFilter ? `“${knowledgeFilter}”下暂无内容` : '暂无内容' }}</div>
@@ -612,13 +604,16 @@
                 const currentUser = ref(null);
                 const currentView = ref('list');
                 const loading = ref(false);
-                const isUploading = ref(false); // 上传状态
+                const isUploading = ref(false);
 
                 const questions = ref([]);
                 const knowledgeList = ref([]);
                 const knowledgeListAll = ref([]);
                 const quizList = ref([]);
                 const categoryList = ref([]);
+
+                // 核心：用于追踪本次弹窗会话中上传的临时文件
+                const tempUploadedFiles = ref([]);
 
                 const quizCategory = ref('');
                 const knowledgeFilter = ref('');
@@ -651,6 +646,15 @@
                     } else { isReady.value = true; }
                 });
 
+                // 防止用户在上传了图片但未保存时刷新页面
+                window.addEventListener('beforeunload', (e) => {
+                    if (tempUploadedFiles.value.length > 0) {
+                        e.preventDefault();
+                        e.returnValue = '您有已上传但未保存的图片，直接关闭会导致产生垃圾文件，确定要离开吗？';
+                        return e.returnValue;
+                    }
+                });
+
                 const initLeanCloud = (id, key, url) => {
                     try {
                         AV.init({ appId: id, appKey: key, serverURLs: url });
@@ -673,18 +677,16 @@
                 };
                 const handleLogout = () => { AV.User.logOut(); currentUser.value = null; questions.value = []; knowledgeList.value = []; };
 
-                // ================= 核心图片上传逻辑 =================
+                // ================= 图片上传 (带追踪) =================
                 const uploadFileToLeanCloud = async (file) => {
                     const avFile = new AV.File(file.name, file);
                     const savedFile = await avFile.save();
+                    // 记录到临时数组，用于后续的脏数据清理
+                    tempUploadedFiles.value.push(savedFile);
                     return savedFile.url();
                 };
 
-                // 辅助：在光标处插入文本
                 const insertTextToField = (field, text) => {
-                    const el = document.querySelector(`textarea[id*='${field}']`) || document.activeElement;
-                    // 简单起见，直接追加或拼接到 form 中，因为获取 activeElement 并不总是可靠的绑定
-                    // 这里我们采用字符串拼接方式，更安全
                     const originalVal = form[field] || '';
                     form[field] = originalVal + (originalVal ? '\n' : '') + text + '\n';
                 };
@@ -702,17 +704,15 @@
                     finally { isUploading.value = false; event.target.value = ''; }
                 };
 
-                // 粘贴事件处理
                 const handlePaste = async (event, targetField) => {
                     const items = (event.clipboardData || event.originalEvent.clipboardData).items;
                     for (let item of items) {
                         if (item.kind === 'file' && item.type.startsWith('image/')) {
-                            event.preventDefault(); // 阻止默认粘贴，避免粘贴出文件名
+                            event.preventDefault();
                             const file = item.getAsFile();
                             isUploading.value = true;
                             try {
                                 const url = await uploadFileToLeanCloud(file);
-                                // 计算插入位置
                                 const textarea = event.target;
                                 const start = textarea.selectionStart;
                                 const end = textarea.selectionEnd;
@@ -725,6 +725,76 @@
                             finally { isUploading.value = false; }
                         }
                     }
+                };
+
+                // ================= 辅助：清理关联图片 (核弹版：全方位匹配) =================
+                const cleanupImages = async (textFieldsArray) => {
+                    const urlsToProcess = [];
+                    const regex = /!\[.*?\]\((.*?)\)/g;
+                    textFieldsArray.forEach(text => {
+                        if (!text) return;
+                        const matches = [...text.matchAll(regex)];
+                        matches.forEach(m => urlsToProcess.push(m[1].trim()));
+                    });
+
+                    if (urlsToProcess.length === 0) return;
+
+                    const possibleKeys = new Set();
+                    urlsToProcess.forEach(fullUrl => {
+                        try {
+                            const cleanUrl = fullUrl.split('?')[0];
+                            const parts = cleanUrl.split('/');
+                            // 查找 Hash (Key)
+                            const hashPart = parts.find(part => /^[a-zA-Z0-9]{24,35}$/.test(part));
+                            if (hashPart) {
+                                possibleKeys.add(hashPart);
+                                // 同时尝试匹配 Hash/Filename 格式
+                                const hashIndex = parts.indexOf(hashPart);
+                                if (hashIndex !== -1 && hashIndex < parts.length - 1) {
+                                    const suffix = parts.slice(hashIndex).join('/');
+                                    possibleKeys.add(suffix);
+                                }
+                            }
+                        } catch (e) { console.warn('解析 URL 失败', fullUrl); }
+                    });
+
+                    const finalKeys = Array.from(possibleKeys);
+                    console.log('🚀 [超级清理] 正在尝试删除以下 Key:', finalKeys);
+
+                    if (finalKeys.length === 0) return;
+
+                    try {
+                        const fileQuery = new AV.Query('_File');
+                        fileQuery.containedIn('key', finalKeys);
+                        const files = await fileQuery.find();
+                        if (files.length > 0) {
+                            await AV.Object.destroyAll(files);
+                            console.log('✅ [超级清理] 删除成功！');
+                        }
+                    } catch (e) { console.warn('💥 [超级清理] 发生错误:', e); }
+                };
+
+                // ================= 辅助：清理本次操作产生的脏数据 =================
+                const clearUnusedTempFiles = async (finalTextContent = '') => {
+                    if (tempUploadedFiles.value.length === 0) return;
+                    console.log('正在检查废弃临时图片...');
+
+                    const filesToDelete = [];
+                    for (const file of tempUploadedFiles.value) {
+                        const url = file.url();
+                        // 如果最终文本里不包含这个URL，说明用户删掉了它
+                        if (!finalTextContent || !finalTextContent.includes(url)) {
+                            filesToDelete.push(file);
+                        }
+                    }
+
+                    if (filesToDelete.length > 0) {
+                        try {
+                            await AV.Object.destroyAll(filesToDelete);
+                            console.log(`✅ 清理了 ${filesToDelete.length} 个废弃临时图片`);
+                        } catch (e) { console.warn('⚠️ 临时清理失败:', e); }
+                    }
+                    tempUploadedFiles.value = [];
                 };
 
                 // ================= 数据操作 =================
@@ -784,21 +854,65 @@
                     showDetailModal.value = false; refreshQuiz();
                 };
                 const toggleMastery = async (q) => { q.set('masteryLevel', q.get('masteryLevel') === 1 ? 0 : 1); await q.save(); };
-                const deleteQuestion = async (q) => { if (confirm('删除?')) { await q.destroy(); fetchQuestions(); } };
-                const deleteKnowledge = async (k) => { if (confirm('删除?')) { await k.destroy(); fetchKnowledge(); } };
 
-                const openAddModal = () => { isEditing.value = false; editingObject.value = null; targetType.value = currentView.value === 'knowledge' ? 'knowledge' : 'question'; Object.assign(form, { category: '', q_content: '', q_answer: '', q_analysis: '', q_tags: '', q_knowledgeId: '', k_title: '', k_content: '' }); showModal.value = true; };
+                // 删除逻辑：包含图片清理
+                const deleteQuestion = async (q) => {
+                    if (confirm('确认删除？关联的图片也会被删除。')) {
+                        loading.value = true;
+                        try {
+                            await cleanupImages([q.get('content'), q.get('answer'), q.get('analysis')]);
+                            await q.destroy();
+                            fetchQuestions();
+                        } catch (e) { alert(e.message) }
+                        finally { loading.value = false; }
+                    }
+                };
+
+                const deleteKnowledge = async (k) => {
+                    if (confirm('确认删除？关联的图片也会被删除。')) {
+                        loading.value = true;
+                        try {
+                            await cleanupImages([k.get('content')]);
+                            await k.destroy();
+                            fetchKnowledge();
+                        } catch (e) { alert(e.message) }
+                        finally { loading.value = false; }
+                    }
+                };
+
+                const openAddModal = () => { isEditing.value = false; editingObject.value = null; targetType.value = currentView.value === 'knowledge' ? 'knowledge' : 'question'; Object.assign(form, { category: '', q_content: '', q_answer: '', q_analysis: '', q_tags: '', q_knowledgeId: '', k_title: '', k_content: '' }); tempUploadedFiles.value = []; showModal.value = true; };
                 const openEditModal = (obj, type) => {
                     isEditing.value = true; editingObject.value = obj; targetType.value = type; form.category = obj.get('category');
                     if (type === 'question') { form.q_content = obj.get('content'); form.q_answer = obj.get('answer'); form.q_analysis = obj.get('analysis'); form.q_tags = (obj.get('tags') || []).join(','); form.q_knowledgeId = obj.get('linkedKnowledge')?.id || ''; }
                     else { form.k_title = obj.get('title'); form.k_content = obj.get('content'); }
+                    tempUploadedFiles.value = []; // 重置临时文件追踪
                     showModal.value = true;
                 };
                 const openDetailModal = (item, ctx) => { currentDetail.value = item; detailContext.value = ctx; showDetailModal.value = true; };
-                const closeModal = () => showModal.value = false;
+
+                // 关闭弹窗：执行脏数据清理
+                const closeModal = async () => {
+                    if (tempUploadedFiles.value.length > 0) {
+                        // 传空字符串意味着这些图片都没被用到，全删
+                        await clearUnusedTempFiles('');
+                    }
+                    showModal.value = false;
+                };
 
                 const submitData = async () => {
                     if (!form.category) return alert('请选择分类');
+
+                    // 1. 拼接最终文本，用于检测图片是否保留
+                    let allContent = '';
+                    if (targetType.value === 'question') {
+                        allContent = (form.q_content || '') + (form.q_answer || '') + (form.q_analysis || '');
+                    } else {
+                        allContent = (form.k_content || '');
+                    }
+
+                    // 2. 清理掉本次操作中上传了但又被删掉的图片
+                    await clearUnusedTempFiles(allContent);
+
                     const ObjClass = AV.Object.extend(targetType.value === 'knowledge' ? 'Knowledge' : 'Question');
                     const obj = isEditing.value ? editingObject.value : new ObjClass();
                     if (!isEditing.value) { obj.set('owner', currentUser.value); obj.setACL(new AV.ACL(currentUser.value)); }
@@ -809,7 +923,16 @@
                         if (form.q_knowledgeId) obj.set('linkedKnowledge', AV.Object.createWithoutData('Knowledge', form.q_knowledgeId)); else obj.unset('linkedKnowledge');
                         if (!isEditing.value) obj.set('masteryLevel', 0);
                     } else { obj.set('title', form.k_title); obj.set('content', form.k_content); }
-                    await obj.save(); closeModal(); loadInitialData();
+
+                    try {
+                        await obj.save();
+                        // 成功保存后，清空追踪数组，防止 closeModal 误删
+                        tempUploadedFiles.value = [];
+                        showModal.value = false; // 直接关闭，不调用 closeModal() 防止触发多余逻辑
+                        loadInitialData();
+                    } catch (e) {
+                        alert('保存失败: ' + e.message);
+                    }
                 };
 
                 const changePage = (p) => { pagination.current = p; if (currentView.value === 'list') fetchQuestions(); else fetchKnowledge(); };
@@ -835,7 +958,7 @@
                     deleteQuestion, deleteKnowledge, toggleMastery,
                     changePage, resetPageAndFetch, toggleListFilter, toggleKnowledgeFilter,
                     renderMarkdown, printMode, navClass, viewTitle,
-                    handleImageUpload, handlePaste // 新增返回
+                    handleImageUpload, handlePaste
                 };
             }
         }).mount('#app');

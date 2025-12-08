@@ -48,11 +48,13 @@
       --radius-md: 8px;
       --radius-lg: 16px;
     }
-/* === 头部布局修正样式 (修复标题偏移) === */
+
+    /* === 头部布局修正样式 (修复标题偏移) === */
     .app-header {
       position: relative;
       display: flex;
-      justify-content: center; /* 让 h1 绝对居中 */
+      justify-content: center;
+      /* 让 h1 绝对居中 */
       align-items: center;
       margin-bottom: 30px;
       min-height: 40px;
@@ -67,7 +69,8 @@
     }
 
     .user-info-box {
-      position: absolute; /* 绝对定位到右侧，不占流式空间 */
+      position: absolute;
+      /* 绝对定位到右侧，不占流式空间 */
       right: 0;
       top: 50%;
       transform: translateY(-50%);
@@ -76,7 +79,8 @@
       gap: 10px;
       font-size: 0.9rem;
       color: var(--text-sub);
-      background: rgba(255, 255, 255, 0.8); /* 防止背景遮挡 */
+      background: rgba(255, 255, 255, 0.8);
+      /* 防止背景遮挡 */
     }
 
     /* 手机端适配：屏幕窄时取消绝对定位，改为垂直排列 */
@@ -86,6 +90,7 @@
         gap: 15px;
         margin-bottom: 25px;
       }
+
       .user-info-box {
         position: static;
         transform: none;
@@ -93,6 +98,7 @@
         justify-content: center;
       }
     }
+
     * {
       box-sizing: border-box;
       outline: none;
@@ -129,8 +135,15 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .auth-tabs {
@@ -289,12 +302,18 @@
       font-size: 1rem;
       min-width: 100px;
       border-radius: var(--radius-md);
-      width: 100%; /* Make default width full for mobile/auth */
+      width: 100%;
+      /* Make default width full for mobile/auth */
     }
 
     @media(min-width: 768px) {
-        .action-btn-large { width: auto; }
-        .auth-card .action-btn-large { width: 100%; }
+      .action-btn-large {
+        width: auto;
+      }
+
+      .auth-card .action-btn-large {
+        width: 100%;
+      }
     }
 
     .btn-brown {
@@ -446,14 +465,15 @@
 
     /* 新增：记账人 Badge 样式 */
     .user-badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 4px; /* 圆角矩形，类似药丸的一半 */
-        font-size: 0.8em;
-        font-weight: 500;
-        letter-spacing: 0.3px;
-        white-space: nowrap;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      /* 圆角矩形，类似药丸的一半 */
+      font-size: 0.8em;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     /* 布局与图表 */
@@ -729,13 +749,13 @@
 
     /* 家庭共享提示 */
     .family-badge {
-        background: #fff3e0;
-        color: #e65100;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        border: 1px solid #ffe0b2;
-        margin-left: 10px;
+      background: #fff3e0;
+      color: #e65100;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      border: 1px solid #ffe0b2;
+      margin-left: 10px;
     }
   </style>
 </head>
@@ -747,26 +767,26 @@
     <div class="auth-card">
       <h2 class="auth-title">家庭费用清单</h2>
       <p style="text-align: center; color: var(--text-sub); margin-bottom: 20px;">
-          Family: Big Banana House
+        Family: Big Banana House
       </p>
 
       <!-- 配置表单 (如果没有 appId/key) -->
       <div id="configSection" style="display: none;">
         <div class="helper-text">
-            请前往 LeanCloud 控制台获取应用的 App ID 和 App Key。<br>
-            控制台 > 设置 > 应用凭证
+          请前往 LeanCloud 控制台获取应用的 App ID 和 App Key。<br>
+          控制台 > 设置 > 应用凭证
         </div>
         <div class="form-group">
-            <label>App ID</label>
-            <input type="text" id="configAppId" placeholder="输入 App ID">
+          <label>App ID</label>
+          <input type="text" id="configAppId" placeholder="输入 App ID">
         </div>
         <div class="form-group">
-            <label>App Key</label>
-            <input type="password" id="configAppKey" placeholder="输入 App Key">
+          <label>App Key</label>
+          <input type="password" id="configAppKey" placeholder="输入 App Key">
         </div>
         <div class="form-group">
-            <label>REST API Server URL</label>
-            <input type="text" id="configServerUrl" placeholder="https://..." value="https://api.leancloud.cn">
+          <label>REST API Server URL</label>
+          <input type="text" id="configServerUrl" placeholder="https://..." value="https://api.leancloud.cn">
         </div>
         <button class="action-btn-large btn-brown" onclick="saveConfig()">保存配置</button>
       </div>
@@ -774,23 +794,24 @@
       <!-- 登录/注册表单 (如果已有配置) -->
       <div id="authSection" style="display: none;">
         <div class="auth-tabs">
-            <div class="auth-tab active" id="tabLogin" onclick="switchAuthMode('login')">登录</div>
-            <div class="auth-tab" id="tabSignup" onclick="switchAuthMode('signup')">注册</div>
+          <div class="auth-tab active" id="tabLogin" onclick="switchAuthMode('login')">登录</div>
+          <div class="auth-tab" id="tabSignup" onclick="switchAuthMode('signup')">注册</div>
         </div>
 
         <div class="form-group">
-            <label>用户名</label>
-            <input type="text" id="authUsername" placeholder="请输入用户名">
+          <label>用户名</label>
+          <input type="text" id="authUsername" placeholder="请输入用户名">
         </div>
         <div class="form-group">
-            <label>密码</label>
-            <input type="password" id="authPassword" placeholder="请输入密码">
+          <label>密码</label>
+          <input type="password" id="authPassword" placeholder="请输入密码">
         </div>
 
         <button class="action-btn-large btn-brown" id="authActionBtn" onclick="handleAuthAction()">登录</button>
 
         <div style="text-align: center; margin-top: 20px;">
-            <button class="action-btn" style="color: var(--text-sub); text-decoration: underline;" onclick="clearConfig()">重置 App 配置</button>
+          <button class="action-btn" style="color: var(--text-sub); text-decoration: underline;"
+            onclick="clearConfig()">重置 App 配置</button>
         </div>
       </div>
 
@@ -808,11 +829,12 @@
 
     <!-- 1. 头部区域：已修复 UI 偏移 -->
     <div class="app-header">
-        <h1>家庭费用清单</h1>
-        <div class="user-info-box">
-            <span id="currentUserDisplay" style="font-weight: 500; color: var(--primary);"></span>
-            <button class="action-btn btn-light" onclick="logout()" style="padding: 4px 12px; font-size: 0.85rem;">退出</button>
-        </div>
+      <h1>家庭费用清单</h1>
+      <div class="user-info-box">
+        <span id="currentUserDisplay" style="font-weight: 500; color: var(--primary);"></span>
+        <button class="action-btn btn-light" onclick="logout()"
+          style="padding: 4px 12px; font-size: 0.85rem;">退出</button>
+      </div>
     </div>
 
     <!-- 2. 新增按钮 -->
@@ -838,8 +860,7 @@
         </div>
         <canvas id="monthlyBarChart" height="180"></canvas>
         <div id="budgetProgressBar">
-          <div id="budgetBase"
-            style="height:100%; width:100%; background:#cfd8dc; position:relative; overflow:hidden;">
+          <div id="budgetBase" style="height:100%; width:100%; background:#cfd8dc; position:relative; overflow:hidden;">
             <div id="progressGreen"
               style="height:100%; width:0%; background:linear-gradient(to right, #a5d6a7, #81c784); position:absolute; left:0; top:0; transition: width 0.5s ease;">
             </div>
@@ -1018,22 +1039,22 @@
     // --- 新增：用户标签颜色盘（区别于图表颜色）---
     // 类似于微信/钉钉头像的随机底色，看起来比较柔和
     const USER_PALETTE = [
-        { bg: '#e3f2fd', text: '#1565c0' }, // 蓝
-        { bg: '#fce4ec', text: '#c2185b' }, // 粉
-        { bg: '#f3e5f5', text: '#7b1fa2' }, // 紫
-        { bg: '#e8f5e9', text: '#2e7d32' }, // 绿
-        { bg: '#fff3e0', text: '#ef6c00' }, // 橙
-        { bg: '#e0f7fa', text: '#006064' }, // 青
-        { bg: '#ffebee', text: '#b71c1c' }, // 鲜红
-        { bg: '#e3f2fd', text: '#0d47a1' }, // 深蓝
-        { bg: '#f3e5f5', text: '#4a148c' }, // 深紫
-        { bg: '#fffde7', text: '#f57f17' }, // 深黄
-        { bg: '#e0f2f1', text: '#004d40' }  // 深青
+      { bg: '#e3f2fd', text: '#1565c0' }, // 蓝
+      { bg: '#fce4ec', text: '#c2185b' }, // 粉
+      { bg: '#f3e5f5', text: '#7b1fa2' }, // 紫
+      { bg: '#e8f5e9', text: '#2e7d32' }, // 绿
+      { bg: '#fff3e0', text: '#ef6c00' }, // 橙
+      { bg: '#e0f7fa', text: '#006064' }, // 青
+      { bg: '#ffebee', text: '#b71c1c' }, // 鲜红
+      { bg: '#e3f2fd', text: '#0d47a1' }, // 深蓝
+      { bg: '#f3e5f5', text: '#4a148c' }, // 深紫
+      { bg: '#fffde7', text: '#f57f17' }, // 深黄
+      { bg: '#e0f2f1', text: '#004d40' }  // 深青
     ];
     const USER_COLOR_MAP = {
-      "hundun":    { bg: '#fce4ec', text: '#c2185b' },
+      "hundun": { bg: '#fce4ec', text: '#c2185b' },
       "rourou622": { bg: '#e8f5e9', text: '#2e7d32' },
-      "其他":       { bg: '#f5f5f5', text: '#616161' }  // 默认灰色
+      "其他": { bg: '#f5f5f5', text: '#616161' }  // 默认灰色
     };
     let ExpenseClass = null;
     let currentUser = null;
@@ -1056,152 +1077,152 @@
     // ========== 认证与初始化逻辑 ==========
 
     window.onload = () => {
-        checkAppConfig();
+      checkAppConfig();
     };
 
     // --- 辅助函数：根据用户名生成固定的颜色 ---
     // 【修改建议】根据名字直接查表
     function getUserColor(username) {
-        // 如果名字在表里，就用表里的颜色；找不到就用默认的“其他”
-        return USER_COLOR_MAP[username] || USER_COLOR_MAP["其他"];
+      // 如果名字在表里，就用表里的颜色；找不到就用默认的“其他”
+      return USER_COLOR_MAP[username] || USER_COLOR_MAP["其他"];
     }
 
     // --- 同步函数已移除 ---
 
     function checkAppConfig() {
-        const id = localStorage.getItem('lc_app_id');
-        const key = localStorage.getItem('lc_app_key');
-        const url = localStorage.getItem('lc_server_url');
+      const id = localStorage.getItem('lc_app_id');
+      const key = localStorage.getItem('lc_app_key');
+      const url = localStorage.getItem('lc_server_url');
 
-        if (id && key && url) {
-            initLeanCloud(id, key, url);
-        } else {
-            showConfigForm();
-        }
+      if (id && key && url) {
+        initLeanCloud(id, key, url);
+      } else {
+        showConfigForm();
+      }
     }
 
     function initLeanCloud(id, key, url) {
-        document.getElementById('configSection').style.display = 'none';
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('loadingSection').style.display = 'block';
+      document.getElementById('configSection').style.display = 'none';
+      document.getElementById('authSection').style.display = 'none';
+      document.getElementById('loadingSection').style.display = 'block';
 
-        try {
-            if (typeof AV === 'undefined') {
-                alert('LeanCloud SDK 加载失败，请检查网络');
-                return;
-            }
-            AV.init({ appId: id, appKey: key, serverURLs: url });
-            ExpenseClass = AV.Object.extend(EXPENSE_CLASS_NAME);
-
-            checkLoginStatus();
-        } catch (e) {
-            console.error(e);
-            alert('初始化失败，请检查配置');
-            clearConfig();
+      try {
+        if (typeof AV === 'undefined') {
+          alert('LeanCloud SDK 加载失败，请检查网络');
+          return;
         }
+        AV.init({ appId: id, appKey: key, serverURLs: url });
+        ExpenseClass = AV.Object.extend(EXPENSE_CLASS_NAME);
+
+        checkLoginStatus();
+      } catch (e) {
+        console.error(e);
+        alert('初始化失败，请检查配置');
+        clearConfig();
+      }
     }
 
     function checkLoginStatus() {
-        currentUser = AV.User.current();
-        document.getElementById('loadingSection').style.display = 'none';
+      currentUser = AV.User.current();
+      document.getElementById('loadingSection').style.display = 'none';
 
-        if (currentUser) {
-            enterApp();
-        } else {
-            showAuthForm();
-        }
+      if (currentUser) {
+        enterApp();
+      } else {
+        showAuthForm();
+      }
     }
 
     function enterApp() {
-        document.getElementById('authContainer').style.display = 'none';
-        document.getElementById('appContainer').style.display = 'block';
-        document.getElementById('currentUserDisplay').textContent = `用户: ${currentUser.getUsername()}`;
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('appContainer').style.display = 'block';
+      document.getElementById('currentUserDisplay').textContent = `用户: ${currentUser.getUsername()}`;
 
-        initCustomDropdown();
-        renderExpenses();
-        window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
+      initCustomDropdown();
+      renderExpenses();
+      window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
     }
 
     function logout() {
-        AV.User.logOut();
-        location.reload();
+      AV.User.logOut();
+      location.reload();
     }
 
     // --- 配置表单逻辑 ---
     function showConfigForm() {
-        document.getElementById('configSection').style.display = 'block';
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('loadingSection').style.display = 'none';
+      document.getElementById('configSection').style.display = 'block';
+      document.getElementById('authSection').style.display = 'none';
+      document.getElementById('loadingSection').style.display = 'none';
     }
 
     function saveConfig() {
-        const id = document.getElementById('configAppId').value.trim();
-        const key = document.getElementById('configAppKey').value.trim();
-        const url = document.getElementById('configServerUrl').value.trim();
+      const id = document.getElementById('configAppId').value.trim();
+      const key = document.getElementById('configAppKey').value.trim();
+      const url = document.getElementById('configServerUrl').value.trim();
 
-        if (!id || !key || !url) {
-            alert('请填写完整配置');
-            return;
-        }
+      if (!id || !key || !url) {
+        alert('请填写完整配置');
+        return;
+      }
 
-        localStorage.setItem('lc_app_id', id);
-        localStorage.setItem('lc_app_key', key);
-        localStorage.setItem('lc_server_url', url);
+      localStorage.setItem('lc_app_id', id);
+      localStorage.setItem('lc_app_key', key);
+      localStorage.setItem('lc_server_url', url);
 
-        initLeanCloud(id, key, url);
+      initLeanCloud(id, key, url);
     }
 
     function clearConfig() {
-        localStorage.removeItem('lc_app_id');
-        localStorage.removeItem('lc_app_key');
-        localStorage.removeItem('lc_server_url');
-        location.reload();
+      localStorage.removeItem('lc_app_id');
+      localStorage.removeItem('lc_app_key');
+      localStorage.removeItem('lc_server_url');
+      location.reload();
     }
 
     // --- 登录/注册逻辑 ---
     function showAuthForm() {
-        document.getElementById('authSection').style.display = 'block';
-        switchAuthMode('login');
+      document.getElementById('authSection').style.display = 'block';
+      switchAuthMode('login');
     }
 
     function switchAuthMode(mode) {
-        authMode = mode;
-        const btn = document.getElementById('authActionBtn');
-        const tabLogin = document.getElementById('tabLogin');
-        const tabSignup = document.getElementById('tabSignup');
+      authMode = mode;
+      const btn = document.getElementById('authActionBtn');
+      const tabLogin = document.getElementById('tabLogin');
+      const tabSignup = document.getElementById('tabSignup');
 
-        if (mode === 'login') {
-            tabLogin.classList.add('active');
-            tabSignup.classList.remove('active');
-            btn.textContent = '立即登录';
-            btn.className = 'action-btn-large btn-brown';
-        } else {
-            tabLogin.classList.remove('active');
-            tabSignup.classList.add('active');
-            btn.textContent = '注册并登录';
-            btn.className = 'action-btn-large btn-accent';
-        }
+      if (mode === 'login') {
+        tabLogin.classList.add('active');
+        tabSignup.classList.remove('active');
+        btn.textContent = '立即登录';
+        btn.className = 'action-btn-large btn-brown';
+      } else {
+        tabLogin.classList.remove('active');
+        tabSignup.classList.add('active');
+        btn.textContent = '注册并登录';
+        btn.className = 'action-btn-large btn-accent';
+      }
     }
 
     async function handleAuthAction() {
-        const u = document.getElementById('authUsername').value.trim();
-        const p = document.getElementById('authPassword').value.trim();
+      const u = document.getElementById('authUsername').value.trim();
+      const p = document.getElementById('authPassword').value.trim();
 
-        if (!u || !p) return alert('请输入用户名和密码');
+      if (!u || !p) return alert('请输入用户名和密码');
 
-        try {
-            if (authMode === 'login') {
-                await AV.User.logIn(u, p);
-            } else {
-                const user = new AV.User();
-                user.setUsername(u);
-                user.setPassword(p);
-                await user.signUp();
-            }
-            checkLoginStatus();
-        } catch (error) {
-            alert('操作失败: ' + error.message);
+      try {
+        if (authMode === 'login') {
+          await AV.User.logIn(u, p);
+        } else {
+          const user = new AV.User();
+          user.setUsername(u);
+          user.setPassword(p);
+          await user.signUp();
         }
+        checkLoginStatus();
+      } catch (error) {
+        alert('操作失败: ' + error.message);
+      }
     }
 
 
@@ -1670,7 +1691,7 @@
     function switchAnalysisMode() {
       let newIndex;
       do {
-          newIndex = Math.floor(Math.random() * ANALYSIS_MODE_COUNT);
+        newIndex = Math.floor(Math.random() * ANALYSIS_MODE_COUNT);
       } while (newIndex === analysisModeIndex && ANALYSIS_MODE_COUNT > 1);
       analysisModeIndex = newIndex;
       updateAnalysis();
@@ -1758,7 +1779,7 @@
           } else { resultText = "暂无第三大分类"; }
           break;
         case 8:
-           if (sortedTypes.length > 0) {
+          if (sortedTypes.length > 0) {
             const [name, amt] = sortedTypes[sortedTypes.length - 1];
             const percent = ((amt / totalAmount) * 100).toFixed(1);
             resultText = `最小分类：${name}占${percent}%`;
@@ -1771,11 +1792,11 @@
           const targetTypes = ['吃', '喝', '交通'];
 
           data.forEach(item => {
-             if (!targetTypes.includes(item.type1)) return;
-             const day = new Date(item.date).getDay();
-             const isWeekend = (day === 0 || day === 6);
-             if (isWeekend) { weekendTotal += item.amount; weItems++; }
-             else { weekDayTotal += item.amount; wdItems++; }
+            if (!targetTypes.includes(item.type1)) return;
+            const day = new Date(item.date).getDay();
+            const isWeekend = (day === 0 || day === 6);
+            if (isWeekend) { weekendTotal += item.amount; weItems++; }
+            else { weekDayTotal += item.amount; wdItems++; }
           });
 
           const wdAvg = wdItems ? (weekDayTotal / wdItems) : 0;
@@ -1787,10 +1808,10 @@
           else resultText = "周末与工作日(吃喝交通)消费持平";
           break;
         case 10:
-          const sortedCounts = Object.entries(typeCounts).sort((a,b) => b[1] - a[1]);
+          const sortedCounts = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
           if (sortedCounts.length > 0) {
-             const [name, count] = sortedCounts[0];
-             resultText = `频次之王：${name}类共消费${count}次`;
+            const [name, count] = sortedCounts[0];
+            resultText = `频次之王：${name}类共消费${count}次`;
           } else { resultText = "暂无频次数据"; }
           break;
         case 11:
@@ -1811,38 +1832,38 @@
           }
           break;
         case 13:
-            const dayMap = {};
-            data.forEach(item => {
-                if (item.type1 === '房租') return;
-                const d = item.date.slice(0, 10);
-                dayMap[d] = (dayMap[d] || 0) + item.amount;
-            });
-            let maxDay = "", maxDayAmt = 0;
-            for (let d in dayMap) {
-                if (dayMap[d] > maxDayAmt) { maxDayAmt = dayMap[d]; maxDay = d; }
-            }
-            if (maxDay) resultText = `单日之王(除房租)：${maxDay} 花费${maxDayAmt.toFixed(0)}元`;
-            else resultText = "除房租外暂无消费数据";
-            break;
+          const dayMap = {};
+          data.forEach(item => {
+            if (item.type1 === '房租') return;
+            const d = item.date.slice(0, 10);
+            dayMap[d] = (dayMap[d] || 0) + item.amount;
+          });
+          let maxDay = "", maxDayAmt = 0;
+          for (let d in dayMap) {
+            if (dayMap[d] > maxDayAmt) { maxDayAmt = dayMap[d]; maxDay = d; }
+          }
+          if (maxDay) resultText = `单日之王(除房租)：${maxDay} 花费${maxDayAmt.toFixed(0)}元`;
+          else resultText = "除房租外暂无消费数据";
+          break;
         case 14:
-             const avgPrice = data.length ? (totalAmount / data.length) : 0;
-             resultText = `平均单价：每笔消费约${avgPrice.toFixed(1)}元`;
-             break;
+          const avgPrice = data.length ? (totalAmount / data.length) : 0;
+          resultText = `平均单价：每笔消费约${avgPrice.toFixed(1)}元`;
+          break;
         case 15:
-             const smallCount = data.filter(i => i.amount < 30).length;
-             const smallPercent = data.length ? ((smallCount / data.length) * 100).toFixed(0) : 0;
-             resultText = `琐碎消费：30元以下占比${smallPercent}% (${smallCount}笔)`;
-             break;
+          const smallCount = data.filter(i => i.amount < 30).length;
+          const smallPercent = data.length ? ((smallCount / data.length) * 100).toFixed(0) : 0;
+          resultText = `琐碎消费：30元以下占比${smallPercent}% (${smallCount}笔)`;
+          break;
         case 16:
-            const highValueItems = data.filter(i => i.amount > 500);
-            const hvCount = highValueItems.length;
-            if (hvCount > 0) {
-                const hvTotal = highValueItems.reduce((sum, i) => sum + i.amount, 0);
-                resultText = `高额消费(>500)：共${hvCount}笔，合计${hvTotal.toFixed(0)}元`;
-            } else {
-                resultText = "暂无单笔超500元的大额消费";
-            }
-            break;
+          const highValueItems = data.filter(i => i.amount > 500);
+          const hvCount = highValueItems.length;
+          if (hvCount > 0) {
+            const hvTotal = highValueItems.reduce((sum, i) => sum + i.amount, 0);
+            resultText = `高额消费(>500)：共${hvCount}笔，合计${hvTotal.toFixed(0)}元`;
+          } else {
+            resultText = "暂无单笔超500元的大额消费";
+          }
+          break;
       }
 
       textEl.textContent = resultText;
@@ -1923,20 +1944,20 @@
 
       try {
         if (id) {
-            const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id);
-            obj.set(data);
-            await obj.save();
+          const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id);
+          obj.set(data);
+          await obj.save();
         } else {
-            const obj = new ExpenseClass();
-            obj.set(data);
-            obj.set('owner', currentUser);
+          const obj = new ExpenseClass();
+          obj.set(data);
+          obj.set('owner', currentUser);
 
-            const acl = new AV.ACL();
-            acl.setPublicReadAccess(true);
-            acl.setPublicWriteAccess(true);
-            obj.setACL(acl);
+          const acl = new AV.ACL();
+          acl.setPublicReadAccess(true);
+          acl.setPublicWriteAccess(true);
+          obj.setACL(acl);
 
-            await obj.save();
+          await obj.save();
         }
         closeAddModal();
         allExpenses = [];

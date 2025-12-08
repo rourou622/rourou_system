@@ -10,7 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.14.0/dist/av-min.js"></script>
 
   <!-- 引入字体 -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Roboto:wght@400;500&display=swap"
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Roboto:wght@400;500&display=swap"
     rel="stylesheet">
 
   <style>
@@ -19,13 +20,16 @@
       --bg-body: #f2f4f6;
       --bg-card: #ffffff;
 
-      --primary: #607d8b;      /* 蓝灰 */
+      --primary: #607d8b;
+      /* 蓝灰 */
       --primary-hover: #546e7a;
 
-      --accent: #81a18b;       /* 鼠尾草绿 */
+      --accent: #81a18b;
+      /* 鼠尾草绿 */
       --accent-hover: #6b8c76;
 
-      --danger: #d4a5a5;       /* 干枯玫瑰 */
+      --danger: #d4a5a5;
+      /* 干枯玫瑰 */
       --danger-hover: #c08b8b;
 
       --text-main: #374151;
@@ -34,123 +38,504 @@
       --radius: 8px;
     }
 
-    * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Roboto', 'Noto Sans SC', sans-serif; background: var(--bg-body); margin: 0; padding: 20px; color: var(--text-main); line-height: 1.6; }
+    * {
+      box-sizing: border-box;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Roboto', 'Noto Sans SC', sans-serif;
+      background: var(--bg-body);
+      margin: 0;
+      padding: 20px;
+      color: var(--text-main);
+      line-height: 1.6;
+    }
 
     /* ============ 认证/弹窗通用样式 ============ */
     .overlay-layer {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--bg-body); z-index: 9999;
-      display: flex; align-items: center; justify-content: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-body);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
-    .modal-mask.active { opacity: 1; visibility: visible; }
 
-    .auth-card, .modal-box {
-      background: #fff; padding: 40px; border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      width: 90%; max-width: 420px; text-align: center;
+    .modal-mask {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.3s;
     }
-    .auth-card h2 { color: var(--primary); margin: 0 0 10px 0; }
-    .auth-card p { color: var(--text-sub); font-size: 0.9em; margin-bottom: 25px; }
 
-    .input-group { text-align: left; margin-bottom: 15px; }
-    .input-group label { display: block; margin-bottom: 6px; font-size: 0.85em; color: var(--text-sub); }
-    .input-group input { width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: #fafafa; }
-    .input-group input:focus { border-color: var(--primary); background: #fff; }
+    .modal-mask.active {
+      opacity: 1;
+      visibility: visible;
+    }
 
-    .btn-block { width: 100%; height: 42px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: 0.2s; }
-    .btn-block:hover { background: var(--primary-hover); }
-    .link-btn { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.9em; text-decoration: underline; margin-top: 15px; }
-    .hidden { display: none !important; }
+    .auth-card,
+    .modal-box {
+      background: #fff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .auth-card h2 {
+      color: var(--primary);
+      margin: 0 0 10px 0;
+    }
+
+    .auth-card p {
+      color: var(--text-sub);
+      font-size: 0.9em;
+      margin-bottom: 25px;
+    }
+
+    .input-group {
+      text-align: left;
+      margin-bottom: 15px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.85em;
+      color: var(--text-sub);
+    }
+
+    .input-group input {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fafafa;
+    }
+
+    .input-group input:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    .btn-block {
+      width: 100%;
+      height: 42px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-block:hover {
+      background: var(--primary-hover);
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 0.9em;
+      text-decoration: underline;
+      margin-top: 15px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
 
     /* ============ 主应用界面样式 ============ */
     .container {
-      max-width: 1200px; margin: 0 auto;
-      background: var(--bg-card); padding: 25px;
-      border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      display: none; /* 登录后显示 */
+      max-width: 1200px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      display: none;
+      /* 登录后显示 */
     }
 
     /* 顶部导航 */
-    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
-    .app-logo { font-size: 1.5rem; font-weight: 700; color: #4a5a6a; display: flex; align-items: center; gap: 10px; }
-    .user-area { display: flex; align-items: center; gap: 10px; }
-    .user-badge { background: #f1f5f9; color: var(--text-sub); padding: 5px 12px; border-radius: 20px; font-size: 0.9em; font-weight: 500; }
-    .family-badge { background: #e0f2f1; color: #00695c; padding: 5px 12px; border-radius: 20px; font-size: 0.9em; font-weight: 500; display: flex; align-items: center; gap: 5px;}
-    .logout-btn {
-      border: 1px solid var(--danger); color: var(--danger); background: #fff;
-      padding: 4px 12px; border-radius: 4px; font-size: 0.85em; cursor: pointer; transition: 0.2s;
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .logout-btn:hover { background: var(--danger); color: white; }
+
+    .app-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #4a5a6a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-badge {
+      background: #f1f5f9;
+      color: var(--text-sub);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      font-weight: 500;
+    }
+
+    .family-badge {
+      background: #e0f2f1;
+      color: #00695c;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .logout-btn {
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      background: #fff;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .logout-btn:hover {
+      background: var(--danger);
+      color: white;
+    }
 
     /* 筛选栏 */
     .filter-container {
-      background: #fcfcfc; border: 1px solid #f0f0f0; padding: 20px; border-radius: 8px;
-      display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px;
+      background: #fcfcfc;
+      border: 1px solid #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
     }
-    .filter-item { flex: 1; min-width: 150px; }
-    .filter-item label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-sub); font-size: 0.9rem; }
-    .filter-input, .filter-select {
-      width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border);
-      border-radius: 6px; background: #fff; color: var(--text-main);
+
+    .filter-item {
+      flex: 1;
+      min-width: 150px;
     }
-    .btn-search { background: var(--primary); color: white; height: 40px; padding: 0 25px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; }
-    .btn-search:hover { background: var(--primary-hover); }
-    .btn-add { background: var(--accent); color: white; height: 40px; padding: 0 25px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; }
-    .btn-add:hover { background: var(--accent-hover); }
+
+    .filter-item label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+    }
+
+    .filter-input,
+    .filter-select {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text-main);
+    }
+
+    .btn-search {
+      background: var(--primary);
+      color: white;
+      height: 40px;
+      padding: 0 25px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .btn-search:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-add {
+      background: var(--accent);
+      color: white;
+      height: 40px;
+      padding: 0 25px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .btn-add:hover {
+      background: var(--accent-hover);
+    }
 
     /* 表格 */
-    .table-wrapper { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; }
-    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.95em; min-width: 1000px; }
-    th { background: #f9fafb; padding: 14px 15px; text-align: left; color: #64748b; font-weight: 600; border-bottom: 1px solid #eee; white-space: nowrap; }
-    td { padding: 12px 15px; border-bottom: 1px solid #eee; vertical-align: middle; color: var(--text-main); }
-    tbody tr:hover { background: #f8fafc; }
+    .table-wrapper {
+      overflow-x: auto;
+      border: 1px solid #eee;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.95em;
+      min-width: 1000px;
+    }
+
+    th {
+      background: #f9fafb;
+      padding: 14px 15px;
+      text-align: left;
+      color: #64748b;
+      font-weight: 600;
+      border-bottom: 1px solid #eee;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+      color: var(--text-main);
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
 
     /* 状态与记录人样式 */
-    .status-normal { color: var(--accent); font-weight: 600; }
-    .status-near { color: #e6a23c; font-weight: 600; }
-    .status-exp { color: var(--danger); font-weight: 600; }
+    .status-normal {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .status-near {
+      color: #e6a23c;
+      font-weight: 600;
+    }
+
+    .status-exp {
+      color: var(--danger);
+      font-weight: 600;
+    }
 
     /* 记录人彩色标签 */
-    .recorder-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: 500; display: inline-block; letter-spacing: 0.5px; }
-    .badge-green { background-color: #e6f4ea; color: #137333; border: 1px solid #ceead6; }
-    .badge-pink { background-color: #fce4ec; color: #c2185b; border: 1px solid #f8bbd0; }
-    .badge-blue { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
-    .badge-orange { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+    .recorder-badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      font-weight: 500;
+      display: inline-block;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-green {
+      background-color: #e6f4ea;
+      color: #137333;
+      border: 1px solid #ceead6;
+    }
+
+    .badge-pink {
+      background-color: #fce4ec;
+      color: #c2185b;
+      border: 1px solid #f8bbd0;
+    }
+
+    .badge-blue {
+      background-color: #e3f2fd;
+      color: #1565c0;
+      border: 1px solid #bbdefb;
+    }
+
+    .badge-orange {
+      background-color: #fff3e0;
+      color: #ef6c00;
+      border: 1px solid #ffe0b2;
+    }
 
     /* 操作按钮 */
-    .action-btn-group { display: flex; gap: 8px; }
-    .btn-sm { padding: 4px 10px; border-radius: 4px; font-size: 0.85em; color: white; border: none; cursor: pointer; opacity: 0.9; }
-    .btn-sm:hover { opacity: 1; }
-    .btn-edit { background: #eab308; }
-    .btn-del { background: var(--danger); }
+    .action-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: white;
+      border: none;
+      cursor: pointer;
+      opacity: 0.9;
+    }
+
+    .btn-sm:hover {
+      opacity: 1;
+    }
+
+    .btn-edit {
+      background: #eab308;
+    }
+
+    .btn-del {
+      background: var(--danger);
+    }
 
     /* 分页与底部 */
     .pagination-bar {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 20px; padding: 10px 0; border: 1px solid #7d9cb3; border-radius: 6px; padding: 10px 15px; background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding: 10px 0;
+      border: 1px solid #7d9cb3;
+      border-radius: 6px;
+      padding: 10px 15px;
+      background: #fff;
     }
-    .page-ctrl { display: flex; align-items: center; gap: 8px; }
-    .page-btn { background: #fff; border: 1px solid #ddd; padding: 4px 10px; border-radius: 4px; cursor: pointer; color: #666; }
-    .page-btn:hover { border-color: var(--primary); color: var(--primary); }
-    .page-btn:disabled { color: #ccc; cursor: not-allowed; border-color: #eee; }
 
-    .batch-del-row { text-align: right; margin-top: 15px; }
-    .btn-batch-del { background: #e2e8f0; color: #64748b; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
-    .btn-batch-del:hover:not(:disabled) { background: #cbd5e1; color: #334155; }
-    .btn-batch-del:disabled { opacity: 0.6; cursor: not-allowed; }
+    .page-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-    .footer-actions { display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap;}
-    .footer-btn { flex: 1; min-width: 120px; height: 45px; border: none; border-radius: 6px; color: white; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-export { background: var(--accent); }
-    .btn-print { background: var(--primary); }
-    .btn-import { background: #94a3b8; }
-    .btn-claim { background: #ff9800; }
+    .page-btn {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .page-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .page-btn:disabled {
+      color: #ccc;
+      cursor: not-allowed;
+      border-color: #eee;
+    }
+
+    .batch-del-row {
+      text-align: right;
+      margin-top: 15px;
+    }
+
+    .btn-batch-del {
+      background: #e2e8f0;
+      color: #64748b;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-batch-del:hover:not(:disabled) {
+      background: #cbd5e1;
+      color: #334155;
+    }
+
+    .btn-batch-del:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    .footer-btn {
+      flex: 1;
+      min-width: 120px;
+      height: 45px;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-export {
+      background: var(--accent);
+    }
+
+    .btn-print {
+      background: var(--primary);
+    }
+
+    .btn-import {
+      background: #94a3b8;
+    }
+
+    .btn-claim {
+      background: #ff9800;
+    }
 
     /* 模态框内部 */
-    .modal-title { font-size: 1.25rem; color: var(--text-main); font-weight: 700; margin-bottom: 20px; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+    .modal-title {
+      font-size: 1.25rem;
+      color: var(--text-main);
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 25px;
+    }
   </style>
 </head>
 
@@ -326,7 +711,8 @@
       <button class="footer-btn btn-export" onclick="exportToCSV()">📥 导出 Excel</button>
       <button class="footer-btn btn-print" onclick="window.print()">🖨️ 打印页面</button>
       <button class="footer-btn btn-import" onclick="document.getElementById('importFile').click()">📤 批量导入</button>
-      <button class="footer-btn btn-claim" onclick="claimLegacyData()" title="将所有无家庭归属的数据同步为当前家庭和当前记录人">⚡ 一键认领旧数据</button>
+      <button class="footer-btn btn-claim" onclick="claimLegacyData()" title="将所有无家庭归属的数据同步为当前家庭和当前记录人">⚡
+        一键认领旧数据</button>
       <input type="file" id="importFile" accept=".csv" onchange="handleImportFile(this)" style="display:none;" />
     </div>
   </div>
@@ -364,7 +750,8 @@
           <input type="number" id="e-days" required min="1" />
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-block" style="background:#f1f5f9; color:#64748b; width:auto;" onclick="closeModal()">取消</button>
+          <button type="button" class="btn-block" style="background:#f1f5f9; color:#64748b; width:auto;"
+            onclick="closeModal()">取消</button>
           <button type="submit" class="btn-block" style="width:auto;">保存</button>
         </div>
       </form>
@@ -386,7 +773,7 @@
     let currentUser = null;
     let currentFamily = null;
 
-    window.onload = function() {
+    window.onload = function () {
       checkInit();
     };
 
@@ -457,7 +844,7 @@
     }
 
     function clearConfig() {
-      if(confirm('确定重置所有配置吗？(这也会重置记账软件的连接)')) {
+      if (confirm('确定重置所有配置吗？(这也会重置记账软件的连接)')) {
         localStorage.removeItem(STORAGE_ID);
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(STORAGE_URL);
@@ -485,7 +872,7 @@
     async function doLogin() {
       const u = document.getElementById('log-user').value.trim();
       const p = document.getElementById('log-pass').value.trim();
-      if(!u || !p) return;
+      if (!u || !p) return;
       try {
         const user = await AV.User.logIn(u, p);
         currentUser = user;
@@ -504,8 +891,8 @@
       const u = document.getElementById('reg-user').value.trim();
       const p = document.getElementById('reg-pass').value.trim();
       const p2 = document.getElementById('reg-pass2').value.trim();
-      if(!u || !p) return alert("请输入完整");
-      if(p !== p2) return alert("密码不一致");
+      if (!u || !p) return alert("请输入完整");
+      if (p !== p2) return alert("密码不一致");
 
       const user = new AV.User();
       user.setUsername(u);
@@ -526,7 +913,7 @@
 
     function joinFamily(nameInput) {
       const fname = nameInput || document.getElementById('family-name').value.trim();
-      if(!fname) return alert("请输入家庭名称");
+      if (!fname) return alert("请输入家庭名称");
 
       currentFamily = fname;
       localStorage.setItem(FAMILY_KEY, fname);
@@ -623,7 +1010,7 @@
 
       let ratio;
       if (p.shelfLife <= 30) ratio = 0.5;
-      else if (p.shelfLife <= 540) ratio = 1/3;
+      else if (p.shelfLife <= 540) ratio = 1 / 3;
       else ratio = 0.2;
 
       const criticalDate = new Date(eDate.getTime() - p.shelfLife * ratio * 24 * 60 * 60 * 1000);
@@ -675,7 +1062,7 @@
         return matchKey && matchType && matchStatus;
       });
 
-      list.sort((a,b) => {
+      list.sort((a, b) => {
         const endA = new Date(a.produceDate).getTime() + a.shelfLife * 86400000;
         const endB = new Date(b.produceDate).getTime() + b.shelfLife * 86400000;
         return endA - endB;
@@ -688,8 +1075,8 @@
     function updatePagination() {
       const total = currentProducts.length;
       const maxPage = Math.ceil(total / itemsPerPage) || 1;
-      if(currentPage > maxPage && maxPage > 0) currentPage = maxPage;
-      if(currentPage < 1) currentPage = 1;
+      if (currentPage > maxPage && maxPage > 0) currentPage = maxPage;
+      if (currentPage < 1) currentPage = 1;
 
       const start = (currentPage - 1) * itemsPerPage;
       const pageData = currentProducts.slice(start, start + itemsPerPage);
@@ -744,11 +1131,11 @@
       currentPage = 1;
       updatePagination();
     }
-    function prevPage() { if(currentPage > 1) { currentPage--; updatePagination(); } }
-    function nextPage() { const max = Math.ceil(currentProducts.length / itemsPerPage); if(currentPage < max) { currentPage++; updatePagination(); } }
+    function prevPage() { if (currentPage > 1) { currentPage--; updatePagination(); } }
+    function nextPage() { const max = Math.ceil(currentProducts.length / itemsPerPage); if (currentPage < max) { currentPage++; updatePagination(); } }
     function jumpToPage() {
       const val = parseInt(document.getElementById('jumpInput').value);
-      if(val >= 1) { currentPage = val; updatePagination(); }
+      if (val >= 1) { currentPage = val; updatePagination(); }
     }
 
     function toggleAllCheckboxes() {
@@ -773,7 +1160,7 @@
 
     async function startEdit(id) {
       const p = currentProducts.find(x => x.id === id);
-      if(!p) return;
+      if (!p) return;
       document.getElementById('e-id').value = id;
       document.getElementById('e-code').value = p.code;
       document.getElementById('e-name').value = p.name;
@@ -816,18 +1203,18 @@
         }
         closeModal();
         renderProducts();
-      } catch(err) { alert(err.message); }
+      } catch (err) { alert(err.message); }
     };
 
     async function deleteProduct(id) {
-      if(!confirm('确定删除?')) return;
+      if (!confirm('确定删除?')) return;
       const obj = AV.Object.createWithoutData('rourou_BananaNest', id);
       await obj.destroy();
       renderProducts();
     }
 
     async function batchDeleteSelected() {
-      if(!confirm('确定删除选中项?')) return;
+      if (!confirm('确定删除选中项?')) return;
       const ids = Array.from(document.querySelectorAll('.item-cb:checked')).map(c => c.dataset.id);
       const objs = ids.map(id => AV.Object.createWithoutData('rourou_BananaNest', id));
       await AV.Object.destroyAll(objs);
@@ -836,7 +1223,7 @@
     }
 
     function exportToCSV() {
-      if(currentProducts.length === 0) return alert("无数据");
+      if (currentProducts.length === 0) return alert("无数据");
       const header = "编号,名称,一级类型,记录人,生产日期,保质期,过期日期,剩余天数,状态\n";
       const rows = currentProducts.map(p => {
         const { text, daysLeft } = getProductStatus(p);
@@ -851,17 +1238,17 @@
 
     async function handleImportFile(input) {
       const file = input.files[0];
-      if(!file) return;
+      if (!file) return;
       const reader = new FileReader();
       reader.onload = async (e) => {
         const text = e.target.result;
         const lines = text.split(/\r?\n/);
         let count = 0;
-        for(let i=1; i<lines.length; i++) {
+        for (let i = 1; i < lines.length; i++) {
           const line = lines[i].trim();
-          if(!line) continue;
+          if (!line) continue;
           const cols = line.split(',');
-          if(cols.length < 5) continue;
+          if (cols.length < 5) continue;
 
           const p = new ProductClass();
           p.set('code', cols[0]);
@@ -879,7 +1266,7 @@
           acl.setPublicWriteAccess(true);
           p.setACL(acl);
 
-          try { await p.save(); count++; } catch(err) { console.error(err); }
+          try { await p.save(); count++; } catch (err) { console.error(err); }
         }
         alert(`成功导入 ${count} 条，记录人: ${currentUser.getUsername()}，家庭: ${currentFamily}`);
         renderProducts();
@@ -889,4 +1276,5 @@
     }
   </script>
 </body>
+
 </html>
