@@ -375,8 +375,13 @@
     // ============================================
     // 1. 认证、家庭与配置逻辑
     // ============================================
-    const CONFIG_KEY = 'leancloud_family_config';
+
+    // 【修改核心】使用与记账软件完全相同的 Key，以实现配置共享
+    const STORAGE_ID = 'lc_app_id';
+    const STORAGE_KEY = 'lc_app_key';
+    const STORAGE_URL = 'lc_server_url';
     const FAMILY_KEY = 'leancloud_family_name';
+
     let ProductClass = null;
     let currentUser = null;
     let currentFamily = null;
@@ -386,14 +391,19 @@
     };
 
     function checkInit() {
-      const savedConfig = localStorage.getItem(CONFIG_KEY);
-      if (savedConfig) {
-        const cfg = JSON.parse(savedConfig);
-        document.getElementById('conf-id').value = cfg.appId || '';
-        document.getElementById('conf-key').value = cfg.appKey || '';
-        document.getElementById('conf-url').value = cfg.serverUrl || '';
+      // 从 LocalStorage 读取通用的配置
+      const id = localStorage.getItem(STORAGE_ID);
+      const key = localStorage.getItem(STORAGE_KEY);
+      const url = localStorage.getItem(STORAGE_URL);
 
-        initializeSystem(cfg).then(success => {
+      if (id && key && url) {
+        // 填充表单以防万一
+        document.getElementById('conf-id').value = id;
+        document.getElementById('conf-key').value = key;
+        document.getElementById('conf-url').value = url;
+
+        // 初始化
+        initializeSystem(id, key, url).then(success => {
           if (success) {
             checkLoginStatus();
           } else {
@@ -402,16 +412,18 @@
           }
         });
       } else {
+        // 如果没有配置，显示配置卡片
         showCard('config-card');
       }
     }
 
-    async function initializeSystem(cfg) {
+    async function initializeSystem(appId, appKey, serverUrl) {
       try {
         if (typeof AV.applicationId === 'undefined') {
-          AV.init({ appId: cfg.appId, appKey: cfg.appKey, serverURL: cfg.serverUrl });
+          AV.init({ appId, appKey, serverURLs: serverUrl });
         }
         ProductClass = AV.Object.extend('rourou_BananaNest');
+        // 尝试一个简单的查询来验证 key 是否正确
         const q = new AV.Query(ProductClass);
         q.limit(1);
         await q.find();
@@ -431,10 +443,12 @@
       if (!appId || !appKey || !serverUrl) return msg.innerText = "请填写完整";
       msg.innerText = "正在连接...";
 
-      const cfg = { appId, appKey, serverUrl };
-      initializeSystem(cfg).then(ok => {
+      initializeSystem(appId, appKey, serverUrl).then(ok => {
         if (ok) {
-          localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+          // 保存为通用的 Key
+          localStorage.setItem(STORAGE_ID, appId);
+          localStorage.setItem(STORAGE_KEY, appKey);
+          localStorage.setItem(STORAGE_URL, serverUrl);
           checkLoginStatus();
         } else {
           msg.innerText = "连接失败，请检查参数";
@@ -443,8 +457,10 @@
     }
 
     function clearConfig() {
-      if(confirm('确定重置所有配置吗？')) {
-        localStorage.removeItem(CONFIG_KEY);
+      if(confirm('确定重置所有配置吗？(这也会重置记账软件的连接)')) {
+        localStorage.removeItem(STORAGE_ID);
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_URL);
         localStorage.removeItem(FAMILY_KEY);
         AV.User.logOut();
         location.reload();
