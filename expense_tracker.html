@@ -914,6 +914,12 @@
         </select>
       </div>
       <div>
+        <label for="memberFilter">家庭成员筛选</label>
+        <select id="memberFilter" onchange="applyMonthOrSearchFilter()">
+          <option value="">全部成员</option>
+        </select>
+      </div>
+      <div>
         <label for="searchInput">搜索（二级类型）</label>
         <input type="text" id="searchInput" placeholder="输入关键词..." oninput="applyMonthOrSearchFilter()" />
       </div>
@@ -1514,6 +1520,10 @@
 
     function getTimeFilteredExpenses() {
       let temp = allExpenses;
+
+      const memberFilter = document.getElementById('memberFilter').value;
+      if (memberFilter) temp = temp.filter(e => e.username === memberFilter);
+
       const mFilter = document.getElementById('monthFilter').value;
       if (mFilter) temp = temp.filter(e => e.statMonth === mFilter);
 
@@ -1544,6 +1554,19 @@
         }
 
         if (targetVal) sel.value = targetVal;
+      }
+
+      // --- 动态渲染成员下拉框 ---
+      // 每次都检查是否有新成员，但保持选中状态
+      const memberSel = document.getElementById('memberFilter');
+      const currentMember = memberSel.value;
+      const members = [...new Set(allExpenses.map(e => e.username))].filter(u => u && u !== '未知');
+
+      // 保存旧的选中值，重新渲染
+      memberSel.innerHTML = '<option value="">全部成员</option>';
+      members.forEach(u => memberSel.add(new Option(u, u)));
+      if (currentMember && members.includes(currentMember)) {
+        memberSel.value = currentMember;
       }
 
       let temp = getTimeFilteredExpenses();
@@ -1596,6 +1619,9 @@
       document.getElementById('endDate').value = '';
 
       const sel = document.getElementById('monthFilter');
+      const memSel = document.getElementById('memberFilter');
+      memSel.value = ""; // 重置成员筛选
+
       const currentMonth = computeStatMonth(new Date().toISOString());
       let found = false;
       for (let i = 0; i < sel.options.length; i++) {
