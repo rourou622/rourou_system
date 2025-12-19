@@ -6,18 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>家庭费用清单</title>
 
-  <!-- 1. 引入 LeanCloud SDK -->
   <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.14.0/dist/av-min.js"></script>
 
-  <!-- 2. 引入 Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   <script
     src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 
-  <!-- 3. 引入 ECharts -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 
-  <!-- 引入 Google Fonts -->
   <link
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Roboto:wght@400;500&display=swap"
     rel="stylesheet">
@@ -29,74 +25,22 @@
       --bg-card: #ffffff;
 
       --primary: #607d8b;
-      /* 蓝灰 */
       --primary-hover: #455a64;
       --accent: #81a18b;
-      /* 鼠尾草绿 */
       --danger: #d4a5a5;
-      /* 干枯玫瑰 */
       --danger-hover: #c08b8b;
 
       --text-main: #374151;
       --text-sub: #6b7280;
       --border-color: #e5e7eb;
 
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
+      --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.06);
 
-      --radius-md: 8px;
-      --radius-lg: 16px;
-    }
-
-    /* === 头部布局修正样式 (修复标题偏移) === */
-    .app-header {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      /* 让 h1 绝对居中 */
-      align-items: center;
-      margin-bottom: 30px;
-      min-height: 40px;
-    }
-
-    .app-header h1 {
-      margin: 0;
-      font-size: 1.75rem;
-      color: var(--primary);
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    .user-info-box {
-      position: absolute;
-      /* 绝对定位到右侧，不占流式空间 */
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
-      color: var(--text-sub);
-      background: rgba(255, 255, 255, 0.8);
-      /* 防止背景遮挡 */
-    }
-
-    /* 手机端适配：屏幕窄时取消绝对定位，改为垂直排列 */
-    @media (max-width: 600px) {
-      .app-header {
-        flex-direction: column;
-        gap: 15px;
-        margin-bottom: 25px;
-      }
-
-      .user-info-box {
-        position: static;
-        transform: none;
-        width: 100%;
-        justify-content: center;
-      }
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      /* 统一大圆角 */
     }
 
     * {
@@ -114,16 +58,476 @@
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
+      padding-bottom: 80px;
     }
 
-    /* 登录/配置容器样式 */
-    #authContainer {
+    /* === 头部布局 === */
+    .app-header {
+      position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 90vh;
+      margin-bottom: 25px;
+      min-height: 40px;
+      padding: 0 10px;
     }
 
+    .app-header h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      color: var(--text-main);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .user-info-box {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+    }
+
+    /* === Dashboard 卡片样式 === */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(0, 0, 0, 0.03);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      min-height: 100px;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 2;
+      flex: 1;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: #90a4ae;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-family: 'Roboto', sans-serif;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+      word-break: break-all;
+    }
+
+    .stat-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .stat-icon-box svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* 配色方案 */
+    .theme-blue .stat-icon-box {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .theme-blue .stat-value {
+      color: #37474f;
+    }
+
+    .theme-red .stat-icon-box {
+      background: #ffebee;
+      color: #e53935;
+    }
+
+    .theme-red .stat-value {
+      color: #c62828;
+    }
+
+    .theme-green .stat-icon-box {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .theme-green .stat-value {
+      color: #2e7d32;
+    }
+
+    .theme-orange .stat-icon-box {
+      background: #fff3e0;
+      color: #fb8c00;
+    }
+
+    .theme-orange .stat-value {
+      color: #e65100;
+    }
+
+    /* 紫色普通 (用于环比) */
+    .theme-purple .stat-icon-box {
+      background: #f3e5f5;
+      color: #8e24aa;
+    }
+
+    .theme-purple .stat-value {
+      color: #4a148c;
+    }
+
+    /* 紫色高亮 (仅用于筛选结果) */
+    .theme-purple-highlight {
+      background: #f3e5f5;
+      border: 1px solid #e1bee7;
+    }
+
+    .theme-purple-highlight .stat-icon-box {
+      background: #fff;
+      color: #8e24aa;
+    }
+
+    .theme-purple-highlight .stat-value {
+      color: #6a1b9a;
+      font-size: 1.1rem;
+    }
+
+    .theme-purple-highlight .stat-label {
+      color: #8e24aa;
+    }
+
+    /* === 绿色状态条 (圆角优化) === */
+    .green-status-bar {
+      background: #e8f5e9;
+      border-radius: var(--radius-lg);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 25px 0;
+      min-height: 90px;
+      box-shadow: inset 0 0 0 1px rgba(46, 125, 50, 0.05);
+    }
+
+    .status-item {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .status-label {
+      font-size: 0.9rem;
+      color: #546e7a;
+      font-weight: 500;
+    }
+
+    .status-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      font-family: 'Roboto', sans-serif;
+      letter-spacing: -0.5px;
+    }
+
+    .status-value.income {
+      color: #2e7d32;
+    }
+
+    .status-value.expense {
+      color: #c62828;
+    }
+
+    .status-value.balance {
+      color: #00695c;
+    }
+
+    /* === 统一的大卡片样式 === */
+    .details-card {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 25px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 30px;
+      border: 1px solid rgba(0, 0, 0, 0.02);
+    }
+
+    .details-header {
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+    }
+
+    .details-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      padding-left: 12px;
+      border-left: 4px solid var(--primary);
+      line-height: 1.2;
+    }
+
+    /* === 优化后的模态框 & 表单样式 === */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 41, 59, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: #fff;
+      padding: 35px;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      transform: scale(0.95);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.active .modal {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 15px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* AI 区域优化 */
+    .ai-section {
+      background: linear-gradient(145deg, #f0fdf4 0%, #e8f5e9 100%);
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px dashed #a5d6a7;
+      margin-bottom: 25px;
+    }
+
+    .ai-textarea {
+      width: 100%;
+      height: 70px;
+      padding: 12px;
+      border: 1px solid #c8e6c9;
+      border-radius: 12px;
+      resize: none;
+      font-family: inherit;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      background: #fff;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+      transition: all 0.3s ease;
+    }
+
+    .ai-textarea:focus {
+      border-color: #66bb6a;
+      box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.15);
+    }
+
+    .btn-ai {
+      background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+      color: white;
+      width: 100%;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 10px rgba(76, 175, 80, 0.2);
+    }
+
+    .btn-ai:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    /* 通用输入框美化 */
+    input,
+    select {
+      width: 100%;
+      height: 46px;
+      padding: 0 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      background-color: #fff;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(96, 125, 139, 0.1);
+    }
+
+    /* === 修复自定义下拉框样式 (文字垂直居中) === */
+    .custom-select-trigger {
+      width: 100%;
+      height: 46px;
+      padding: 0 16px;
+      /* 保持与 input 一致 */
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      background-color: #fff;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      /* 垂直居中 */
+      justify-content: space-between;
+      /* 确保文字在左，箭头在右（如果有内容） */
+      line-height: normal;
+      /* 重置行高，交给 flex 控制 */
+    }
+
+    .custom-select-wrapper.open .custom-select-trigger {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(96, 125, 139, 0.1);
+    }
+
+    /* Radio 按钮美化 */
+    .radio-group {
+      display: flex;
+      gap: 20px;
+      margin-top: 5px;
+    }
+
+    .radio-label {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .radio-label:hover {
+      background: #f5f5f5;
+    }
+
+    .radio-label input {
+      width: 18px;
+      height: 18px;
+      margin-right: 8px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* 按钮样式微调 */
+    .modal-footer {
+      margin-top: 35px;
+      gap: 15px;
+    }
+
+    .modal-footer button {
+      border-radius: 12px;
+      height: 46px;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    /* === FAB 悬浮按钮 === */
+    .fab-container {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 999;
+    }
+
+    .fab-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 24px;
+      background-color: #263238;
+      color: white;
+      border: none;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .fab-btn:hover {
+      transform: scale(1.1) rotate(90deg);
+      background-color: #37474f;
+    }
+
+    .fab-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* === 其他通用样式 (保持不变) === */
     .auth-card {
       background: var(--bg-card);
       padding: 40px;
@@ -144,6 +548,13 @@
         opacity: 1;
         transform: translateY(0);
       }
+    }
+
+    #authContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 90vh;
     }
 
     .auth-tabs {
@@ -184,7 +595,6 @@
       border-radius: var(--radius-md);
     }
 
-    /* 主应用容器，默认隐藏 */
     #appContainer {
       display: none;
     }
@@ -192,22 +602,8 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      background: var(--bg-card);
-      padding: 30px;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-lg);
     }
 
-    h1 {
-      text-align: center;
-      font-size: 1.75rem;
-      margin: 10px 0 30px;
-      color: var(--primary);
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    /* 通用表单与按钮 */
     .form-group {
       margin-bottom: 20px;
     }
@@ -220,60 +616,6 @@
       color: var(--text-sub);
     }
 
-    /* 统一输入框样式与高度 */
-    input,
-    select,
-    .custom-select-trigger {
-      width: 100%;
-      height: 42px;
-      padding: 0 12px;
-      line-height: 40px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      font-size: 0.95rem;
-      background-color: #f9fafb;
-      color: var(--text-main);
-      transition: all 0.3s ease;
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-    }
-
-    /* Date Input Styling */
-    input[type="date"] {
-      font-family: inherit;
-      color: var(--text-main);
-      cursor: pointer;
-    }
-
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      cursor: pointer;
-      opacity: 0.6;
-      transition: 0.2s;
-    }
-
-    input[type="date"]::-webkit-calendar-picker-indicator:hover {
-      opacity: 1;
-    }
-
-    select {
-      -webkit-appearance: none;
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23374151%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px top 50%;
-      background-size: 10px auto;
-    }
-
-    input:focus,
-    select:focus,
-    .custom-select-wrapper.open .custom-select-trigger {
-      border-color: var(--primary);
-      background-color: #fff;
-      box-shadow: 0 0 0 3px rgba(96, 125, 139, 0.15);
-    }
-
-    /* 按钮体系 */
     button {
       font-family: inherit;
       transition: all 0.2s ease;
@@ -283,7 +625,7 @@
 
     .action-btn,
     .action-btn-large {
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: 500;
       display: inline-flex;
       align-items: center;
@@ -291,8 +633,8 @@
     }
 
     .action-btn {
-      padding: 5px 10px;
-      font-size: 0.8rem;
+      padding: 6px 12px;
+      font-size: 0.85rem;
       margin: 0;
       white-space: nowrap;
     }
@@ -301,9 +643,7 @@
       padding: 12px 24px;
       font-size: 1rem;
       min-width: 100px;
-      border-radius: var(--radius-md);
       width: 100%;
-      /* Make default width full for mobile/auth */
     }
 
     @media(min-width: 768px) {
@@ -357,74 +697,10 @@
       transform: translateY(-1px);
     }
 
-    /* 统计概览条 */
-    .summary {
-      background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
-      padding: 16px 20px;
-      border-radius: var(--radius-md);
-      margin: 20px 0;
-      font-weight: 500;
-      color: var(--text-main);
-      border-left: 5px solid var(--primary);
-      /* Flex 布局 */
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .summary-left {
-      flex: 1;
-    }
-
-    .summary-right {
-      display: flex;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.4);
-      padding: 5px 15px;
-      border-radius: 20px;
-      font-size: 0.9em;
-      color: var(--text-main);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-
-    .refresh-btn {
-      background: none;
-      border: none;
-      color: var(--primary);
-      font-size: 1.1em;
-      margin-left: 8px;
-      cursor: pointer;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      transition: transform 0.3s ease;
-    }
-
-    .refresh-btn:hover {
-      transform: rotate(180deg);
-      color: var(--primary-hover);
-    }
-
-    @media (max-width: 768px) {
-      .summary {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .summary-right {
-        width: 100%;
-        justify-content: space-between;
-      }
-    }
-
-    /* 表格样式 */
     table {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      margin-top: 20px;
       font-size: 0.95rem;
     }
 
@@ -463,12 +739,10 @@
       padding-left: 15px;
     }
 
-    /* 新增：记账人 Badge 样式 */
     .user-badge {
       display: inline-block;
       padding: 2px 8px;
       border-radius: 4px;
-      /* 圆角矩形，类似药丸的一半 */
       font-size: 0.8em;
       font-weight: 500;
       letter-spacing: 0.3px;
@@ -476,7 +750,6 @@
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
-    /* 布局与图表 */
     .charts-section {
       margin: 30px 0;
       display: grid;
@@ -506,16 +779,26 @@
       font-size: 1.1rem;
     }
 
-    /* Filter Bar */
+    #budgetProgressBar {
+      margin-top: 15px;
+      padding: 4px;
+      background: #eceff1;
+      border-radius: 20px;
+      position: relative;
+      height: 36px;
+      overflow: hidden;
+    }
+
+    #budgetBase {
+      border-radius: 18px !important;
+    }
+
     .filter-bar {
       display: flex;
       gap: 20px;
-      margin: 25px 0;
       align-items: flex-end;
       flex-wrap: wrap;
-      background: #f8fafc;
-      padding: 20px;
-      border-radius: var(--radius-md);
+      margin-bottom: 20px;
     }
 
     .filter-bar>div {
@@ -524,7 +807,6 @@
       width: auto;
     }
 
-    /* 自定义下拉框 */
     .custom-select-wrapper {
       position: relative;
       user-select: none;
@@ -615,53 +897,6 @@
       color: white;
     }
 
-    /* 模态框 */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(30, 41, 59, 0.6);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal {
-      background: #fff;
-      padding: 30px;
-      border-radius: var(--radius-lg);
-      width: 90%;
-      max-width: 480px;
-      box-shadow: var(--shadow-lg);
-      transform: scale(0.95);
-      transition: transform 0.3s;
-    }
-
-    .modal-overlay.active .modal {
-      transform: scale(1);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 15px;
-    }
-
-    /* 分页样式 */
     .pagination-container {
       display: flex;
       justify-content: space-between;
@@ -732,37 +967,15 @@
       border-color: var(--primary);
     }
 
-    /* 预算条 */
-    #budgetProgressBar {
-      margin-top: 15px;
-      padding: 4px;
-      background: #eceff1;
-      border-radius: 20px;
-      position: relative;
-      height: 36px;
-      overflow: hidden;
-    }
-
-    #budgetBase {
-      border-radius: 18px !important;
-    }
-
-    /* 家庭共享提示 */
-    .family-badge {
-      background: #fff3e0;
-      color: #e65100;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      border: 1px solid #ffe0b2;
-      margin-left: 10px;
+    .action-bar {
+      text-align: center;
+      margin-top: 30px;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- ================= 0. 登录/配置 界面 ================= -->
   <div id="authContainer">
     <div class="auth-card">
       <h2 class="auth-title">家庭费用清单</h2>
@@ -770,7 +983,6 @@
         Family: Big Banana House
       </p>
 
-      <!-- 配置表单 (如果没有 appId/key) -->
       <div id="configSection" style="display: none;">
         <div class="helper-text">
           请前往 LeanCloud 控制台获取应用的 App ID 和 App Key。<br>
@@ -788,10 +1000,13 @@
           <label>REST API Server URL</label>
           <input type="text" id="configServerUrl" placeholder="https://..." value="https://api.leancloud.cn">
         </div>
+        <div class="form-group">
+          <label>OpenRouter API Key</label>
+          <input type="password" id="configAiKey" placeholder="输入 sk-or-v1-...">
+        </div>
         <button class="action-btn-large btn-brown" onclick="saveConfig()">保存配置</button>
       </div>
 
-      <!-- 登录/注册表单 (如果已有配置) -->
       <div id="authSection" style="display: none;">
         <div class="auth-tabs">
           <div class="auth-tab active" id="tabLogin" onclick="switchAuthMode('login')">登录</div>
@@ -815,7 +1030,6 @@
         </div>
       </div>
 
-      <!-- 加载中 -->
       <div id="loadingSection" style="display: none; text-align: center; color: var(--text-sub);">
         正在初始化...
       </div>
@@ -824,34 +1038,152 @@
   </div>
 
 
-  <!-- ================= 主应用界面 ================= -->
   <div class="container" id="appContainer">
 
-    <!-- 1. 头部区域：已修复 UI 偏移 -->
     <div class="app-header">
       <h1>家庭费用清单</h1>
       <div class="user-info-box">
         <span id="currentUserDisplay" style="font-weight: 500; color: var(--primary);"></span>
         <button class="action-btn btn-light" onclick="logout()"
-          style="padding: 4px 12px; font-size: 0.85rem;">退出</button>
+          style="padding: 4px 12px; font-size: 0.85rem; margin-left: 10px;">退出</button>
       </div>
     </div>
 
-    <!-- 2. 新增按钮 -->
-    <div style="text-align: center; margin-bottom: 25px;">
-      <button class="action-btn-large btn-brown" onclick="openAddModal()">
-        <span style="margin-right:5px; font-size:1.2em; line-height:1;">+</span> 新增支出
-      </button>
+    <div class="dashboard-grid">
+
+      <div class="stat-card theme-green">
+        <div class="stat-content">
+          <div class="stat-label">今年净资产变动</div>
+          <div class="stat-value" id="dashNetAsset">--</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
+            <path d="M4 6v12a2 2 0 0 0 2 2h14v-4" />
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card theme-green">
+        <div class="stat-content">
+          <div class="stat-label">今年总收入</div>
+          <div class="stat-value" id="dashAnnualIncome">--</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+            <polyline points="17 6 23 6 23 12" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card theme-red">
+        <div class="stat-content">
+          <div class="stat-label">今年总支出</div>
+          <div class="stat-value" id="dashAnnualExpense">--</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+            <polyline points="17 18 23 18 23 12" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card theme-blue">
+        <div class="stat-content">
+          <div class="stat-label">年度收支比</div>
+          <div class="stat-value" id="dashAnnualRatio">--</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2v-1a2 2 0 0 1 2-2h2"></path>
+            <path d="M2 6h20v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card theme-red">
+        <div class="stat-content">
+          <div class="stat-label">本月娱乐/购物</div>
+          <div class="stat-value" id="dashEntertainment">--</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card theme-blue">
+        <div class="stat-content">
+          <div class="stat-label">近7天日均消费</div>
+          <div class="stat-value" id="dashWeeklyAvg">--</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card theme-purple">
+        <div class="stat-content">
+          <div class="stat-label">支出环比增长</div>
+          <div class="stat-value" id="dashMomGrowth">--</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="12" y1="20" x2="12" y2="10"></line>
+            <polyline points="18 20 18 4 6 4 6 20"></polyline>
+            <line x1="6" y1="16" x2="18" y2="16"></line>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card theme-purple-highlight">
+        <div class="stat-content">
+          <div class="stat-label">当前筛选结果</div>
+          <div class="stat-value" id="filterResultText">加载中...</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+        </div>
+      </div>
     </div>
 
-    <!-- 3. 统计栏区域 (JS动态渲染) -->
-    <div class="summary" id="summaryBox">
-      <!-- 动态内容将通过 JS 渲染 -->
+    <div class="green-status-bar">
+      <div class="status-item">
+        <div class="status-label" id="labelIncome">本月收入</div>
+        <div class="status-value income" id="statusIncome">¥ 0.00</div>
+      </div>
+      <div class="status-item">
+        <div class="status-label" id="labelExpense">本月支出</div>
+        <div class="status-value expense" id="statusExpense">¥ 0.00</div>
+      </div>
+      <div class="status-item">
+        <div class="status-label" id="labelBalance">本月结余</div>
+        <div class="status-value balance" id="statusBalance">¥ 0.00</div>
+      </div>
     </div>
 
-    <!-- 4. 图表区域 -->
     <div class="charts-section">
-      <!-- 柱状图 & 预算条 -->
       <div class="chart-container">
         <div class="chart-title">
           <span id="budgetTitle">各月总支出</span>
@@ -874,7 +1206,6 @@
         </div>
       </div>
 
-      <!-- 饼图 -->
       <div class="chart-container">
         <div class="chart-title">类型占比 <span
             style="font-size:0.8em; color:var(--text-sub); font-weight:400;">(点击扇区筛选)</span></div>
@@ -882,123 +1213,150 @@
       </div>
     </div>
 
-    <!-- 5. 筛选栏 -->
-    <div class="filter-bar">
-      <div>
-        <label>类型筛选 (多选)</label>
-        <div class="custom-select-wrapper" id="typeSelectWrapper">
-          <div class="custom-select-trigger" id="typeSelectTrigger">全部类型</div>
-          <div class="custom-options">
-            <div class="custom-options-list" id="typeOptionsList"></div>
-            <div class="custom-footer">
-              <button class="btn-cancel" onclick="cancelTypeFilter()">取消</button>
-              <button class="btn-confirm" onclick="confirmTypeFilter()">确认</button>
+    <div class="details-card">
+      <div class="details-header">
+        <div class="details-title">支出明细</div>
+      </div>
+
+      <div class="filter-bar">
+        <div>
+          <label>类型筛选 (多选)</label>
+          <div class="custom-select-wrapper" id="typeSelectWrapper">
+            <div class="custom-select-trigger" id="typeSelectTrigger">全部类型</div>
+            <div class="custom-options">
+              <div class="custom-options-list" id="typeOptionsList"></div>
+              <div class="custom-footer">
+                <button class="btn-cancel" onclick="cancelTypeFilter()">取消</button>
+                <button class="btn-confirm" onclick="confirmTypeFilter()">确认</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div style="flex: 2; display: flex; gap: 10px;">
-        <div style="flex: 1;">
-          <label for="startDate">明细开始日期</label>
-          <input type="date" id="startDate" onchange="applyDateRangeFilter()" />
+        <div style="flex: 2; display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label for="startDate">明细开始日期</label>
+            <input type="date" id="startDate" onchange="applyDateRangeFilter()" />
+          </div>
+          <div style="flex: 1;">
+            <label for="endDate">明细结束日期</label>
+            <input type="date" id="endDate" onchange="applyDateRangeFilter()" />
+          </div>
         </div>
-        <div style="flex: 1;">
-          <label for="endDate">明细结束日期</label>
-          <input type="date" id="endDate" onchange="applyDateRangeFilter()" />
+        <div>
+          <label for="monthFilter">统计月份筛选</label>
+          <select id="monthFilter" onchange="applyMonthOrSearchFilter()">
+            <option value="">全部月份</option>
+          </select>
+        </div>
+        <div>
+          <label for="memberFilter">家庭成员筛选</label>
+          <select id="memberFilter" onchange="applyMonthOrSearchFilter()">
+            <option value="">全部成员</option>
+          </select>
+        </div>
+        <div>
+          <label for="searchInput">搜索（二级类型）</label>
+          <input type="text" id="searchInput" placeholder="输入关键词..." oninput="applyMonthOrSearchFilter()" />
+        </div>
+        <div style="flex: 0 0 auto;">
+          <button class="action-btn btn-accent" onclick="resetFilters()" style="height: 46px;">恢复默认</button>
         </div>
       </div>
-      <div>
-        <label for="monthFilter">统计月份筛选</label>
-        <select id="monthFilter" onchange="applyMonthOrSearchFilter()">
-          <option value="">全部月份</option>
-        </select>
+
+      <div style="overflow-x: auto;">
+        <table id="expenseTable">
+          <thead>
+            <tr>
+              <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()"
+                  style="height:auto;"></th>
+              <th>统计月份</th>
+              <th>消费日期</th>
+              <th>一级类型</th>
+              <th>记账人</th>
+              <th>二级类型</th>
+              <th>金额</th>
+              <th style="width: 160px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="expenseList"></tbody>
+        </table>
       </div>
-      <div>
-        <label for="memberFilter">家庭成员筛选</label>
-        <select id="memberFilter" onchange="applyMonthOrSearchFilter()">
-          <option value="">全部成员</option>
-        </select>
+
+      <div class="pagination-container">
+        <div style="display:flex; align-items:center;">
+          <span style="color:var(--text-sub); font-size:0.9rem; margin-right:5px;">每页:</span>
+          <select id="pageSizeSelect" onchange="changePageSize()"
+            style="width:auto; height:30px; line-height:30px; padding:0 25px 0 10px; font-size:0.9rem;">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+
+        <div class="pagination-jumper">
+          <button class="btn-page-nav" onclick="changePageRelative(-1)" title="上一页">❮</button>
+          <span style="margin: 0 6px;">第</span>
+          <input type="number" id="pageJumpInput" class="pagination-input" value="1" min="1"
+            onkeypress="if(event.keyCode==13) jumpToPage()">
+          <span style="margin: 0 6px;">页 / 共 <span id="totalPagesDisplay" style="font-weight:bold;">1</span> 页</span>
+          <button class="btn-page-nav" onclick="changePageRelative(1)" title="下一页">❯</button>
+          <button class="btn-jump" onclick="jumpToPage()">跳转</button>
+        </div>
       </div>
-      <div>
-        <label for="searchInput">搜索（二级类型）</label>
-        <input type="text" id="searchInput" placeholder="输入关键词..." oninput="applyMonthOrSearchFilter()" />
-      </div>
-      <div style="flex: 0 0 auto;">
-        <button class="action-btn btn-accent" onclick="resetFilters()" style="height: 42px;">恢复默认</button>
+
+      <div style="text-align: right;">
+        <button id="batchDeleteBtn" class="action-btn btn-dark" style="opacity:0.8; font-size:0.9rem; padding:8px 16px;"
+          onclick="batchDeleteSelected()" disabled>批量删除</button>
       </div>
     </div>
 
-    <!-- 6. 表格区域 -->
-    <div style="overflow-x: auto;">
-      <table id="expenseTable">
-        <thead>
-          <tr>
-            <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()"
-                style="height:auto;"></th>
-            <th>统计月份</th>
-            <th>消费日期</th>
-            <th>一级类型</th>
-            <th>记账人</th> <!-- 新增：记账人列 -->
-            <th>二级类型</th>
-            <th>金额</th>
-            <th style="width: 160px;">操作</th>
-          </tr>
-        </thead>
-        <tbody id="expenseList"></tbody>
-      </table>
-    </div>
-
-    <!-- 7. 分页区域 -->
-    <div class="pagination-container">
-      <div style="display:flex; align-items:center;">
-        <span style="color:var(--text-sub); font-size:0.9rem; margin-right:5px;">每页:</span>
-        <select id="pageSizeSelect" onchange="changePageSize()"
-          style="width:auto; height:30px; line-height:30px; padding:0 25px 0 10px; font-size:0.9rem;">
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="50">50</option>
-        </select>
-      </div>
-
-      <div class="pagination-jumper">
-        <button class="btn-page-nav" onclick="changePageRelative(-1)" title="上一页">❮</button>
-        <span style="margin: 0 6px;">第</span>
-        <input type="number" id="pageJumpInput" class="pagination-input" value="1" min="1"
-          onkeypress="if(event.keyCode==13) jumpToPage()">
-        <span style="margin: 0 6px;">页 / 共 <span id="totalPagesDisplay" style="font-weight:bold;">1</span> 页</span>
-        <button class="btn-page-nav" onclick="changePageRelative(1)" title="下一页">❯</button>
-        <button class="btn-jump" onclick="jumpToPage()">跳转</button>
-      </div>
-    </div>
-
-    <!-- 8. 批量操作按钮 -->
-    <div style="text-align: right;">
-      <button id="batchDeleteBtn" class="action-btn btn-dark" style="opacity:0.8; font-size:0.9rem; padding:8px 16px;"
-        onclick="batchDeleteSelected()" disabled>批量删除</button>
-    </div>
-
-    <!-- 9. 底部功能栏 (删除同步功能，仅保留导出和打印) -->
     <div class="action-bar">
       <button class="action-btn-large btn-light" onclick="exportToCSV()">导出 CSV</button>
       <button class="action-btn-large btn-light" onclick="printCurrentPage()">打印</button>
-
-      <!-- 之前的同步按钮已移除 -->
     </div>
 
   </div>
 
-  <!-- 模态框 -->
+  <div class="fab-container">
+    <button class="fab-btn" onclick="openAddModal()" title="新增数据">+</button>
+  </div>
+
   <div class="modal-overlay" id="addModal">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title" id="modalTitle">新增支出</div>
+        <div class="modal-title" id="modalTitle">新增记录</div>
         <button class="action-btn" style="background:none; color:#999; font-size:1.5em; padding:0;"
           onclick="closeAddModal()">&times;</button>
       </div>
+
       <form id="modalExpenseForm">
         <input type="hidden" id="modalEditId" />
+
+        <div class="ai-section">
+          <label
+            style="color: #388e3c; display:flex; align-items:center; gap:6px; font-weight:600; font-size:0.95rem; margin-bottom:8px;">
+            <span>🤖 AI 智能识别</span>
+          </label>
+          <textarea id="aiInput" class="ai-textarea" placeholder="输入如：昨天买奶茶花了18元..."></textarea>
+          <button type="button" class="btn-ai" onclick="handleSmartIdentify()" id="btnSmartIdentify">
+            ✨ 智能填充
+          </button>
+        </div>
+
         <div class="form-group">
-          <label>消费日期</label>
+          <label>收支类型</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="modalCategory" value="expense" checked onchange="updateModalTypeOptions()"> 支出
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="modalCategory" value="income" onchange="updateModalTypeOptions()"> 收入
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>消费/收入日期</label>
           <input type="date" id="modalDate" required />
         </div>
         <div class="form-group">
@@ -1009,19 +1367,21 @@
         </div>
         <div class="form-group">
           <label>二级类型</label>
-          <input type="text" id="modalType2" placeholder="如：奶茶" />
+          <input type="text" id="modalType2" placeholder="如：奶茶、工资明细" />
         </div>
         <div class="form-group">
           <label>金额</label>
           <div style="position:relative;">
-            <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#999;">¥</span>
-            <input type="number" step="0.01" id="modalAmount" required min="0.01" style="padding-left:25px;" />
+            <span
+              style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#999; font-weight:bold;">¥</span>
+            <input type="number" step="0.01" id="modalAmount" required min="0.01"
+              style="padding-left:30px; font-weight:600; color:#374151;" />
           </div>
         </div>
-        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;">
-          <button type="button" class="action-btn-large btn-cancel" style="width:auto;"
-            onclick="closeAddModal()">取消</button>
-          <button type="submit" class="action-btn-large btn-confirm" style="width:auto;">确认保存</button>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end;">
+          <button type="button" class="btn-light" style="width:100px;" onclick="closeAddModal()">取消</button>
+          <button type="submit" class="btn-brown"
+            style="width:120px; box-shadow: 0 4px 10px rgba(96, 125, 139, 0.3);">确认保存</button>
         </div>
       </form>
     </div>
@@ -1029,26 +1389,27 @@
 
   <script>
     // ========== 0. 全局配置与变量 ==========
+    // 【重要】请将此处替换为你的 OpenRouter API KEY
+    const OPENROUTER_API_KEY = "";
+
     const MY_FAMILY_ID = "big banana house";
     let BUDGET_STORAGE_KEY = 'expense_budget_' + MY_FAMILY_ID;
     const EXPENSE_CLASS_NAME = 'rourou_YellowChamberPot';
 
     // 支出类型定义
-    const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '宠物', '其他'];
+    const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '宠物', '房租', '其他'];
+    // 收入类型定义
+    const INCOME_TYPES = ['工资', '红包', '转账', '其他'];
 
-    // 图表颜色配置 (莫兰迪色系)
     const MORANDI_PALETTE = [
       '#90a4ae', '#a1887f', '#e57373', '#81c784', '#64b5f6',
       '#ffb74d', '#ba68c8', '#4db6ac', '#ffd54f', '#a1887f', '#7986cb'
     ];
-
-    // 用户头像颜色配置
     const USER_COLOR_MAP = {
-      "hundun": { bg: '#fce4ec', text: '#c2185b' },     // 粉红
-      "rourou622": { bg: '#e8f5e9', text: '#2e7d32' },  // 浅绿
-      "其他": { bg: '#f5f5f5', text: '#616161' }        // 灰色
+      "hundun": { bg: '#fce4ec', text: '#c2185b' },
+      "rourou622": { bg: '#e8f5e9', text: '#2e7d32' },
+      "其他": { bg: '#f5f5f5', text: '#616161' }
     };
-
     let ExpenseClass = null;
     let currentUser = null;
     let allExpenses = [];
@@ -1060,775 +1421,488 @@
     let currentPage = 1;
     let pageSize = 10;
     let currentBudget = 9000;
-    let analysisModeIndex = 0;
-    const ANALYSIS_MODE_COUNT = 17;
     let authMode = 'login';
 
     // ========== 1. 启动逻辑 ==========
-    window.onload = () => {
-      checkAppConfig();
-    };
-
-    function getUserColor(username) {
-      return USER_COLOR_MAP[username] || USER_COLOR_MAP["其他"];
-    }
-
+    window.onload = () => { checkAppConfig(); };
+    function getUserColor(username) { return USER_COLOR_MAP[username] || USER_COLOR_MAP["其他"]; }
     function checkAppConfig() {
       const id = localStorage.getItem('lc_app_id');
       const key = localStorage.getItem('lc_app_key');
       const url = localStorage.getItem('lc_server_url');
-      if (id && key && url) {
+      const aiKey = localStorage.getItem('lc_ai_key');
+      if (id && key && url && aiKey) {
+        openRouterKey = aiKey; // 赋值给全局变量
         initLeanCloud(id, key, url);
       } else {
         showConfigForm();
       }
     }
-
     function initLeanCloud(id, key, url) {
       document.getElementById('configSection').style.display = 'none';
       document.getElementById('authSection').style.display = 'none';
       document.getElementById('loadingSection').style.display = 'block';
       try {
-        if (typeof AV === 'undefined') {
-          alert('LeanCloud SDK 加载失败，请检查网络');
-          return;
-        }
+        if (typeof AV === 'undefined') { alert('LeanCloud SDK 加载失败，请检查网络'); return; }
         AV.init({ appId: id, appKey: key, serverURLs: url });
         ExpenseClass = AV.Object.extend(EXPENSE_CLASS_NAME);
         checkLoginStatus();
-      } catch (e) {
-        console.error(e);
-        alert('初始化失败，请检查配置');
-        clearConfig();
-      }
+      } catch (e) { console.error(e); alert('初始化失败，请检查配置'); clearConfig(); }
     }
-
     function checkLoginStatus() {
       currentUser = AV.User.current();
       document.getElementById('loadingSection').style.display = 'none';
-      if (currentUser) {
-        enterApp();
-      } else {
-        showAuthForm();
-      }
+      if (currentUser) { enterApp(); } else { showAuthForm(); }
     }
-
     function enterApp() {
       document.getElementById('authContainer').style.display = 'none';
       document.getElementById('appContainer').style.display = 'block';
-      document.getElementById('currentUserDisplay').textContent = `用户: ${currentUser.getUsername()}`;
+      document.getElementById('currentUserDisplay').textContent = `${currentUser.getUsername()}`;
       initCustomDropdown();
       renderExpenses();
       window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
     }
-
-    function logout() {
-      AV.User.logOut();
-      location.reload();
-    }
+    function logout() { AV.User.logOut(); location.reload(); }
 
     // ========== 2. 认证界面逻辑 ==========
-    function showConfigForm() {
-      document.getElementById('configSection').style.display = 'block';
-      document.getElementById('authSection').style.display = 'none';
-      document.getElementById('loadingSection').style.display = 'none';
-    }
+    function showConfigForm() { document.getElementById('configSection').style.display = 'block'; document.getElementById('authSection').style.display = 'none'; document.getElementById('loadingSection').style.display = 'none'; }
     function saveConfig() {
       const id = document.getElementById('configAppId').value.trim();
       const key = document.getElementById('configAppKey').value.trim();
       const url = document.getElementById('configServerUrl').value.trim();
-      if (!id || !key || !url) return alert('请填写完整配置');
+      const aiKey = document.getElementById('configAiKey').value.trim(); // 获取输入
+
+      if (!id || !key || !url || !aiKey) return alert('请填写完整配置（包括 AI Key）');
+
       localStorage.setItem('lc_app_id', id);
       localStorage.setItem('lc_app_key', key);
       localStorage.setItem('lc_server_url', url);
+      localStorage.setItem('lc_ai_key', aiKey); // 保存到本地
+
+      openRouterKey = aiKey; // 更新全局变量
       initLeanCloud(id, key, url);
     }
     function clearConfig() {
       localStorage.removeItem('lc_app_id');
       localStorage.removeItem('lc_app_key');
       localStorage.removeItem('lc_server_url');
+      localStorage.removeItem('lc_ai_key'); // 清除 Key
       location.reload();
     }
-    function showAuthForm() {
-      document.getElementById('authSection').style.display = 'block';
-      switchAuthMode('login');
-    }
+    function showAuthForm() { document.getElementById('authSection').style.display = 'block'; switchAuthMode('login'); }
     function switchAuthMode(mode) {
       authMode = mode;
       const btn = document.getElementById('authActionBtn');
       const tabLogin = document.getElementById('tabLogin');
       const tabSignup = document.getElementById('tabSignup');
-      if (mode === 'login') {
-        tabLogin.classList.add('active');
-        tabSignup.classList.remove('active');
-        btn.textContent = '立即登录';
-        btn.className = 'action-btn-large btn-brown';
-      } else {
-        tabLogin.classList.remove('active');
-        tabSignup.classList.add('active');
-        btn.textContent = '注册并登录';
-        btn.className = 'action-btn-large btn-accent';
-      }
+      if (mode === 'login') { tabLogin.classList.add('active'); tabSignup.classList.remove('active'); btn.textContent = '立即登录'; btn.className = 'action-btn-large btn-brown'; } else { tabLogin.classList.remove('active'); tabSignup.classList.add('active'); btn.textContent = '注册并登录'; btn.className = 'action-btn-large btn-accent'; }
     }
     async function handleAuthAction() {
       const u = document.getElementById('authUsername').value.trim();
       const p = document.getElementById('authPassword').value.trim();
       if (!u || !p) return alert('请输入用户名和密码');
       try {
-        if (authMode === 'login') {
-          await AV.User.logIn(u, p);
-        } else {
-          const user = new AV.User();
-          user.setUsername(u);
-          user.setPassword(p);
-          await user.signUp();
-        }
+        if (authMode === 'login') { await AV.User.logIn(u, p); } else { const user = new AV.User(); user.setUsername(u); user.setPassword(p); await user.signUp(); }
         checkLoginStatus();
-      } catch (error) {
-        alert('操作失败: ' + error.message);
-      }
+      } catch (error) { alert('操作失败: ' + error.message); }
     }
 
     // ========== 3. 下拉框与筛选逻辑 ==========
     function initCustomDropdown() {
-      const list = document.getElementById('typeOptionsList');
-      list.innerHTML = '';
-      const allDiv = document.createElement('div');
-      allDiv.className = 'custom-option';
+      const list = document.getElementById('typeOptionsList'); list.innerHTML = '';
+      const allDiv = document.createElement('div'); allDiv.className = 'custom-option';
       allDiv.innerHTML = `<input type="checkbox" value="全部类型" id="cb_all"><span>全部类型</span>`;
-      allDiv.onclick = (e) => toggleDropdownItem(e, '全部类型');
-      list.appendChild(allDiv);
-
+      allDiv.onclick = (e) => toggleDropdownItem(e, '全部类型'); list.appendChild(allDiv);
       EXPENSE_TYPES.forEach(type => {
-        const div = document.createElement('div');
-        div.className = 'custom-option';
+        const div = document.createElement('div'); div.className = 'custom-option';
         div.innerHTML = `<input type="checkbox" value="${type}" id="cb_${type}"><span>${type}</span>`;
-        div.onclick = (e) => toggleDropdownItem(e, type);
-        list.appendChild(div);
+        div.onclick = (e) => toggleDropdownItem(e, type); list.appendChild(div);
       });
-
-      const modalSelect = document.getElementById('modalType1');
-      modalSelect.innerHTML = '<option value="">-- 请选择 --</option>';
-      EXPENSE_TYPES.forEach(t => { modalSelect.add(new Option(t, t)); });
-
+      updateModalTypeOptions();
       const wrapper = document.getElementById('typeSelectWrapper');
       const trigger = document.getElementById('typeSelectTrigger');
-
-      trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        wrapper.classList.toggle('open');
-        if (wrapper.classList.contains('open')) {
-          tempSelectedTypes = [...activeSelectedTypes];
-          renderDropdownCheckboxes();
-        }
-      });
-      document.addEventListener('click', (e) => {
-        if (!wrapper.contains(e.target)) wrapper.classList.remove('open');
-      });
+      trigger.addEventListener('click', (e) => { e.stopPropagation(); wrapper.classList.toggle('open'); if (wrapper.classList.contains('open')) { tempSelectedTypes = [...activeSelectedTypes]; renderDropdownCheckboxes(); } });
+      document.addEventListener('click', (e) => { if (!wrapper.contains(e.target)) wrapper.classList.remove('open'); });
     }
-
     function renderDropdownCheckboxes() {
-      const isAll = tempSelectedTypes.includes('全部类型');
-      document.getElementById('cb_all').checked = isAll;
-      EXPENSE_TYPES.forEach(type => {
-        const cb = document.getElementById(`cb_${type}`);
-        if (isAll) { cb.checked = true; } else { cb.checked = tempSelectedTypes.includes(type); }
-      });
+      const isAll = tempSelectedTypes.includes('全部类型'); document.getElementById('cb_all').checked = isAll;
+      EXPENSE_TYPES.forEach(type => { const cb = document.getElementById(`cb_${type}`); if (isAll) { cb.checked = true; } else { cb.checked = tempSelectedTypes.includes(type); } });
     }
-
     function toggleDropdownItem(e, value) {
-      if (e.target.tagName !== 'INPUT') {
-        const cb = e.currentTarget.querySelector('input');
-        cb.checked = !cb.checked;
-      }
-      if (value === '全部类型') {
-        const isChecked = document.getElementById('cb_all').checked;
-        tempSelectedTypes = isChecked ? ['全部类型'] : [];
-      } else {
-        const isChecked = document.getElementById(`cb_${value}`).checked;
-        if (tempSelectedTypes.includes('全部类型')) {
-          tempSelectedTypes = [...EXPENSE_TYPES];
-          if (!isChecked) tempSelectedTypes = tempSelectedTypes.filter(t => t !== value);
-        } else {
-          if (isChecked) tempSelectedTypes.push(value);
-          else tempSelectedTypes = tempSelectedTypes.filter(t => t !== value);
-        }
-        const allSelected = EXPENSE_TYPES.every(t => tempSelectedTypes.includes(t));
-        if (allSelected) tempSelectedTypes = ['全部类型'];
-      }
+      if (e.target.tagName !== 'INPUT') { const cb = e.currentTarget.querySelector('input'); cb.checked = !cb.checked; }
+      if (value === '全部类型') { const isChecked = document.getElementById('cb_all').checked; tempSelectedTypes = isChecked ? ['全部类型'] : []; } else { const isChecked = document.getElementById(`cb_${value}`).checked; if (tempSelectedTypes.includes('全部类型')) { tempSelectedTypes = [...EXPENSE_TYPES]; if (!isChecked) tempSelectedTypes = tempSelectedTypes.filter(t => t !== value); } else { if (isChecked) tempSelectedTypes.push(value); else tempSelectedTypes = tempSelectedTypes.filter(t => t !== value); } const allSelected = EXPENSE_TYPES.every(t => tempSelectedTypes.includes(t)); if (allSelected) tempSelectedTypes = ['全部类型']; }
       renderDropdownCheckboxes();
     }
-
-    function confirmTypeFilter() {
-      activeSelectedTypes = [...tempSelectedTypes];
-      if (activeSelectedTypes.length === 0) activeSelectedTypes = ['全部类型'];
-      updateTriggerText();
-      document.getElementById('typeSelectWrapper').classList.remove('open');
-      renderExpenses();
-    }
-    function cancelTypeFilter() {
-      document.getElementById('typeSelectWrapper').classList.remove('open');
-    }
-    function updateTriggerText() {
-      const trigger = document.getElementById('typeSelectTrigger');
-      if (activeSelectedTypes.includes('全部类型')) {
-        trigger.textContent = '全部类型';
-      } else if (activeSelectedTypes.length === 1) {
-        trigger.textContent = activeSelectedTypes[0];
-      } else {
-        trigger.textContent = `${activeSelectedTypes[0]} 等 ${activeSelectedTypes.length} 项`;
-      }
-    }
+    function confirmTypeFilter() { activeSelectedTypes = [...tempSelectedTypes]; if (activeSelectedTypes.length === 0) activeSelectedTypes = ['全部类型']; updateTriggerText(); document.getElementById('typeSelectWrapper').classList.remove('open'); renderExpenses(); }
+    function cancelTypeFilter() { document.getElementById('typeSelectWrapper').classList.remove('open'); }
+    function updateTriggerText() { const trigger = document.getElementById('typeSelectTrigger'); if (activeSelectedTypes.includes('全部类型')) { trigger.textContent = '全部类型'; } else if (activeSelectedTypes.length === 1) { trigger.textContent = activeSelectedTypes[0]; } else { trigger.textContent = `${activeSelectedTypes[0]} 等 ${activeSelectedTypes.length} 项`; } }
 
     // ========== 4. 数据获取与处理 ==========
     function computeStatMonth(dateStr) {
-      const d = new Date(dateStr);
-      let y = d.getFullYear(), m = d.getMonth() + 1;
-      if (d.getDate() <= 4) {
-        if (m === 1) { m = 12; y--; } else { m--; }
-      }
+      const d = new Date(dateStr); let y = d.getFullYear(), m = d.getMonth() + 1;
+      if (d.getDate() <= 4) { if (m === 1) { m = 12; y--; } else { m--; } }
       return `${y}-${String(m).padStart(2, '0')}`;
     }
-
     async function getExpenses() {
       if (!ExpenseClass || !currentUser) return [];
-      const query = new AV.Query(ExpenseClass);
-      query.equalTo('familyId', MY_FAMILY_ID);
-      query.include('owner');
-      query.addDescending('date');
-      query.addDescending('createdAt');
-      query.limit(1000);
+      const query = new AV.Query(ExpenseClass); query.equalTo('familyId', MY_FAMILY_ID); query.include('owner'); query.addDescending('date'); query.addDescending('createdAt'); query.limit(1000);
       try {
         const results = await query.find();
         return results.map(obj => {
-          const ownerObj = obj.get('owner');
-          const username = ownerObj ? ownerObj.getUsername() : '未知';
-          return {
-            id: obj.id,
-            date: String(obj.get('date')),
-            type1: obj.get('type1'),
-            type2: obj.get('type2') || '',
-            amount: parseFloat(obj.get('amount')) || 0,
-            statMonth: computeStatMonth(obj.get('date')),
-            username: username,
-            createdAt: obj.createdAt
-          };
+          const ownerObj = obj.get('owner'); const username = ownerObj ? ownerObj.getUsername() : '未知';
+          return { id: obj.id, date: String(obj.get('date')), type1: obj.get('type1'), type2: obj.get('type2') || '', amount: parseFloat(obj.get('amount')) || 0, statMonth: computeStatMonth(obj.get('date')), username: username, createdAt: obj.createdAt, category: obj.get('category') || 'expense' };
         });
       } catch (err) { console.error(err); return []; }
     }
-
     function getTimeFilteredExpenses() {
-      // 这里的解构赋值非常重要，防止修改原数组
       let temp = [...allExpenses];
-
-      const memberFilter = document.getElementById('memberFilter').value;
-      if (memberFilter) temp = temp.filter(e => e.username === memberFilter);
-
-      const mFilter = document.getElementById('monthFilter').value;
-      if (mFilter) temp = temp.filter(e => e.statMonth === mFilter);
-
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
-      if (startDate) temp = temp.filter(e => e.date >= startDate);
-      if (endDate) temp = temp.filter(e => e.date <= endDate);
+      temp = temp.filter(e => e.category !== 'income');
+      const memberFilter = document.getElementById('memberFilter').value; if (memberFilter) temp = temp.filter(e => e.username === memberFilter);
+      const mFilter = document.getElementById('monthFilter').value; if (mFilter) temp = temp.filter(e => e.statMonth === mFilter);
+      const startDate = document.getElementById('startDate').value; const endDate = document.getElementById('endDate').value;
+      if (startDate) temp = temp.filter(e => e.date >= startDate); if (endDate) temp = temp.filter(e => e.date <= endDate);
       return temp;
     }
 
-    // ========== 5. 核心渲染函数 (renderExpenses) ==========
+    // ========== 5. 核心渲染函数 ==========
     async function renderExpenses() {
       if (!currentUser) return;
-
-      // 首次加载数据
       if (allExpenses.length === 0) {
         allExpenses = await getExpenses();
-        const months = [...new Set(allExpenses.map(e => e.statMonth))].sort().reverse();
-        const sel = document.getElementById('monthFilter');
-        let targetVal = sel.value;
-        sel.innerHTML = '<option value="">全部月份</option>';
-        months.forEach(m => sel.add(new Option(m, m)));
+        const expenseOnly = allExpenses.filter(e => e.category !== 'income');
+        const months = [...new Set(expenseOnly.map(e => e.statMonth))].sort().reverse();
+        const sel = document.getElementById('monthFilter'); let targetVal = sel.value; sel.innerHTML = '<option value="">全部月份</option>'; months.forEach(m => sel.add(new Option(m, m)));
         const currentMonth = computeStatMonth(new Date().toISOString());
         if (!targetVal && months.includes(currentMonth)) targetVal = currentMonth;
         if (targetVal) sel.value = targetVal;
       }
+      const memberSel = document.getElementById('memberFilter'); const currentMember = memberSel.value; const members = [...new Set(allExpenses.map(e => e.username))].filter(u => u && u !== '未知'); memberSel.innerHTML = '<option value="">全部成员</option>'; members.forEach(u => memberSel.add(new Option(u, u))); if (currentMember && members.includes(currentMember)) memberSel.value = currentMember;
 
-      // 成员筛选初始化
-      const memberSel = document.getElementById('memberFilter');
-      const currentMember = memberSel.value;
-      const members = [...new Set(allExpenses.map(e => e.username))].filter(u => u && u !== '未知');
-      memberSel.innerHTML = '<option value="">全部成员</option>';
-      members.forEach(u => memberSel.add(new Option(u, u)));
-      if (currentMember && members.includes(currentMember)) memberSel.value = currentMember;
+      // === 更新绿色状态条数据 (只与月份筛选联动) ===
+      updateStatusBar();
+      // === 更新顶部 Dashboard 卡片数据 ===
+      updateDashboardCards();
 
-      // 1. 获取并筛选数据
       let temp = getTimeFilteredExpenses();
-
-      if (!activeSelectedTypes.includes('全部类型')) {
-        temp = temp.filter(e => activeSelectedTypes.includes(e.type1));
-      }
-      const kw = document.getElementById('searchInput').value.trim();
-      if (kw) temp = temp.filter(e => e.type2.includes(kw));
-
-      // ============================================
-      // 【排序逻辑修复】使用最稳健的字符串比较
-      // ============================================
-      temp.sort((a, b) => {
-        // 1. 提取前10位日期 (YYYY-MM-DD)
-        const dateA = String(a.date || "").substring(0, 10);
-        const dateB = String(b.date || "").substring(0, 10);
-
-        // 2. 日期降序：大的日期排前面
-        if (dateA > dateB) return -1;
-        if (dateA < dateB) return 1;
-
-        // 3. 日期相同，按创建时间降序 (最新的排前面)
-        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return timeB - timeA;
-      });
-      // ============================================
-
+      if (!activeSelectedTypes.includes('全部类型')) { temp = temp.filter(e => activeSelectedTypes.includes(e.type1)); }
+      const kw = document.getElementById('searchInput').value.trim(); if (kw) temp = temp.filter(e => e.type2.includes(kw));
+      temp.sort((a, b) => { const dateA = String(a.date || "").substring(0, 10); const dateB = String(b.date || "").substring(0, 10); if (dateA > dateB) return -1; if (dateA < dateB) return 1; const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0; const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0; return timeB - timeA; });
       filteredExpenses = temp;
+      const totalPages = Math.ceil(filteredExpenses.length / pageSize) || 1; if (currentPage > totalPages) currentPage = 1; document.getElementById('totalPagesDisplay').innerText = totalPages; document.getElementById('pageJumpInput').max = totalPages; document.getElementById('pageJumpInput').value = currentPage;
+      renderTable(); renderCharts();
+    }
 
-      const totalPages = Math.ceil(filteredExpenses.length / pageSize) || 1;
-      if (currentPage > totalPages) currentPage = 1;
-      document.getElementById('totalPagesDisplay').innerText = totalPages;
-      document.getElementById('pageJumpInput').max = totalPages;
-      document.getElementById('pageJumpInput').value = currentPage;
+    // === 绿色状态条联动逻辑 (完全重写) ===
+    function updateStatusBar() {
+      const selectedMonth = document.getElementById('monthFilter').value;
+      let targetData = allExpenses;
+      let labelPrefix = "总";
 
-      renderTable();
-      renderCharts();
-      updateAnalysis();
+      if (selectedMonth) {
+        // 如果选了月份 -> 显示该月数据
+        targetData = allExpenses.filter(e => e.statMonth === selectedMonth);
+        labelPrefix = "本月";
+      }
+      // 如果没选月份 (即全部月份) -> 显示所有数据，Label 变为“总收入/总支出”
+
+      let totalIncome = 0;
+      let totalExpense = 0;
+
+      targetData.forEach(item => {
+        if (item.category === 'income') {
+          totalIncome += item.amount;
+        } else {
+          totalExpense += item.amount;
+        }
+      });
+
+      const balance = totalIncome - totalExpense;
+
+      // 更新标签
+      document.getElementById('labelIncome').innerText = `${labelPrefix}收入`;
+      document.getElementById('labelExpense').innerText = `${labelPrefix}支出`;
+      document.getElementById('labelBalance').innerText = `${labelPrefix}结余`;
+
+      // 更新数值 (增加空格)
+      document.getElementById('statusIncome').innerText = `+ ¥ ${formatMoney(totalIncome)}`;
+      document.getElementById('statusExpense').innerText = `- ¥ ${formatMoney(totalExpense)}`;
+      const balanceEl = document.getElementById('statusBalance');
+      balanceEl.innerText = `¥ ${formatMoney(balance)}`;
+      if (balance >= 0) { balanceEl.style.color = "#2e7d32"; } else { balanceEl.style.color = "#c62828"; }
+    }
+
+    // === 新增：计算顶部 Dashboard 卡片数据 (排序调整 + 空格 + 文本修正) ===
+    // === 修复后的 Dashboard 数据计算 ===
+    function updateDashboardCards() {
+      const now = new Date();
+      const currentYear = String(now.getFullYear());
+      const currentStatMonth = computeStatMonth(now.toISOString());
+
+      // --- 修复点 1：正确计算“上一个统计月” ---
+      // 原来的逻辑设为1号会导致再次跨月，现在直接基于字符串解析计算
+      let [currYearNum, currMonthNum] = currentStatMonth.split('-').map(Number);
+      let lastMonthNum = currMonthNum - 1;
+      let lastYearNum = currYearNum;
+      if (lastMonthNum === 0) {
+        lastMonthNum = 12;
+        lastYearNum--;
+      }
+      const lastMonthStr = `${lastYearNum}-${String(lastMonthNum).padStart(2, '0')}`;
+      // ---------------------------------------
+
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(now.getDate() - 6);
+      const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+
+      let annualIncome = 0;
+      let annualExpense = 0;
+      let weeklyExpense = 0;
+      let monthlyEntShopping = 0;
+      let thisMonthExpense = 0;
+      let lastMonthExpense = 0;
+
+      const excludedTypes = ['吃', '喝', '交通', '电水费', '房租'];
+
+      allExpenses.forEach(item => {
+        const itemDateStr = item.date.substring(0, 10);
+        const itemYear = item.statMonth.substring(0, 4);
+
+        // --- 修复点 2：加强旧数据兼容 ---
+        // 确保没有 category 的旧数据强制视为 'expense'
+        const itemCategory = item.category || 'expense';
+        // -----------------------------
+
+        if (itemYear === currentYear) {
+          if (itemCategory === 'income') annualIncome += item.amount;
+          else annualExpense += item.amount;
+        }
+
+        if (itemCategory !== 'income' && itemDateStr >= sevenDaysAgoStr) {
+          weeklyExpense += item.amount;
+        }
+
+        // 本月支出统计
+        if (item.statMonth === currentStatMonth && itemCategory !== 'income') {
+          thisMonthExpense += item.amount;
+          if (!excludedTypes.includes(item.type1)) {
+            monthlyEntShopping += item.amount;
+          }
+        }
+
+        // 上月支出统计
+        if (item.statMonth === lastMonthStr && itemCategory !== 'income') {
+          lastMonthExpense += item.amount;
+        }
+      });
+
+      const netAsset = annualIncome - annualExpense;
+      const weeklyAvg = weeklyExpense / 7;
+
+      // 环比增长逻辑
+      let momGrowth = 0;
+      let momText = "--";
+
+      // 只有当上月有支出，或者本月有支出时才显示
+      if (lastMonthExpense > 0) {
+        momGrowth = ((thisMonthExpense - lastMonthExpense) / lastMonthExpense) * 100;
+        const sign = momGrowth > 0 ? '+' : '';
+        momText = `${sign} ${momGrowth.toFixed(1)}%`;
+      } else if (thisMonthExpense > 0) {
+        // 如果本月有花销，但上月没查到数据（且上月确实没花钱），显示上月无数据
+        // 如果是因为Bug没查到，上面的 lastMonthStr 修复后这里就会正常计算了
+        momText = "上月无数据";
+      }
+
+      let annualRatio = 0;
+      if (annualIncome > 0) {
+        annualRatio = (annualExpense / annualIncome) * 100;
+      }
+      const ratioText = annualIncome > 0 ? `${annualRatio.toFixed(1)}%` : "N/A";
+
+      // 更新 DOM
+      document.getElementById('dashNetAsset').innerText = `¥ ${formatMoney(netAsset)}`;
+      document.getElementById('dashAnnualIncome').innerText = `¥ ${formatMoney(annualIncome)}`;
+      document.getElementById('dashAnnualExpense').innerText = `¥ ${formatMoney(annualExpense)}`;
+      document.getElementById('dashAnnualRatio').innerText = ratioText;
+      document.getElementById('dashEntertainment').innerText = `¥ ${formatMoney(monthlyEntShopping)}`;
+      document.getElementById('dashWeeklyAvg').innerText = `¥ ${formatMoney(weeklyAvg)}`;
+
+      const momEl = document.getElementById('dashMomGrowth');
+      momEl.innerText = momText;
+      momEl.style.color = momGrowth > 0 ? '#c62828' : (momGrowth < 0 ? '#2e7d32' : '#374151');
     }
 
     // ========== 6. 表格与分析 ==========
     function renderTable() {
-      const tbody = document.getElementById('expenseList');
-      tbody.innerHTML = '';
-      const start = (currentPage - 1) * pageSize;
-
-      // 注意：这里使用的是 filteredExpenses，如果这个数组被弄乱了，表格也就乱了
-      // 修正后的代码保证 updateAnalysis 不会弄乱它
-      const pageData = filteredExpenses.slice(start, start + pageSize);
-
-      const summaryBox = document.getElementById('summaryBox');
-      const targetTotal = filteredExpenses.reduce((a, b) => a + b.amount, 0);
-      const targetCount = filteredExpenses.length;
-
-      const leftContent = `
-        <div class="summary-left">
-          <span style="color:var(--primary); font-weight:bold;">筛选结果：共 ${targetCount} 笔，总额 ¥${formatMoney(targetTotal)}</span>
-        </div>`;
-      const rightContent = `
-        <div class="summary-right">
-            <span id="analysisText" style="margin-right:5px;">正在生成分析...</span>
-            <button class="refresh-btn" onclick="switchAnalysisMode()" title="随机刷新分析">↻</button>
-        </div>`;
-      summaryBox.innerHTML = leftContent + rightContent;
-
-      const groups = {};
-      pageData.forEach(e => {
-        if (!groups[e.statMonth]) groups[e.statMonth] = [];
-        groups[e.statMonth].push(e);
-      });
-
+      const tbody = document.getElementById('expenseList'); tbody.innerHTML = ''; const start = (currentPage - 1) * pageSize; const pageData = filteredExpenses.slice(start, start + pageSize);
+      const targetTotal = filteredExpenses.reduce((a, b) => a + b.amount, 0); const targetCount = filteredExpenses.length;
+      // 增加空格
+      const filterResultText = document.getElementById('filterResultText'); if (filterResultText) { filterResultText.innerHTML = `共 ${targetCount} 笔<br>总额 ¥ ${formatMoney(targetTotal)}`; }
+      const groups = {}; pageData.forEach(e => { if (!groups[e.statMonth]) groups[e.statMonth] = []; groups[e.statMonth].push(e); });
       Object.keys(groups).sort().reverse().forEach(mon => {
-        const list = groups[mon];
-        const subTotal = list.reduce((s, i) => s + i.amount, 0);
-        const trTitle = document.createElement('tr');
-        trTitle.innerHTML = `<td colspan="8" class="month-group-title">${mon} 当前页小计: ¥${formatMoney(subTotal)}</td>`;
-        tbody.appendChild(trTitle);
-
+        const list = groups[mon]; const subTotal = list.reduce((s, i) => s + i.amount, 0);
+        // 增加空格
+        const trTitle = document.createElement('tr'); trTitle.innerHTML = `<td colspan="8" class="month-group-title">${mon} 当前页小计: ¥ ${formatMoney(subTotal)}</td>`; tbody.appendChild(trTitle);
         list.forEach(item => {
           const userColor = getUserColor(item.username);
           const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><input type="checkbox" class="item-cb" value="${item.id}" onchange="checkBatchBtn()" style="height:auto;"></td>
-            <td>${item.statMonth}</td>
-            <td>${item.date.substring(0, 10)}</td>
-            <td><span style="background:#eceff1; padding:2px 8px; border-radius:10px; font-size:0.85em; color:#455a64;">${item.type1}</span></td>
-            <td><span class="user-badge" style="background:${userColor.bg}; color:${userColor.text};">${item.username}</span></td>
-            <td>${item.type2}</td>
-            <td style="font-weight:500;">¥${formatMoney(item.amount)}</td>
-            <td>
-              <div class="action-cell-content">
-                <button class="action-btn btn-brown" onclick="editExp('${item.id}')">编辑</button>
-                <button class="action-btn btn-dark" onclick="delExp('${item.id}')">删除</button>
-              </div>
-            </td>
-          `;
-          tbody.appendChild(tr);
+          // 增加空格
+          tr.innerHTML = `<td><input type="checkbox" class="item-cb" value="${item.id}" onchange="checkBatchBtn()" style="height:auto;"></td><td>${item.statMonth}</td><td>${item.date.substring(0, 10)}</td><td><span style="background:#eceff1; padding:2px 8px; border-radius:10px; font-size:0.85em; color:#455a64;">${item.type1}</span></td><td><span class="user-badge" style="background:${userColor.bg}; color:${userColor.text};">${item.username}</span></td><td>${item.type2}</td><td style="font-weight:500;">¥ ${formatMoney(item.amount)}</td><td><div class="action-cell-content"><button class="action-btn btn-brown" onclick="editExp('${item.id}')">编辑</button><button class="action-btn btn-dark" onclick="delExp('${item.id}')">删除</button></div></td>`; tbody.appendChild(tr);
         });
-      });
-      checkBatchBtn();
-    }
-
-    function switchAnalysisMode() {
-      let newIndex;
-      do { newIndex = Math.floor(Math.random() * ANALYSIS_MODE_COUNT); }
-      while (newIndex === analysisModeIndex && ANALYSIS_MODE_COUNT > 1);
-      analysisModeIndex = newIndex;
-      updateAnalysis();
-    }
-
-    // ============================================================
-    // 【最终修复】updateAnalysis 函数
-    // ============================================================
-    function updateAnalysis() {
-      const textEl = document.getElementById('analysisText');
-      if (!textEl) return;
-      const data = filteredExpenses;
-
-      if (data.length === 0) {
-        textEl.textContent = "暂无数据可分析";
-        return;
-      }
-
-      const dates = data.map(e => new Date(e.date).getTime());
-      const minDate = Math.min(...dates);
-      const maxDate = Math.max(...dates);
-      const daySpan = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + (minDate === maxDate ? 0 : 1));
-      const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
-
-      let resultText = "";
-
-      // 核心修复点：使用 [...data] 创建副本，绝对不修改原数组顺序！
-      const sortedByAmountSafe = [...data].sort((a, b) => b.amount - a.amount);
-
-      const typeGroups = {};
-      const typeCounts = {};
-      data.forEach(item => {
-        typeGroups[item.type1] = (typeGroups[item.type1] || 0) + item.amount;
-        typeCounts[item.type1] = (typeCounts[item.type1] || 0) + 1;
-      });
-      const sortedTypes = Object.entries(typeGroups).sort((a, b) => b[1] - a[1]);
-
-      switch (analysisModeIndex) {
-        case 0:
-          const dailyAvg = totalAmount / daySpan;
-          resultText = `日均支出${dailyAvg.toFixed(2)}元`;
-          break;
-        case 1:
-          if (sortedByAmountSafe.length > 0) {
-            const item = sortedByAmountSafe[0];
-            resultText = `单笔最高：【${item.type1}】${item.type2} 消费${item.amount}元`;
-          } else { resultText = "暂无消费"; }
-          break;
-        case 2:
-          if (sortedByAmountSafe.length > 1) {
-            const item = sortedByAmountSafe[1];
-            resultText = `单笔第二：【${item.type1}】${item.type2} 消费${item.amount}元`;
-          } else { resultText = "暂无单笔消费第二名"; }
-          break;
-        case 3:
-          if (sortedByAmountSafe.length > 2) {
-            const item = sortedByAmountSafe[2];
-            resultText = `单笔第三：【${item.type1}】${item.type2} 消费${item.amount}元`;
-          } else { resultText = "暂无单笔消费第三名"; }
-          break;
-        case 4:
-          if (sortedByAmountSafe.length > 0) {
-            const item = sortedByAmountSafe[sortedByAmountSafe.length - 1];
-            resultText = `单笔最小：【${item.type1}】${item.type2} 消费${item.amount}元`;
-          } else { resultText = "暂无数据"; }
-          break;
-        case 5:
-          if (sortedTypes.length > 0) {
-            const [name, amt] = sortedTypes[0];
-            const percent = ((amt / totalAmount) * 100).toFixed(1);
-            resultText = `第一大类：${name}占${percent}%`;
-          } else { resultText = "暂无主要分类"; }
-          break;
-        case 6: // ... 其余 case 保持原逻辑 ...
-           if (sortedTypes.length > 1) {
-             const [name, amt] = sortedTypes[1];
-             const percent = ((amt / totalAmount) * 100).toFixed(1);
-             resultText = `第二大类：${name}占${percent}%`;
-           } else { resultText = "暂无第二大分类"; }
-           break;
-        case 7:
-           if (sortedTypes.length > 2) {
-             const [name, amt] = sortedTypes[2];
-             const percent = ((amt / totalAmount) * 100).toFixed(1);
-             resultText = `第三大类：${name}占${percent}%`;
-           } else { resultText = "暂无第三大分类"; }
-           break;
-        case 8:
-           if (sortedTypes.length > 0) {
-             const [name, amt] = sortedTypes[sortedTypes.length - 1];
-             const percent = ((amt / totalAmount) * 100).toFixed(1);
-             resultText = `最小分类：${name}占${percent}%`;
-           } else { resultText = "暂无数据"; }
-           break;
-        case 9:
-           let weekDayTotal=0, weekDayCount=0, weekendTotal=0, weekendCount=0, wdItems=0, weItems=0;
-           const targetTypes=['吃','喝','交通'];
-           data.forEach(item => {
-             if (!targetTypes.includes(item.type1)) return;
-             const day = new Date(item.date).getDay();
-             const isWeekend = (day===0 || day===6);
-             if (isWeekend) { weekendTotal+=item.amount; weItems++; }
-             else { weekDayTotal+=item.amount; wdItems++; }
-           });
-           const wdAvg = wdItems ? (weekDayTotal/wdItems) : 0;
-           const weAvg = weItems ? (weekendTotal/weItems) : 0;
-           const diff = Math.abs(wdAvg - weAvg).toFixed(0);
-           if(wdAvg>weAvg) resultText=`工作日(吃喝交通)笔均比周末高${diff}元`;
-           else if(weAvg>wdAvg) resultText=`周末(吃喝交通)笔均比工作日高${diff}元`;
-           else resultText="周末与工作日(吃喝交通)消费持平";
-           break;
-        case 10:
-           const sortedCounts = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]);
-           if(sortedCounts.length>0){
-             const [name,count]=sortedCounts[0];
-             resultText=`频次之王：${name}类共消费${count}次`;
-           } else { resultText="暂无频次数据"; }
-           break;
-        case 11:
-           const density = data.length/daySpan;
-           resultText=`消费密度为${density.toFixed(1)}次/天`;
-           break;
-        case 12:
-           const dailyExpense = totalAmount/daySpan;
-           const balance = currentBudget - totalAmount;
-           if(balance<0) resultText=`已超额${Math.abs(balance).toFixed(2)}元`;
-           else {
-             if(dailyExpense<=0) resultText="余额充足（暂无日均支出）";
-             else {
-               const daysLeft = balance/dailyExpense;
-               resultText=`余额仅够花${daysLeft.toFixed(0)}天`;
-             }
-           }
-           break;
-        case 13:
-           const dayMap={};
-           data.forEach(item=>{ const d=item.date.substring(0,10); dayMap[d]=(dayMap[d]||0)+item.amount; });
-           let maxDay="", maxDayAmt=0;
-           for(let d in dayMap) { if(dayMap[d]>maxDayAmt){ maxDayAmt=dayMap[d]; maxDay=d; } }
-           if(maxDay) resultText=`单日之王：${maxDay} 花费${maxDayAmt.toFixed(0)}元`;
-           else resultText="暂无消费数据";
-           break;
-        case 14:
-           const avgPrice=data.length?(totalAmount/data.length):0;
-           resultText=`平均单价：每笔消费约${avgPrice.toFixed(1)}元`;
-           break;
-        case 15:
-           const smallCount=data.filter(i=>i.amount<30).length;
-           const smallPercent=data.length?((smallCount/data.length)*100).toFixed(0):0;
-           resultText=`琐碎消费：30元以下占比${smallPercent}% (${smallCount}笔)`;
-           break;
-        case 16:
-           const highValueItems=data.filter(i=>i.amount>500);
-           const hvCount=highValueItems.length;
-           if(hvCount>0){
-             const hvTotal=highValueItems.reduce((sum,i)=>sum+i.amount,0);
-             resultText=`高额消费(>500)：共${hvCount}笔，合计${hvTotal.toFixed(0)}元`;
-           } else { resultText="暂无单笔超500元的大额消费"; }
-           break;
-      }
-      textEl.textContent = resultText;
+      }); checkBatchBtn();
     }
 
     // ========== 7. 图表与其他操作 ==========
     function renderCharts() {
-      const groups = {};
-      allExpenses.forEach(e => {
-        if (!groups[e.statMonth]) groups[e.statMonth] = 0;
-        groups[e.statMonth] += e.amount;
-      });
-      const now = new Date();
-      const currentStatMonth = computeStatMonth(now.toISOString());
-      const months = [];
-      for (let i = 5; i >= 0; i--) {
-        let [y, m] = currentStatMonth.split('-').map(Number);
-        m = m - i;
-        while (m <= 0) { m += 12; y--; }
-        while (m > 12) { m -= 12; y++; }
-        months.push(`${y}-${String(m).padStart(2, '0')}`);
-      }
-      const totals = months.map(m => groups[m] || 0);
-      currentBudget = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}')[currentStatMonth] || 9000;
-      document.getElementById('budgetTitle').textContent = `各月总支出 (预算 ¥${currentBudget})`;
-
-      const ctxBar = document.getElementById('monthlyBarChart').getContext('2d');
-      if (monthlyBarChart) monthlyBarChart.destroy();
-      monthlyBarChart = new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-          labels: months,
-          datasets: [{
-            label: '支出',
-            data: totals,
-            backgroundColor: months.map(m => (m === currentStatMonth && (groups[m] || 0) > currentBudget) ? '#e57373' : '#90a4ae'),
-            borderRadius: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            annotation: { annotations: { line1: { type: 'line', yMin: currentBudget, yMax: currentBudget, borderColor: '#b0bec5', borderDash: [5, 5], borderWidth: 2 } } }
-          },
-          scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
-        }
-      });
-
-      const curTotal = groups[currentStatMonth] || 0;
-      const percent = Math.min(100, (curTotal / currentBudget) * 100);
-      const remain = currentBudget - curTotal;
-      if (remain >= 0) {
-        document.getElementById('progressGreen').style.width = (remain / currentBudget * 100) + '%';
-        document.getElementById('progressRed').style.width = '0%';
-        document.getElementById('progressText').textContent = `剩余 ¥${remain.toFixed(0)} (${(100 - percent).toFixed(0)}%)`;
-        document.getElementById('progressText').style.color = "#2c3e50";
-      } else {
-        document.getElementById('progressGreen').style.width = '0%';
-        document.getElementById('progressRed').style.width = Math.min(100, (Math.abs(remain) / currentBudget * 100)) + '%';
-        document.getElementById('progressText').textContent = `超支 ¥${Math.abs(remain).toFixed(0)}`;
-        document.getElementById('progressText').style.color = "#b71c1c";
-      }
+      const groups = {}; allExpenses.forEach(e => { if (e.category === 'income') return; if (!groups[e.statMonth]) groups[e.statMonth] = 0; groups[e.statMonth] += e.amount; });
+      const now = new Date(); const currentStatMonth = computeStatMonth(now.toISOString());
+      const months = []; for (let i = 5; i >= 0; i--) { let [y, m] = currentStatMonth.split('-').map(Number); m = m - i; while (m <= 0) { m += 12; y--; } while (m > 12) { m -= 12; y++; } months.push(`${y}-${String(m).padStart(2, '0')}`); }
+      const totals = months.map(m => groups[m] || 0); currentBudget = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}')[currentStatMonth] || 9000; document.getElementById('budgetTitle').textContent = `各月总支出 (预算 ¥ ${currentBudget})`;
+      const ctxBar = document.getElementById('monthlyBarChart').getContext('2d'); if (monthlyBarChart) monthlyBarChart.destroy(); monthlyBarChart = new Chart(ctxBar, { type: 'bar', data: { labels: months, datasets: [{ label: '支出', data: totals, backgroundColor: months.map(m => (m === currentStatMonth && (groups[m] || 0) > currentBudget) ? '#e57373' : '#90a4ae'), borderRadius: 4 }] }, options: { responsive: true, plugins: { legend: { display: false }, annotation: { annotations: { line1: { type: 'line', yMin: currentBudget, yMax: currentBudget, borderColor: '#b0bec5', borderDash: [5, 5], borderWidth: 2 } } } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } } });
+      const curTotal = groups[currentStatMonth] || 0; const percent = Math.min(100, (curTotal / currentBudget) * 100); const remain = currentBudget - curTotal;
+      // 增加空格
+      if (remain >= 0) { document.getElementById('progressGreen').style.width = (remain / currentBudget * 100) + '%'; document.getElementById('progressRed').style.width = '0%'; document.getElementById('progressText').textContent = `剩余 ¥ ${remain.toFixed(0)} (${(100 - percent).toFixed(0)}%)`; document.getElementById('progressText').style.color = "#2c3e50"; } else { document.getElementById('progressGreen').style.width = '0%'; document.getElementById('progressRed').style.width = Math.min(100, (Math.abs(remain) / currentBudget * 100)) + '%'; document.getElementById('progressText').textContent = `超支 ¥ ${Math.abs(remain).toFixed(0)}`; document.getElementById('progressText').style.color = "#b71c1c"; }
       renderEChartsPie();
     }
-
     function renderEChartsPie() {
-      const dom = document.getElementById('echartsPie');
-      if (!echartsPieInstance) {
-        echartsPieInstance = echarts.init(dom);
-        echartsPieInstance.on('click', function (params) { handleChartClick(params.name); });
-        echartsPieInstance.on('legendselectchanged', function (params) { handleChartClick(params.name); });
-      }
-      let pieSourceData = getTimeFilteredExpenses();
-      const typeMap = {};
-      pieSourceData.forEach(e => { typeMap[e.type1] = (typeMap[e.type1] || 0) + e.amount; });
-      const isAllSelected = activeSelectedTypes.includes('全部类型');
-      const dataForChart = Object.keys(typeMap).map(k => {
-        const isSelected = isAllSelected || activeSelectedTypes.includes(k);
-        return {
-          value: typeMap[k],
-          name: k,
-          itemStyle: { opacity: isSelected ? 1 : 0.1, color: isSelected ? undefined : '#cfd8dc' },
-          label: { show: isSelected, color: '#546e7a' },
-          labelLine: { show: isSelected, lineStyle: { color: '#cfd8dc' } }
-        };
-      });
-      const legendSelectedState = {};
-      EXPENSE_TYPES.forEach(t => legendSelectedState[t] = true);
-      const option = {
-        color: MORANDI_PALETTE,
-        tooltip: {
-          trigger: 'item', backgroundColor: 'rgba(255,255,255,0.9)',
-          formatter: function (params) { return `${params.name}<br/>¥${params.value.toFixed(2)} (${params.percent}%)`; }
-        },
-        legend: {
-          bottom: 0, left: 'center', padding: [5, 5], itemWidth: 15, itemHeight: 10,
-          textStyle: { color: '#607d8b' }, width: '95%', selected: legendSelectedState
-        },
-        series: [{
-          name: '支出类型', type: 'pie', radius: ['35%', '55%'], center: ['50%', '40%'],
-          avoidLabelOverlap: true, itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
-          data: dataForChart, selectedMode: 'multiple', selectedOffset: 10
-        }]
-      };
-      echartsPieInstance.setOption(option, true);
+      const dom = document.getElementById('echartsPie'); if (!echartsPieInstance) { echartsPieInstance = echarts.init(dom); echartsPieInstance.on('click', function (params) { handleChartClick(params.name); }); echartsPieInstance.on('legendselectchanged', function (params) { handleChartClick(params.name); }); }
+      let pieSourceData = getTimeFilteredExpenses(); const typeMap = {}; pieSourceData.forEach(e => { typeMap[e.type1] = (typeMap[e.type1] || 0) + e.amount; });
+      const isAllSelected = activeSelectedTypes.includes('全部类型'); const dataForChart = Object.keys(typeMap).map(k => { const isSelected = isAllSelected || activeSelectedTypes.includes(k); return { value: typeMap[k], name: k, itemStyle: { opacity: isSelected ? 1 : 0.1, color: isSelected ? undefined : '#cfd8dc' }, label: { show: isSelected, color: '#546e7a' }, labelLine: { show: isSelected, lineStyle: { color: '#cfd8dc' } } }; });
+      const legendSelectedState = {}; EXPENSE_TYPES.forEach(t => legendSelectedState[t] = true);
+      const option = { color: MORANDI_PALETTE, tooltip: { trigger: 'item', backgroundColor: 'rgba(255,255,255,0.9)', formatter: function (params) { return `${params.name}<br/>¥ ${params.value.toFixed(2)} (${params.percent}%)`; } }, legend: { bottom: 0, left: 'center', padding: [5, 5], itemWidth: 15, itemHeight: 10, textStyle: { color: '#607d8b' }, width: '95%', selected: legendSelectedState }, series: [{ name: '支出类型', type: 'pie', radius: ['35%', '55%'], center: ['50%', '40%'], avoidLabelOverlap: true, itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 }, data: dataForChart, selectedMode: 'multiple', selectedOffset: 10 }] }; echartsPieInstance.setOption(option, true);
     }
-    function handleChartClick(typeName) {
-      if (activeSelectedTypes.includes('全部类型')) {
-        activeSelectedTypes = [typeName];
-      } else {
-        if (activeSelectedTypes.includes(typeName)) {
-          activeSelectedTypes = activeSelectedTypes.filter(t => t !== typeName);
-          if (activeSelectedTypes.length === 0) activeSelectedTypes = ['全部类型'];
-        } else {
-          activeSelectedTypes.push(typeName);
-        }
-      }
-      tempSelectedTypes = [...activeSelectedTypes];
-      updateTriggerText();
-      renderDropdownCheckboxes();
-      renderExpenses();
-    }
+    function handleChartClick(typeName) { if (activeSelectedTypes.includes('全部类型')) { activeSelectedTypes = [typeName]; } else { if (activeSelectedTypes.includes(typeName)) { activeSelectedTypes = activeSelectedTypes.filter(t => t !== typeName); if (activeSelectedTypes.length === 0) activeSelectedTypes = ['全部类型']; } else { activeSelectedTypes.push(typeName); } } tempSelectedTypes = [...activeSelectedTypes]; updateTriggerText(); renderDropdownCheckboxes(); renderExpenses(); }
 
-    // ========== 8. 辅助操作 (分页/批量/弹窗) ==========
+    // ========== 8. 辅助操作与新增功能 ==========
     function formatMoney(n) { return n.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'); }
-
     function applyMonthOrSearchFilter() { currentPage = 1; renderExpenses(); }
-    function applyDateRangeFilter() {
-      const start = document.getElementById('startDate').value;
-      const end = document.getElementById('endDate').value;
-      if (start && end && start > end) {
-        alert('开始时间不能晚于结束时间');
-        document.getElementById('startDate').value = '';
-        return;
+    function applyDateRangeFilter() { const start = document.getElementById('startDate').value; const end = document.getElementById('endDate').value; if (start && end && start > end) { alert('开始时间不能晚于结束时间'); document.getElementById('startDate').value = ''; return; } currentPage = 1; renderExpenses(); }
+    function resetFilters() { activeSelectedTypes = ['全部类型']; tempSelectedTypes = ['全部类型']; updateTriggerText(); renderDropdownCheckboxes(); document.getElementById('typeSelectWrapper').classList.remove('open'); document.getElementById('startDate').value = ''; document.getElementById('endDate').value = ''; const sel = document.getElementById('monthFilter'); const memSel = document.getElementById('memberFilter'); memSel.value = ""; const currentMonth = computeStatMonth(new Date().toISOString()); let found = false; for (let i = 0; i < sel.options.length; i++) { if (sel.options[i].value === currentMonth) { sel.value = currentMonth; found = true; break; } } if (!found) sel.value = ""; document.getElementById('searchInput').value = ''; currentPage = 1; renderExpenses(); }
+    function changePageSize() { pageSize = parseInt(document.getElementById('pageSizeSelect').value); currentPage = 1; renderExpenses(); }
+    function jumpToPage() { const inputVal = parseInt(document.getElementById('pageJumpInput').value); const maxPage = Math.ceil(filteredExpenses.length / pageSize) || 1; if (isNaN(inputVal) || inputVal < 1) currentPage = 1; else if (inputVal > maxPage) currentPage = maxPage; else currentPage = inputVal; renderTable(); document.getElementById('pageJumpInput').value = currentPage; }
+    function changePageRelative(offset) { const maxPage = Math.ceil(filteredExpenses.length / pageSize) || 1; let newPage = currentPage + offset; if (newPage < 1) newPage = 1; if (newPage > maxPage) newPage = maxPage; if (newPage !== currentPage) { currentPage = newPage; renderTable(); document.getElementById('pageJumpInput').value = currentPage; } }
+    function checkBatchBtn() { const n = document.querySelectorAll('.item-cb:checked').length; const btn = document.getElementById('batchDeleteBtn'); btn.disabled = (n === 0); btn.style.opacity = n === 0 ? '0.5' : '1'; }
+    function toggleAllCheckboxes() { const v = document.getElementById('selectAll').checked; document.querySelectorAll('.item-cb').forEach(c => c.checked = v); checkBatchBtn(); }
+
+    // --- AI 智能识别 (使用指定模型) ---
+    async function handleSmartIdentify() {
+      const inputVal = document.getElementById('aiInput').value.trim();
+      if (!inputVal) return alert('请先输入描述文字');
+
+      if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.includes('YOUR-KEY')) {
+        return alert('请在代码顶部 const OPENROUTER_API_KEY = "..." 中填入正确的 Key');
       }
-      currentPage = 1;
-      renderExpenses();
-    }
-    function resetFilters() {
-      activeSelectedTypes = ['全部类型'];
-      tempSelectedTypes = ['全部类型'];
-      updateTriggerText();
-      renderDropdownCheckboxes();
-      document.getElementById('typeSelectWrapper').classList.remove('open');
-      document.getElementById('startDate').value = '';
-      document.getElementById('endDate').value = '';
-      const sel = document.getElementById('monthFilter');
-      const memSel = document.getElementById('memberFilter');
-      memSel.value = "";
-      const currentMonth = computeStatMonth(new Date().toISOString());
-      let found = false;
-      for (let i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].value === currentMonth) {
-          sel.value = currentMonth;
-          found = true;
-          break;
+
+      const btn = document.getElementById('btnSmartIdentify');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '🤖 正在分析中...';
+
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const expenseTypesStr = EXPENSE_TYPES.join('、');
+        const incomeTypesStr = INCOME_TYPES.join('、');
+
+        const systemPrompt = `
+You are a smart expense tracker assistant. 
+Today is ${todayStr}.
+Existing Expense Types: [${expenseTypesStr}]
+Existing Income Types: [${incomeTypesStr}]
+
+Your task is to extract information from the user's input and return a JSON object.
+Rules:
+1. "date": Format YYYY-MM-DD. Handle relative dates like "yesterday", "today".
+2. "amount": Number.
+3. "category": Either "expense" or "income".
+4. "type1": Choose the most appropriate one from the Existing Types lists above based on the category.
+5. "type2": A short description of the item.
+
+Output strictly valid JSON only.
+Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "吃", "type2": "奶茶"}
+            `;
+
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": window.location.href,
+            "X-Title": "Family Expense Tracker"
+          },
+          body: JSON.stringify({
+            // === 使用指定的小米模型 ID ===
+            "model": "xiaomi/mimo-v2-flash:free",
+            "messages": [
+              { "role": "system", "content": systemPrompt },
+              { "role": "user", "content": inputVal }
+            ]
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API Error: ${response.status} - ${errText}`);
         }
+
+        const result = await response.json();
+        if (!result.choices || result.choices.length === 0) throw new Error('API 返回数据为空');
+
+        let content = result.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim();
+        let aiData = JSON.parse(content);
+        console.log('AI 识别结果:', aiData);
+
+        if (aiData.date) document.getElementById('modalDate').value = aiData.date;
+        if (aiData.amount) document.getElementById('modalAmount').value = aiData.amount;
+        if (aiData.type2) document.getElementById('modalType2').value = aiData.type2;
+
+        if (aiData.category) {
+          const radios = document.getElementsByName('modalCategory');
+          let targetVal = aiData.category.toLowerCase().includes('inc') ? 'income' : 'expense';
+          for (let r of radios) {
+            if (r.value === targetVal) {
+              r.checked = true;
+              updateModalTypeOptions();
+              break;
+            }
+          }
+        }
+
+        if (aiData.type1) {
+          setTimeout(() => {
+            const select = document.getElementById('modalType1');
+            for (let i = 0; i < select.options.length; i++) {
+              if (select.options[i].value === aiData.type1) {
+                select.value = aiData.type1;
+                break;
+              }
+            }
+          }, 50);
+        }
+
+      } catch (error) {
+        console.error(error);
+        alert('❌ 识别失败: ' + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
       }
-      if (!found) sel.value = "";
-      document.getElementById('searchInput').value = '';
-      currentPage = 1;
-      renderExpenses();
     }
 
-    function changePageSize() {
-      pageSize = parseInt(document.getElementById('pageSizeSelect').value);
-      currentPage = 1;
-      renderExpenses();
-    }
-    function jumpToPage() {
-      const inputVal = parseInt(document.getElementById('pageJumpInput').value);
-      const maxPage = Math.ceil(filteredExpenses.length / pageSize) || 1;
-      if (isNaN(inputVal) || inputVal < 1) currentPage = 1;
-      else if (inputVal > maxPage) currentPage = maxPage;
-      else currentPage = inputVal;
-      renderTable();
-      document.getElementById('pageJumpInput').value = currentPage;
-    }
-    function changePageRelative(offset) {
-      const maxPage = Math.ceil(filteredExpenses.length / pageSize) || 1;
-      let newPage = currentPage + offset;
-      if (newPage < 1) newPage = 1;
-      if (newPage > maxPage) newPage = maxPage;
-      if (newPage !== currentPage) {
-        currentPage = newPage;
-        renderTable();
-        document.getElementById('pageJumpInput').value = currentPage;
-      }
-    }
-    function checkBatchBtn() {
-      const n = document.querySelectorAll('.item-cb:checked').length;
-      const btn = document.getElementById('batchDeleteBtn');
-      btn.disabled = (n === 0);
-      btn.style.opacity = n === 0 ? '0.5' : '1';
-    }
-    function toggleAllCheckboxes() {
-      const v = document.getElementById('selectAll').checked;
-      document.querySelectorAll('.item-cb').forEach(c => c.checked = v);
-      checkBatchBtn();
+    function updateModalTypeOptions() {
+      const type = document.querySelector('input[name="modalCategory"]:checked').value;
+      const select = document.getElementById('modalType1');
+      select.innerHTML = '<option value="">-- 请选择 --</option>';
+      const list = type === 'expense' ? EXPENSE_TYPES : INCOME_TYPES;
+      list.forEach(t => select.add(new Option(t, t)));
     }
 
     function openAddModal() {
       document.getElementById('modalExpenseForm').reset();
       document.getElementById('modalEditId').value = '';
-      document.getElementById('modalTitle').innerText = '新增支出';
+      document.getElementById('modalTitle').innerText = '新增记录';
+      document.getElementById('aiInput').value = '';
+      document.querySelector('input[name="modalCategory"][value="expense"]').checked = true;
+      updateModalTypeOptions();
       document.getElementById('modalDate').valueAsDate = new Date();
       document.getElementById('addModal').classList.add('active');
     }
@@ -1839,82 +1913,48 @@
       if (!currentUser) return alert('未登录');
       const id = document.getElementById('modalEditId').value;
       const cleanAmount = Math.round(parseFloat(document.getElementById('modalAmount').value) * 100) / 100;
-      const data = {
-        date: document.getElementById('modalDate').value,
-        type1: document.getElementById('modalType1').value,
-        type2: document.getElementById('modalType2').value,
-        amount: cleanAmount,
-        familyId: MY_FAMILY_ID
-      };
+      const selectedCategory = document.querySelector('input[name="modalCategory"]:checked').value;
+      const data = { date: document.getElementById('modalDate').value, type1: document.getElementById('modalType1').value, type2: document.getElementById('modalType2').value, amount: cleanAmount, familyId: MY_FAMILY_ID, category: selectedCategory };
       try {
-        if (id) {
-          const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id);
-          obj.set(data);
-          await obj.save();
-        } else {
-          const obj = new ExpenseClass();
-          obj.set(data);
-          obj.set('owner', currentUser);
-          const acl = new AV.ACL();
-          acl.setPublicReadAccess(true);
-          acl.setPublicWriteAccess(true);
-          obj.setACL(acl);
-          await obj.save();
-        }
-        closeAddModal();
-        allExpenses = [];
-        renderExpenses();
-      } catch (err) {
-        alert('保存失败: ' + err.message);
-      }
+        if (id) { const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id); obj.set(data); await obj.save(); } else { const obj = new ExpenseClass(); obj.set(data); obj.set('owner', currentUser); const acl = new AV.ACL(); acl.setPublicReadAccess(true); acl.setPublicWriteAccess(true); obj.setACL(acl); await obj.save(); }
+        closeAddModal(); allExpenses = []; renderExpenses();
+      } catch (err) { alert('保存失败: ' + err.message); }
     };
-    async function delExp(id) {
-      if (!confirm('确定删除?')) return;
-      const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id);
-      await obj.destroy();
-      allExpenses = allExpenses.filter(e => e.id !== id);
-      renderExpenses();
-    }
-    async function batchDeleteSelected() {
-      const ids = Array.from(document.querySelectorAll('.item-cb:checked')).map(c => c.value);
-      if (!confirm(`确定删除 ${ids.length} 条?`)) return;
-      const objs = ids.map(id => AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id));
-      await AV.Object.destroyAll(objs);
-      allExpenses = allExpenses.filter(e => !ids.includes(e.id));
-      renderExpenses();
-      document.getElementById('selectAll').checked = false;
-    }
+    async function delExp(id) { if (!confirm('确定删除?')) return; const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id); await obj.destroy(); allExpenses = allExpenses.filter(e => e.id !== id); renderExpenses(); }
+    async function batchDeleteSelected() { const ids = Array.from(document.querySelectorAll('.item-cb:checked')).map(c => c.value); if (!confirm(`确定删除 ${ids.length} 条?`)) return; const objs = ids.map(id => AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id)); await AV.Object.destroyAll(objs); allExpenses = allExpenses.filter(e => !ids.includes(e.id)); renderExpenses(); document.getElementById('selectAll').checked = false; }
     function editExp(id) {
-      const item = allExpenses.find(e => e.id === id);
-      document.getElementById('modalEditId').value = id;
-      document.getElementById('modalDate').value = item.date.substring(0, 10);
-      document.getElementById('modalType1').value = item.type1;
-      document.getElementById('modalType2').value = item.type2;
-      document.getElementById('modalAmount').value = item.amount;
-      document.getElementById('modalTitle').innerText = '编辑支出';
-      document.getElementById('addModal').classList.add('active');
+      const item = allExpenses.find(e => e.id === id); document.getElementById('modalEditId').value = id;
+      const cat = item.category || 'expense'; const radio = document.querySelector(`input[name="modalCategory"][value="${cat}"]`);
+      if (radio) { radio.checked = true; updateModalTypeOptions(); }
+      document.getElementById('modalDate').value = item.date.substring(0, 10); document.getElementById('modalType1').value = item.type1; document.getElementById('modalType2').value = item.type2; document.getElementById('modalAmount').value = item.amount;
+      document.getElementById('aiInput').value = '';
+      document.getElementById('modalTitle').innerText = '编辑记录'; document.getElementById('addModal').classList.add('active');
     }
-    document.getElementById('editBudgetBtn').onclick = () => {
-      const v = prompt('输入本月预算', currentBudget);
-      if (v && !isNaN(v)) {
-        const nowStr = computeStatMonth(new Date().toISOString().slice(0, 10));
-        const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}');
-        budgets[nowStr] = parseFloat(v);
-        localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets));
-        renderCharts();
-        updateAnalysis();
-      }
-    };
-    function exportToCSV() {
-      let csv = '统计月份,日期,一级类型,记账人,二级类型,金额\n';
-      filteredExpenses.forEach(e => {
-        csv += `${e.statMonth},${e.date.substring(0, 10)},${e.type1},${e.username},${e.type2},${e.amount}\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = '支出明细.csv'; a.click();
-    }
+    document.getElementById('editBudgetBtn').onclick = () => { const v = prompt('输入本月预算', currentBudget); if (v && !isNaN(v)) { const nowStr = computeStatMonth(new Date().toISOString().slice(0, 10)); const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}'); budgets[nowStr] = parseFloat(v); localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets)); renderCharts(); } };
+    function exportToCSV() { let csv = '统计月份,日期,一级类型,记账人,二级类型,金额\n'; filteredExpenses.forEach(e => { csv += `${e.statMonth},${e.date.substring(0, 10)},${e.type1},${e.username},${e.type2},${e.amount}\n`; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = '支出明细.csv'; a.click(); }
     function printCurrentPage() { window.print(); }
+
+    // 一键修复旧数据 (保持不变)
+    async function fixDataCategory() {
+      if (!currentUser) return console.log('请先登录');
+      const confirmFix = confirm('⚠️ 即将执行：查找所有缺少 category 字段的数据，并标记为【支出】。\n这是一个批量写入操作，确定执行吗？');
+      if (!confirmFix) return;
+      console.log('开始扫描旧数据...');
+      const query = new AV.Query(EXPENSE_CLASS_NAME);
+      query.equalTo('familyId', MY_FAMILY_ID);
+      query.doesNotExist('category');
+      query.limit(1000);
+      try {
+        const results = await query.find();
+        console.log(`发现 ${results.length} 条旧数据待修复...`);
+        if (results.length === 0) { alert('🎉 没有发现需要修复的数据！'); return; }
+        const objectsToSave = results.map(obj => { obj.set('category', 'expense'); return obj; });
+        await AV.Object.saveAll(objectsToSave);
+        console.log('修复完成！');
+        alert(`成功修复了 ${results.length} 条数据，请刷新页面。`);
+        location.reload();
+      } catch (error) { console.error(error); alert('修复失败，请查看控制台错误信息'); }
+    }
   </script>
 </body>
 
