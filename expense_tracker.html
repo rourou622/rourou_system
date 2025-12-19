@@ -40,7 +40,6 @@
 
       --radius-md: 12px;
       --radius-lg: 20px;
-      /* 统一大圆角 */
     }
 
     * {
@@ -198,15 +197,6 @@
       color: #2e7d32;
     }
 
-    .theme-orange .stat-icon-box {
-      background: #fff3e0;
-      color: #fb8c00;
-    }
-
-    .theme-orange .stat-value {
-      color: #e65100;
-    }
-
     /* 紫色普通 (用于环比) */
     .theme-purple .stat-icon-box {
       background: #f3e5f5;
@@ -235,51 +225,6 @@
 
     .theme-purple-highlight .stat-label {
       color: #8e24aa;
-    }
-
-    /* === 绿色状态条 (圆角优化) === */
-    .green-status-bar {
-      background: #e8f5e9;
-      border-radius: var(--radius-lg);
-      margin-bottom: 30px;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 25px 0;
-      min-height: 90px;
-      box-shadow: inset 0 0 0 1px rgba(46, 125, 50, 0.05);
-    }
-
-    .status-item {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .status-label {
-      font-size: 0.9rem;
-      color: #546e7a;
-      font-weight: 500;
-    }
-
-    .status-value {
-      font-size: 1.6rem;
-      font-weight: 700;
-      font-family: 'Roboto', sans-serif;
-      letter-spacing: -0.5px;
-    }
-
-    .status-value.income {
-      color: #2e7d32;
-    }
-
-    .status-value.expense {
-      color: #c62828;
-    }
-
-    .status-value.balance {
-      color: #00695c;
     }
 
     /* === 统一的大卡片样式 === */
@@ -1051,39 +996,10 @@
 
     <div class="dashboard-grid">
 
-      <div class="stat-card theme-green">
-        <div class="stat-content">
-          <div class="stat-label">今年净资产变动</div>
-          <div class="stat-value" id="dashNetAsset">--</div>
-        </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
-            <path d="M4 6v12a2 2 0 0 0 2 2h14v-4" />
-            <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
-          </svg>
-        </div>
-      </div>
-
-      <div class="stat-card theme-green">
-        <div class="stat-content">
-          <div class="stat-label">今年总收入</div>
-          <div class="stat-value" id="dashAnnualIncome">--</div>
-        </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-            <polyline points="17 6 23 6 23 12" />
-          </svg>
-        </div>
-      </div>
-
       <div class="stat-card theme-red">
         <div class="stat-content">
-          <div class="stat-label">今年总支出</div>
-          <div class="stat-value" id="dashAnnualExpense">--</div>
+          <div class="stat-label">本月消费</div>
+          <div class="stat-value" id="dashMonthExpense">--</div>
         </div>
         <div class="stat-icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -1094,10 +1010,39 @@
         </div>
       </div>
 
+      <div class="stat-card theme-green">
+        <div class="stat-content">
+          <div class="stat-label">本月结余</div>
+          <div class="stat-value" id="dashMonthBalance">--</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+          </svg>
+        </div>
+      </div>
+
       <div class="stat-card theme-blue">
         <div class="stat-content">
-          <div class="stat-label">年度收支比</div>
-          <div class="stat-value" id="dashAnnualRatio">--</div>
+          <div class="stat-label">本月大额消费笔数(>500)</div>
+          <div class="stat-value" id="dashLargeCount">--</div>
+        </div>
+        <div class="stat-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M16 12l-4-4-4 4"></path>
+            <line x1="12" y1="16" x2="12" y2="8"></line>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card theme-blue">
+        <div class="stat-content">
+          <div class="stat-label">本月日均消费</div>
+          <div class="stat-value" id="dashMonthDailyAvg">--</div>
         </div>
         <div class="stat-icon-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -1165,21 +1110,6 @@
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
           </svg>
         </div>
-      </div>
-    </div>
-
-    <div class="green-status-bar">
-      <div class="status-item">
-        <div class="status-label" id="labelIncome">本月收入</div>
-        <div class="status-value income" id="statusIncome">¥ 0.00</div>
-      </div>
-      <div class="status-item">
-        <div class="status-label" id="labelExpense">本月支出</div>
-        <div class="status-value expense" id="statusExpense">¥ 0.00</div>
-      </div>
-      <div class="status-item">
-        <div class="status-label" id="labelBalance">本月结余</div>
-        <div class="status-value balance" id="statusBalance">¥ 0.00</div>
       </div>
     </div>
 
@@ -1343,20 +1273,17 @@
           </button>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="display:none;">
           <label>收支类型</label>
           <div class="radio-group">
             <label class="radio-label">
               <input type="radio" name="modalCategory" value="expense" checked onchange="updateModalTypeOptions()"> 支出
             </label>
-            <label class="radio-label">
-              <input type="radio" name="modalCategory" value="income" onchange="updateModalTypeOptions()"> 收入
-            </label>
           </div>
         </div>
 
         <div class="form-group">
-          <label>消费/收入日期</label>
+          <label>消费日期</label>
           <input type="date" id="modalDate" required />
         </div>
         <div class="form-group">
@@ -1389,17 +1316,17 @@
 
   <script>
     // ========== 0. 全局配置与变量 ==========
-    // 【重要】请将此处替换为你的 OpenRouter API KEY
     const OPENROUTER_API_KEY = "";
 
     const MY_FAMILY_ID = "big banana house";
     let BUDGET_STORAGE_KEY = 'expense_budget_' + MY_FAMILY_ID;
     const EXPENSE_CLASS_NAME = 'rourou_YellowChamberPot';
 
-    // 支出类型定义
-    const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '宠物', '房租', '其他'];
-    // 收入类型定义
-    const INCOME_TYPES = ['工资', '红包', '转账', '其他'];
+    // 支出类型定义 (已移除房租)
+    const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '宠物', '其他'];
+
+    // 收入类型 (虽然UI不显示，保留定义以防报错)
+    const INCOME_TYPES = ['其他'];
 
     const MORANDI_PALETTE = [
       '#90a4ae', '#a1887f', '#e57373', '#81c784', '#64b5f6',
@@ -1550,13 +1477,14 @@
         const results = await query.find();
         return results.map(obj => {
           const ownerObj = obj.get('owner'); const username = ownerObj ? ownerObj.getUsername() : '未知';
-          return { id: obj.id, date: String(obj.get('date')), type1: obj.get('type1'), type2: obj.get('type2') || '', amount: parseFloat(obj.get('amount')) || 0, statMonth: computeStatMonth(obj.get('date')), username: username, createdAt: obj.createdAt, category: obj.get('category') || 'expense' };
+          // 强制都视为支出 (expense)，不再处理 income 逻辑
+          return { id: obj.id, date: String(obj.get('date')), type1: obj.get('type1'), type2: obj.get('type2') || '', amount: parseFloat(obj.get('amount')) || 0, statMonth: computeStatMonth(obj.get('date')), username: username, createdAt: obj.createdAt, category: 'expense' };
         });
       } catch (err) { console.error(err); return []; }
     }
     function getTimeFilteredExpenses() {
       let temp = [...allExpenses];
-      temp = temp.filter(e => e.category !== 'income');
+      // 移除 income 过滤，因为现在全都是 expense
       const memberFilter = document.getElementById('memberFilter').value; if (memberFilter) temp = temp.filter(e => e.username === memberFilter);
       const mFilter = document.getElementById('monthFilter').value; if (mFilter) temp = temp.filter(e => e.statMonth === mFilter);
       const startDate = document.getElementById('startDate').value; const endDate = document.getElementById('endDate').value;
@@ -1569,8 +1497,8 @@
       if (!currentUser) return;
       if (allExpenses.length === 0) {
         allExpenses = await getExpenses();
-        const expenseOnly = allExpenses.filter(e => e.category !== 'income');
-        const months = [...new Set(expenseOnly.map(e => e.statMonth))].sort().reverse();
+        // 既然全是支出，就直接用全部数据
+        const months = [...new Set(allExpenses.map(e => e.statMonth))].sort().reverse();
         const sel = document.getElementById('monthFilter'); let targetVal = sel.value; sel.innerHTML = '<option value="">全部月份</option>'; months.forEach(m => sel.add(new Option(m, m)));
         const currentMonth = computeStatMonth(new Date().toISOString());
         if (!targetVal && months.includes(currentMonth)) targetVal = currentMonth;
@@ -1578,8 +1506,8 @@
       }
       const memberSel = document.getElementById('memberFilter'); const currentMember = memberSel.value; const members = [...new Set(allExpenses.map(e => e.username))].filter(u => u && u !== '未知'); memberSel.innerHTML = '<option value="">全部成员</option>'; members.forEach(u => memberSel.add(new Option(u, u))); if (currentMember && members.includes(currentMember)) memberSel.value = currentMember;
 
-      // === 更新绿色状态条数据 (只与月份筛选联动) ===
-      updateStatusBar();
+      // === (已移除) 更新绿色状态条数据 ===
+
       // === 更新顶部 Dashboard 卡片数据 ===
       updateDashboardCards();
 
@@ -1592,138 +1520,99 @@
       renderTable(); renderCharts();
     }
 
-    // === 绿色状态条联动逻辑 (完全重写) ===
-    function updateStatusBar() {
-      const selectedMonth = document.getElementById('monthFilter').value;
-      let targetData = allExpenses;
-      let labelPrefix = "总";
-
-      if (selectedMonth) {
-        // 如果选了月份 -> 显示该月数据
-        targetData = allExpenses.filter(e => e.statMonth === selectedMonth);
-        labelPrefix = "本月";
-      }
-      // 如果没选月份 (即全部月份) -> 显示所有数据，Label 变为“总收入/总支出”
-
-      let totalIncome = 0;
-      let totalExpense = 0;
-
-      targetData.forEach(item => {
-        if (item.category === 'income') {
-          totalIncome += item.amount;
-        } else {
-          totalExpense += item.amount;
-        }
-      });
-
-      const balance = totalIncome - totalExpense;
-
-      // 更新标签
-      document.getElementById('labelIncome').innerText = `${labelPrefix}收入`;
-      document.getElementById('labelExpense').innerText = `${labelPrefix}支出`;
-      document.getElementById('labelBalance').innerText = `${labelPrefix}结余`;
-
-      // 更新数值 (增加空格)
-      document.getElementById('statusIncome').innerText = `+ ¥ ${formatMoney(totalIncome)}`;
-      document.getElementById('statusExpense').innerText = `- ¥ ${formatMoney(totalExpense)}`;
-      const balanceEl = document.getElementById('statusBalance');
-      balanceEl.innerText = `¥ ${formatMoney(balance)}`;
-      if (balance >= 0) { balanceEl.style.color = "#2e7d32"; } else { balanceEl.style.color = "#c62828"; }
-    }
-
-    // === 新增：计算顶部 Dashboard 卡片数据 (排序调整 + 空格 + 文本修正) ===
-    // === 修复后的 Dashboard 数据计算 ===
+    // === 【核心修改】Dashboard 数据计算 ===
     function updateDashboardCards() {
       const now = new Date();
-      const currentYear = String(now.getFullYear());
       const currentStatMonth = computeStatMonth(now.toISOString());
 
-      // --- 修复点 1：正确计算“上一个统计月” ---
-      // 原来的逻辑设为1号会导致再次跨月，现在直接基于字符串解析计算
-      let [currYearNum, currMonthNum] = currentStatMonth.split('-').map(Number);
-      let lastMonthNum = currMonthNum - 1;
-      let lastYearNum = currYearNum;
-      if (lastMonthNum === 0) {
-        lastMonthNum = 12;
-        lastYearNum--;
-      }
-      const lastMonthStr = `${lastYearNum}-${String(lastMonthNum).padStart(2, '0')}`;
-      // ---------------------------------------
+      // 获取当前月份天数，用于计算日均
+      const currentDay = now.getDate(); // 简单处理：除以当前已过天数
 
+      // 1. 获取本月数据
+      const thisMonthData = allExpenses.filter(e => e.statMonth === currentStatMonth);
+
+      // 2. 本月总消费
+      const monthTotalExpense = thisMonthData.reduce((sum, item) => sum + item.amount, 0);
+
+      // 3. 读取本月预算
+      const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}');
+      const thisMonthBudget = budgets[currentStatMonth] || 9000;
+
+      // 4. 本月结余 (预算 - 消费)
+      const monthBalance = thisMonthBudget - monthTotalExpense;
+
+      // 5. 本月大额消费笔数 (>500)
+      const largeCount = thisMonthData.filter(e => e.amount > 500).length;
+
+      // 6. 本月日均消费
+      const dailyAvg = monthTotalExpense / (currentDay || 1);
+
+      // --- 辅助数据 (旧逻辑保留部分) ---
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(now.getDate() - 6);
       const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
 
-      let annualIncome = 0;
-      let annualExpense = 0;
       let weeklyExpense = 0;
       let monthlyEntShopping = 0;
-      let thisMonthExpense = 0;
       let lastMonthExpense = 0;
+
+      // 计算上个月标识
+      let [currYearNum, currMonthNum] = currentStatMonth.split('-').map(Number);
+      let lastMonthNum = currMonthNum - 1;
+      let lastYearNum = currYearNum;
+      if (lastMonthNum === 0) { lastMonthNum = 12; lastYearNum--; }
+      const lastMonthStr = `${lastYearNum}-${String(lastMonthNum).padStart(2, '0')}`;
 
       const excludedTypes = ['吃', '喝', '交通', '电水费', '房租'];
 
       allExpenses.forEach(item => {
         const itemDateStr = item.date.substring(0, 10);
-        const itemYear = item.statMonth.substring(0, 4);
 
-        // --- 修复点 2：加强旧数据兼容 ---
-        // 确保没有 category 的旧数据强制视为 'expense'
-        const itemCategory = item.category || 'expense';
-        // -----------------------------
-
-        if (itemYear === currentYear) {
-          if (itemCategory === 'income') annualIncome += item.amount;
-          else annualExpense += item.amount;
-        }
-
-        if (itemCategory !== 'income' && itemDateStr >= sevenDaysAgoStr) {
+        // 7天日均
+        if (itemDateStr >= sevenDaysAgoStr) {
           weeklyExpense += item.amount;
         }
 
-        // 本月支出统计
-        if (item.statMonth === currentStatMonth && itemCategory !== 'income') {
-          thisMonthExpense += item.amount;
+        // 本月娱乐
+        if (item.statMonth === currentStatMonth) {
           if (!excludedTypes.includes(item.type1)) {
             monthlyEntShopping += item.amount;
           }
         }
 
-        // 上月支出统计
-        if (item.statMonth === lastMonthStr && itemCategory !== 'income') {
+        // 上月支出 (用于环比)
+        if (item.statMonth === lastMonthStr) {
           lastMonthExpense += item.amount;
         }
       });
 
-      const netAsset = annualIncome - annualExpense;
       const weeklyAvg = weeklyExpense / 7;
 
       // 环比增长逻辑
       let momGrowth = 0;
       let momText = "--";
-
-      // 只有当上月有支出，或者本月有支出时才显示
       if (lastMonthExpense > 0) {
-        momGrowth = ((thisMonthExpense - lastMonthExpense) / lastMonthExpense) * 100;
+        momGrowth = ((monthTotalExpense - lastMonthExpense) / lastMonthExpense) * 100;
         const sign = momGrowth > 0 ? '+' : '';
         momText = `${sign} ${momGrowth.toFixed(1)}%`;
-      } else if (thisMonthExpense > 0) {
-        // 如果本月有花销，但上月没查到数据（且上月确实没花钱），显示上月无数据
-        // 如果是因为Bug没查到，上面的 lastMonthStr 修复后这里就会正常计算了
+      } else if (monthTotalExpense > 0) {
         momText = "上月无数据";
       }
 
-      let annualRatio = 0;
-      if (annualIncome > 0) {
-        annualRatio = (annualExpense / annualIncome) * 100;
-      }
-      const ratioText = annualIncome > 0 ? `${annualRatio.toFixed(1)}%` : "N/A";
-
       // 更新 DOM
-      document.getElementById('dashNetAsset').innerText = `¥ ${formatMoney(netAsset)}`;
-      document.getElementById('dashAnnualIncome').innerText = `¥ ${formatMoney(annualIncome)}`;
-      document.getElementById('dashAnnualExpense').innerText = `¥ ${formatMoney(annualExpense)}`;
-      document.getElementById('dashAnnualRatio').innerText = ratioText;
+      // 卡片1：本月消费
+      document.getElementById('dashMonthExpense').innerText = `¥ ${formatMoney(monthTotalExpense)}`;
+      // 卡片2：本月结余
+      document.getElementById('dashMonthBalance').innerText = `¥ ${formatMoney(monthBalance)}`;
+      document.getElementById('dashMonthBalance').style.color = monthBalance >= 0 ? '#2e7d32' : '#c62828';
+
+      // 卡片3：本月大额笔数
+      document.getElementById('dashLargeCount').innerText = `${largeCount} 笔`;
+
+      // 卡片4：本月日均
+      document.getElementById('dashMonthDailyAvg').innerText = `¥ ${formatMoney(dailyAvg)}`;
+
+      // 其他卡片
       document.getElementById('dashEntertainment').innerText = `¥ ${formatMoney(monthlyEntShopping)}`;
       document.getElementById('dashWeeklyAvg').innerText = `¥ ${formatMoney(weeklyAvg)}`;
 
@@ -1754,7 +1643,8 @@
 
     // ========== 7. 图表与其他操作 ==========
     function renderCharts() {
-      const groups = {}; allExpenses.forEach(e => { if (e.category === 'income') return; if (!groups[e.statMonth]) groups[e.statMonth] = 0; groups[e.statMonth] += e.amount; });
+      // 既然全是支出，不再过滤 category='income'
+      const groups = {}; allExpenses.forEach(e => { if (!groups[e.statMonth]) groups[e.statMonth] = 0; groups[e.statMonth] += e.amount; });
       const now = new Date(); const currentStatMonth = computeStatMonth(now.toISOString());
       const months = []; for (let i = 5; i >= 0; i--) { let [y, m] = currentStatMonth.split('-').map(Number); m = m - i; while (m <= 0) { m += 12; y--; } while (m > 12) { m -= 12; y++; } months.push(`${y}-${String(m).padStart(2, '0')}`); }
       const totals = months.map(m => groups[m] || 0); currentBudget = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}')[currentStatMonth] || 9000; document.getElementById('budgetTitle').textContent = `各月总支出 (预算 ¥ ${currentBudget})`;
@@ -1801,20 +1691,19 @@
       try {
         const todayStr = new Date().toISOString().split('T')[0];
         const expenseTypesStr = EXPENSE_TYPES.join('、');
-        const incomeTypesStr = INCOME_TYPES.join('、');
 
+        // 提示词只包含支出类型
         const systemPrompt = `
 You are a smart expense tracker assistant. 
 Today is ${todayStr}.
 Existing Expense Types: [${expenseTypesStr}]
-Existing Income Types: [${incomeTypesStr}]
 
 Your task is to extract information from the user's input and return a JSON object.
 Rules:
 1. "date": Format YYYY-MM-DD. Handle relative dates like "yesterday", "today".
 2. "amount": Number.
-3. "category": Either "expense" or "income".
-4. "type1": Choose the most appropriate one from the Existing Types lists above based on the category.
+3. "category": Always "expense".
+4. "type1": Choose the most appropriate one from the Existing Expense Types list.
 5. "type2": A short description of the item.
 
 Output strictly valid JSON only.
@@ -1855,17 +1744,9 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
         if (aiData.amount) document.getElementById('modalAmount').value = aiData.amount;
         if (aiData.type2) document.getElementById('modalType2').value = aiData.type2;
 
-        if (aiData.category) {
-          const radios = document.getElementsByName('modalCategory');
-          let targetVal = aiData.category.toLowerCase().includes('inc') ? 'income' : 'expense';
-          for (let r of radios) {
-            if (r.value === targetVal) {
-              r.checked = true;
-              updateModalTypeOptions();
-              break;
-            }
-          }
-        }
+        // 强制为 expense
+        document.querySelector('input[name="modalCategory"][value="expense"]').checked = true;
+        updateModalTypeOptions();
 
         if (aiData.type1) {
           setTimeout(() => {
@@ -1889,11 +1770,10 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
     }
 
     function updateModalTypeOptions() {
-      const type = document.querySelector('input[name="modalCategory"]:checked').value;
+      // 始终只加载支出类型
       const select = document.getElementById('modalType1');
       select.innerHTML = '<option value="">-- 请选择 --</option>';
-      const list = type === 'expense' ? EXPENSE_TYPES : INCOME_TYPES;
-      list.forEach(t => select.add(new Option(t, t)));
+      EXPENSE_TYPES.forEach(t => select.add(new Option(t, t)));
     }
 
     function openAddModal() {
@@ -1913,8 +1793,9 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
       if (!currentUser) return alert('未登录');
       const id = document.getElementById('modalEditId').value;
       const cleanAmount = Math.round(parseFloat(document.getElementById('modalAmount').value) * 100) / 100;
-      const selectedCategory = document.querySelector('input[name="modalCategory"]:checked').value;
-      const data = { date: document.getElementById('modalDate').value, type1: document.getElementById('modalType1').value, type2: document.getElementById('modalType2').value, amount: cleanAmount, familyId: MY_FAMILY_ID, category: selectedCategory };
+
+      // 强制 category 为 expense
+      const data = { date: document.getElementById('modalDate').value, type1: document.getElementById('modalType1').value, type2: document.getElementById('modalType2').value, amount: cleanAmount, familyId: MY_FAMILY_ID, category: 'expense' };
       try {
         if (id) { const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id); obj.set(data); await obj.save(); } else { const obj = new ExpenseClass(); obj.set(data); obj.set('owner', currentUser); const acl = new AV.ACL(); acl.setPublicReadAccess(true); acl.setPublicWriteAccess(true); obj.setACL(acl); await obj.save(); }
         closeAddModal(); allExpenses = []; renderExpenses();
@@ -1924,37 +1805,16 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
     async function batchDeleteSelected() { const ids = Array.from(document.querySelectorAll('.item-cb:checked')).map(c => c.value); if (!confirm(`确定删除 ${ids.length} 条?`)) return; const objs = ids.map(id => AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id)); await AV.Object.destroyAll(objs); allExpenses = allExpenses.filter(e => !ids.includes(e.id)); renderExpenses(); document.getElementById('selectAll').checked = false; }
     function editExp(id) {
       const item = allExpenses.find(e => e.id === id); document.getElementById('modalEditId').value = id;
-      const cat = item.category || 'expense'; const radio = document.querySelector(`input[name="modalCategory"][value="${cat}"]`);
-      if (radio) { radio.checked = true; updateModalTypeOptions(); }
+      // 编辑时强制选中 expense
+      document.querySelector(`input[name="modalCategory"][value="expense"]`).checked = true;
+      updateModalTypeOptions();
       document.getElementById('modalDate').value = item.date.substring(0, 10); document.getElementById('modalType1').value = item.type1; document.getElementById('modalType2').value = item.type2; document.getElementById('modalAmount').value = item.amount;
       document.getElementById('aiInput').value = '';
       document.getElementById('modalTitle').innerText = '编辑记录'; document.getElementById('addModal').classList.add('active');
     }
-    document.getElementById('editBudgetBtn').onclick = () => { const v = prompt('输入本月预算', currentBudget); if (v && !isNaN(v)) { const nowStr = computeStatMonth(new Date().toISOString().slice(0, 10)); const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}'); budgets[nowStr] = parseFloat(v); localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets)); renderCharts(); } };
+    document.getElementById('editBudgetBtn').onclick = () => { const v = prompt('输入本月预算', currentBudget); if (v && !isNaN(v)) { const nowStr = computeStatMonth(new Date().toISOString().slice(0, 10)); const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}'); budgets[nowStr] = parseFloat(v); localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets)); renderCharts(); updateDashboardCards(); } };
     function exportToCSV() { let csv = '统计月份,日期,一级类型,记账人,二级类型,金额\n'; filteredExpenses.forEach(e => { csv += `${e.statMonth},${e.date.substring(0, 10)},${e.type1},${e.username},${e.type2},${e.amount}\n`; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = '支出明细.csv'; a.click(); }
     function printCurrentPage() { window.print(); }
-
-    // 一键修复旧数据 (保持不变)
-    async function fixDataCategory() {
-      if (!currentUser) return console.log('请先登录');
-      const confirmFix = confirm('⚠️ 即将执行：查找所有缺少 category 字段的数据，并标记为【支出】。\n这是一个批量写入操作，确定执行吗？');
-      if (!confirmFix) return;
-      console.log('开始扫描旧数据...');
-      const query = new AV.Query(EXPENSE_CLASS_NAME);
-      query.equalTo('familyId', MY_FAMILY_ID);
-      query.doesNotExist('category');
-      query.limit(1000);
-      try {
-        const results = await query.find();
-        console.log(`发现 ${results.length} 条旧数据待修复...`);
-        if (results.length === 0) { alert('🎉 没有发现需要修复的数据！'); return; }
-        const objectsToSave = results.map(obj => { obj.set('category', 'expense'); return obj; });
-        await AV.Object.saveAll(objectsToSave);
-        console.log('修复完成！');
-        alert(`成功修复了 ${results.length} 条数据，请刷新页面。`);
-        location.reload();
-      } catch (error) { console.error(error); alert('修复失败，请查看控制台错误信息'); }
-    }
   </script>
 </body>
 
