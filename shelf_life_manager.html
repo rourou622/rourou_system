@@ -1015,7 +1015,7 @@
 
   <script>
     // ============================================
-    // 1. 认证、家庭与配置逻辑
+    // 0. 全局配置与变量 (已移除硬编码 Key)
     // ============================================
     const STORAGE_ID = 'lc_app_id';
     const STORAGE_KEY = 'lc_app_key';
@@ -1027,6 +1027,9 @@
     let currentUser = null;
     let currentFamily = null;
 
+    // ============================================
+    // 1. 初始化逻辑
+    // ============================================
     window.onload = function () {
       checkInit();
     };
@@ -1213,7 +1216,7 @@
           recorder: obj.get('recorder') || '未知',
           produceDate: obj.get('produceDate'),
           shelfLife: Number(obj.get('shelfLife')),
-          createdAt: obj.createdAt // 新增：获取创建时间用于排序
+          createdAt: obj.createdAt
         }));
       } catch (error) {
         console.error(error);
@@ -1298,26 +1301,22 @@
     function quickFilter(statusVal) {
       const select = document.getElementById('statusFilter');
       select.value = statusVal;
-      // 触发查询
       renderProducts();
     }
 
-    // === 核心渲染函数 (包含 统计 + 高亮 + 动态排序) ===
+    // === 核心渲染函数 ===
     async function renderProducts() {
       const key = document.getElementById('searchInput').value.toLowerCase();
       const typeF = document.getElementById('typeFilter').value;
       const statusF = document.getElementById('statusFilter').value;
-      const sortType = document.getElementById('sortSelect').value; // 获取排序方式
+      const sortType = document.getElementById('sortSelect').value;
 
       let list = await getProducts();
 
-      // 预处理：给每个商品对象挂载 status 信息
       list.forEach(p => {
         p._statusInfo = getProductStatus(p);
       });
 
-      // --- 统计逻辑 (Dashboard) ---
-      // 统计基于“搜索词”和“类型”过滤后的结果
       let tempFilterList = list.filter(p => {
         const matchKey = !key || p.name.includes(key) || p.code.toLowerCase().includes(key) || p.recorder.includes(key);
         const matchType = !typeF || p.type1 === typeF;
@@ -1333,13 +1332,10 @@
         if (p._statusInfo.cls === 'status-exp') countExp++;
       });
 
-      // 更新看板 DOM
       document.getElementById('stat-total').innerText = countTotal;
       document.getElementById('stat-near').innerText = countNear;
       document.getElementById('stat-exp').innerText = countExp;
 
-
-      // --- 最终列表过滤 (加入状态筛选) ---
       let finalDisplayList = tempFilterList.filter(p => {
         let statusKey = '';
         if (p._statusInfo.cls === 'status-normal') statusKey = 'normal';
@@ -1349,16 +1345,12 @@
         return !statusF || statusKey === statusF;
       });
 
-      // --- 动态排序逻辑 ---
       finalDisplayList.sort((a, b) => {
         if (sortType === 'created_desc') {
-          // 按添加时间：新的在前
           return b.createdAt - a.createdAt;
         } else if (sortType === 'produce_desc') {
-          // 按生产日期：新的在前
           return new Date(b.produceDate) - new Date(a.produceDate);
         } else {
-          // 默认：按过期时间（由近到远）
           const endA = new Date(a.produceDate).getTime() + a.shelfLife * 86400000;
           const endB = new Date(b.produceDate).getTime() + b.shelfLife * 86400000;
           return endA - endB;
@@ -1385,7 +1377,6 @@
         tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:30px; color:#999;">暂无数据（如有旧数据请点击右下角认领）</td></tr>`;
       } else {
         pageData.forEach(p => {
-          // 使用之前挂载的 _statusInfo
           const statusInfo = p._statusInfo || getProductStatus(p);
           const { text, cls, daysLeft } = statusInfo;
 
@@ -1393,8 +1384,6 @@
           const recorderClass = getRecorderStyle(p.recorder);
 
           const tr = document.createElement('tr');
-
-          // 添加行高亮 Class
           if (cls === 'status-near') tr.classList.add('row-near');
           if (cls === 'status-exp') tr.classList.add('row-exp');
 
@@ -1453,7 +1442,6 @@
       document.getElementById('batchDeleteBtn').disabled = (n === 0);
     }
 
-    // 增删改
     function openAddModal() {
       document.getElementById('modalForm').reset();
       document.getElementById('e-id').value = '';
@@ -1492,7 +1480,6 @@
           obj.set(data);
           await obj.save();
         } else {
-          // 新增逻辑：写入家庭ID 和 记录人
           const obj = new ProductClass();
           obj.set(data);
           if (currentUser) {
@@ -1581,12 +1568,13 @@
     }
 
     // ============================================
-    // 3. 智能识别 (OpenRouter)
+    // 3. 智能识别 (OpenRouter) - 修复版
     // ============================================
     async function smartRecognize() {
       const text = document.getElementById('smart-input').value.trim();
       if (!text) return alert("请在上方文本框描述商品信息");
 
+      // 【核心修复】直接从 LocalStorage 读取，不再依赖硬编码变量
       let apiKey = localStorage.getItem(LS_AI_KEY_NAME);
       if (!apiKey) return alert("请先在服务器配置页面填写 OpenRouter API Key");
 
