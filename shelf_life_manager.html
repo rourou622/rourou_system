@@ -1020,7 +1020,8 @@
     const STORAGE_ID = 'lc_app_id';
     const STORAGE_KEY = 'lc_app_key';
     const STORAGE_URL = 'lc_server_url';
-    const LS_AI_KEY_NAME = 'openrouter_api_key';
+    // 【修复 1】统一存储 Key 名称，与记账软件保持一致，方便共享配置
+    const LS_AI_KEY_NAME = 'lc_ai_key';
     const FAMILY_KEY = 'leancloud_family_name';
 
     let ProductClass = null;
@@ -1045,6 +1046,13 @@
         document.getElementById('conf-key').value = key;
         document.getElementById('conf-url').value = url;
         if (aiKey) document.getElementById('conf-ai-key').value = aiKey;
+
+        // 【修复 2】如果缺少 AI Key，直接认为是未配置完成，强制进入配置页
+        // 这样避免进入系统后再报错
+        if (!aiKey) {
+          showCard('config-card');
+          return;
+        }
 
         initializeSystem(id, key, url).then(success => {
           if (success) {
@@ -1082,7 +1090,7 @@
       const aiKey = document.getElementById('conf-ai-key').value.trim();
       const msg = document.getElementById('conf-msg');
 
-      if (!appId || !appKey || !serverUrl) return msg.innerText = "请填写完整";
+      if (!appId || !appKey || !serverUrl || !aiKey) return msg.innerText = "请填写完整（包括 AI Key）";
       msg.innerText = "正在连接...";
 
       initializeSystem(appId, appKey, serverUrl).then(ok => {
@@ -1090,8 +1098,8 @@
           localStorage.setItem(STORAGE_ID, appId);
           localStorage.setItem(STORAGE_KEY, appKey);
           localStorage.setItem(STORAGE_URL, serverUrl);
-          if (aiKey) localStorage.setItem(LS_AI_KEY_NAME, aiKey);
-          else localStorage.removeItem(LS_AI_KEY_NAME);
+          // 【修复 3】确保保存时使用统一的 Key
+          localStorage.setItem(LS_AI_KEY_NAME, aiKey);
 
           checkLoginStatus();
         } else {
@@ -1106,6 +1114,7 @@
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(STORAGE_URL);
         localStorage.removeItem(FAMILY_KEY);
+        localStorage.removeItem(LS_AI_KEY_NAME); // 清除 AI Key
         AV.User.logOut();
         location.reload();
       }
