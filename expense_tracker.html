@@ -1896,8 +1896,14 @@
 
       <div style="display:flex; gap:10px; width:100%;">
         <button class="action-btn btn-light" style="flex:1" onclick="closeEditNote()">取消</button>
+
+        <!-- 中间操作按钮组 -->
         <button class="action-btn btn-dark" style="flex:1; display:none;" id="btnRevokeWaste"
           onclick="revokeWaste()">撤销浪费</button>
+        <button class="action-btn"
+          style="flex:1; display:none; background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;" id="btnMarkSafe"
+          onclick="markAsSafe()">✅ 确认无误</button>
+
         <button class="action-btn btn-brown" style="flex:1" onclick="saveEditNote()">保存</button>
       </div>
     </div>
@@ -2247,19 +2253,38 @@
           const userColor = getUserColor(item.username);
           const tr = document.createElement('tr');
 
-          // 如果是浪费，添加样式类
+          // --- 三种状态逻辑 ---
           const isWaste = item.wasteAmount > 0;
-          if (isWaste) tr.classList.add('row-waste');
+          const isReviewed = item.isReviewed === true; // 确保是布尔值
 
-          // 构造浪费按钮样式
-          const wasteBtnStyle = isWaste ? 'color:#c62828; border-color:#ffcdd2; background:#ffebee;' : 'color:#90a4ae; border-color:#cfd8dc; background:#fff;';
-          const wasteBtnIcon = isWaste ? '🗑️' : '🧐';
-          const wasteBtnTitle = isWaste ? '管理浪费详情' : '标记为浪费';
+          let btnStyle = '';
+          let btnIcon = '';
+          let btnTitle = '';
+
+          if (isWaste) {
+            // 1. 已复盘 - 浪费 (Waste)
+            tr.classList.add('row-waste'); // 保持红色背景
+            btnStyle = 'color:#c62828; border-color:#ffcdd2; background:#ffebee;';
+            btnIcon = '🗑️';
+            btnTitle = '已确认为浪费 (点击修改)';
+          } else if (isReviewed) {
+            // 2. 已复盘 - 正常 (Safe)
+            // 正常行背景，或者也可以给个淡淡的绿色背景？暂时保持默认白色，以免太花
+            // 但按钮要变
+            btnStyle = 'color:#2e7d32; border-color:#c8e6c9; background:#e8f5e9; opacity: 0.8;';
+            btnIcon = '✅';
+            btnTitle = '已确认无误 (点击可反悔)';
+          } else {
+            // 3. 未复盘 (Pending)
+            btnStyle = 'color:#ff9800; border-color:#ffe0b2; background:#fff3e0;'; // 橙色问号
+            btnIcon = '❓';
+            btnTitle = '待复盘 (点击确认)';
+          }
 
           tr.innerHTML = `<td><input type="checkbox" class="item-cb" value="${item.id}" onchange="checkBatchBtn()" style="height:auto;"></td><td>${item.statMonth}</td><td>${item.date.substring(0, 10)}</td><td><span style="background:#eceff1; padding:2px 8px; border-radius:10px; font-size:0.85em; color:#455a64;">${item.type1}</span></td><td><span class="user-badge" style="background:${userColor.bg}; color:${userColor.text};">${item.username}</span></td><td>${item.type2}</td><td style="font-weight:500;">¥ ${formatMoney(item.amount)}</td>
           <td>
             <div class="action-cell-content">
-               <button class="action-btn" style="${wasteBtnStyle} padding:4px 8px;" onclick="openEditNote('${item.id}')" title="${wasteBtnTitle}">${wasteBtnIcon}</button>
+               <button class="action-btn" style="${btnStyle} padding:4px 8px; min-width:32px;" onclick="openEditNote('${item.id}')" title="${btnTitle}">${btnIcon}</button>
                <button class="action-btn btn-brown" onclick="editExp('${item.id}')">编辑</button>
                <button class="action-btn btn-dark" onclick="delExp('${item.id}')">删除</button>
             </div>
@@ -2279,15 +2304,23 @@
       const defaultAmount = (item.wasteAmount > 0) ? item.wasteAmount : item.amount;
       document.getElementById('editWasteAmountInput').value = defaultAmount;
 
-      // 控制撤销按钮显示
+      // 按钮显示逻辑
       const btnRevoke = document.getElementById('btnRevokeWaste');
-      if (item.wasteAmount > 0) {
-        btnRevoke.style.display = 'block';
-      } else {
-        btnRevoke.style.display = 'none';
-      }
+      const btnSafe = document.getElementById('btnMarkSafe');
 
-      // 使用 active class 来显示，而不是直接 style.display='flex'
+      // 先隐藏所有中间按钮
+      btnRevoke.style.display = 'none';
+      btnSafe.style.display = 'none';
+
+      if (item.wasteAmount > 0) {
+        // 如果是浪费 -> 显示撤销
+        btnRevoke.style.display = 'block';
+      } else if (!item.isReviewed) {
+        // 如果未复盘 -> 显示确认无误
+        btnSafe.style.display = 'block';
+      }
+      // 如果已复盘且正常 (Safe) -> 不显示中间按钮 (只显示取消/保存)
+
       document.getElementById('editNoteOverlay').classList.add('active');
     }
 
@@ -2297,20 +2330,28 @@
     }
 
     async function revokeWaste() {
-      if (!confirm('确定要撤销这笔浪费标记吗？')) return;
+      if (!confirm('确定撤销浪费标记？此记录将变更为“已复盘-正常”。')) return;
+      await setItemStatus(0, '', true);
+    }
+
+    async function markAsSafe() {
+      // 标记为正常：浪费=0，已复盘=true
+      await setItemStatus(0, '', true);
+    }
+
+    // 通用状态更新函数
+    async function setItemStatus(wasteAmt, note, reviewed) {
       if (!currentEditNoteId) return;
 
       const item = allExpenses.find(e => e.id === currentEditNoteId);
       if (item) {
-        item.wasteAmount = 0;
-        item.wasteNote = ''; // 可选：是否清空备注？通常清空比较好
-        // isReviewed 保持 true 还是设为 false?
-        // 设为 true 比较好，表示"我确认它不是浪费"，而不是"我还没复盘"
-        item.isReviewed = true;
+        item.wasteAmount = wasteAmt;
+        item.wasteNote = note;
+        item.isReviewed = reviewed;
       }
 
       // 更新云端
-      await updateExpenseStatus(currentEditNoteId, { wasteAmount: 0, wasteNote: '', isReviewed: true });
+      await updateExpenseStatus(currentEditNoteId, { wasteAmount: wasteAmt, wasteNote: note, isReviewed: reviewed });
 
       closeEditNote();
       refreshAllViews();
@@ -2323,22 +2364,21 @@
 
       if (isNaN(newAmount) || newAmount < 0) return alert('请输入有效的金额');
 
-      // 更新本地
+      // 只要点了保存，就算已复盘
+      // 如果金额 > 0， naturally is waste
+
       const item = allExpenses.find(e => e.id === currentEditNoteId);
       if (item) {
         item.wasteNote = newNote;
         item.wasteAmount = newAmount;
-        item.isReviewed = true; // 既然标记了，肯定算复盘过
+        item.isReviewed = true;
 
-        // 更新 UI (如果在反省清单中)
         const uiNote = document.getElementById(`note-text-${currentEditNoteId}`);
         if (uiNote) uiNote.innerText = newNote || '暂无备注';
-
         const uiAmount = document.getElementById(`amount-text-${currentEditNoteId}`);
         if (uiAmount) uiAmount.innerText = `¥ ${formatMoney(newAmount)}`;
       }
 
-      // 更新云端
       await updateExpenseStatus(currentEditNoteId, { wasteNote: newNote, wasteAmount: newAmount, isReviewed: true });
 
       closeEditNote();
