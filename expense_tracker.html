@@ -116,6 +116,7 @@
       padding: 20px;
       position: relative;
       display: flex;
+      display: flex;
       justify-content: space-between;
       align-items: center;
       box-shadow: var(--shadow-sm);
@@ -123,6 +124,57 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       overflow: hidden;
       min-height: 100px;
+    }
+
+    /* 新增 Chart Header 样式 */
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chart-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .clean-date-input {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+      padding: 0 4px;
+      cursor: pointer;
+    }
+
+    .btn-icon-small {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: white;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-icon-small:hover {
+      color: var(--primary);
+      border-color: #cbd5e1;
     }
 
     .stat-card:hover {
@@ -1510,17 +1562,252 @@
         color: var(--primary);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       }
+
+      /* 新增 Chart Header 样式 (简约版) */
+      .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 0 5px;
+      }
+
+      .chart-title-text {
+        font-size: 1.1rem;
+        /* 稍微调小 */
+        font-weight: 700;
+        color: #37474f;
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+      }
+
+      .chart-controls {
+        display: flex;
+        align-items: center;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        /* 稍微圆润 */
+        padding: 2px;
+        gap: 2px;
+      }
+
+      /* 自定义日期显示容器 */
+      .date-display-wrapper {
+        position: relative;
+        width: 80px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .custom-date-text {
+        font-size: 0.9rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        color: #455a64;
+        pointer-events: none;
+        /* 让点击穿透到 input */
+      }
+
+      /* 自定义月份选择器弹窗 */
+      .custom-month-popover {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 240px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        padding: 10px;
+        z-index: 100;
+        margin-top: 8px;
+      }
+
+      .custom-month-popover.active {
+        display: block;
+        animation: fadeIn 0.15s ease-out;
+      }
+
+      .popover-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .picker-year-btn {
+        background: transparent;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+
+      .picker-year-btn:hover {
+        background: #f1f5f9;
+        color: #334155;
+      }
+
+      .picker-year-text {
+        font-weight: 700;
+        color: #334155;
+        pointer-events: none;
+      }
+
+      .month-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+      }
+
+      .month-cell {
+        padding: 6px 0;
+        text-align: center;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #64748b;
+        transition: all 0.2s;
+      }
+
+      .month-cell:hover {
+        background: #f8fafc;
+        color: #334155;
+      }
+
+      /* 有数据的月份：粉红背景 */
+      .month-cell.has-data {
+        background: #ffebee;
+        color: #d32f2f;
+        font-weight: 600;
+      }
+
+      .month-cell.has-data:hover {
+        background: #ffcdd2;
+      }
+
+      /* 当前选中月份 */
+      .month-cell.selected {
+        background: #37474f !important;
+        color: white !important;
+        box-shadow: 0 2px 4px rgba(55, 71, 79, 0.3);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translate(-50%, -10px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+      }
+
+      .hidden-date-input {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .btn-icon-small {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: #90a4ae;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-icon-small:hover {
+        background: #fff;
+        color: var(--primary);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      #editBudgetBtn {
+        background: transparent;
+        border: 1px solid #cfd8dc;
+        color: #78909c;
+        font-size: 0.8rem;
+        /* 文字更小 */
+        height: 30px;
+        padding: 0 10px;
+        border-radius: 6px;
+        transition: all 0.2s;
+      }
+
+      #editBudgetBtn:hover {
+        border-color: #b0bec5;
+        color: #546e7a;
+        background: #fcfcfc;
+      }
     </style>
 
     <!-- 重新添加丢失的 charts-section 包装器 -->
     <div class="charts-section">
       <div class="chart-container">
-        <div class="chart-title">
-          <span id="budgetTitle">各月总支出</span>
-          <button id="editBudgetBtn" class="action-btn btn-light"
-            style="margin-left:8px; font-size:0.75em;">修改预算</button>
+        <div class="chart-header">
+          <div class="chart-title-text" id="budgetTitle">
+            <!-- 动态生成: 2026.01 总支出 (预算 ¥5000) -->
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="chart-controls">
+              <button class="btn-icon-small" onclick="shiftChartMonth(-1)" title="上一月">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+
+              <!-- 点击触发自定义 Popover -->
+              <div class="date-display-wrapper" onclick="toggleMonthPicker(event)">
+                <span id="chartDateDisplay" class="custom-date-text">--.--</span>
+                <!-- Custom Popover -->
+                <div id="customMonthPopover" class="custom-month-popover" onclick="event.stopPropagation()">
+                  <div class="popover-header">
+                    <button class="picker-year-btn" onclick="changePickerYear(-1)">❮</button>
+                    <span id="pickerYearDisplay" class="picker-year-text">2026</span>
+                    <button class="picker-year-btn" onclick="changePickerYear(1)">❯</button>
+                  </div>
+                  <div class="month-grid" id="pickerMonthGrid">
+                    <!-- JS Generated -->
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn-icon-small" onclick="shiftChartMonth(1)" title="下一月">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+            </div>
+            <button id="editBudgetBtn">修改预算</button>
+          </div>
         </div>
-        <canvas id="monthlyBarChart" height="180"></canvas>
+        <div style="position: relative; height: 280px; width: 100%;">
+          <canvas id="monthlyBarChart"></canvas>
+        </div>
         <div id="budgetProgressBar">
           <div id="budgetBase" style="height:100%; width:100%; background:#cfd8dc; position:relative; overflow:hidden;">
             <div id="progressGreen"
@@ -2154,7 +2441,7 @@
       const thisMonthData = allExpenses.filter(e => e.statMonth === currentStatMonth);
       const monthTotalExpense = thisMonthData.reduce((sum, item) => sum + item.amount, 0);
       const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}');
-      const thisMonthBudget = budgets[currentStatMonth] || 9000;
+      const thisMonthBudget = budgets['global'] || 9000; // Use global budget
       const monthBalance = thisMonthBudget - monthTotalExpense;
       const largeCount = thisMonthData.filter(e => e.amount > 500).length;
       const dailyAvg = monthTotalExpense / daysPassed;
@@ -2413,18 +2700,270 @@
     }
 
     // ========== 7. 图表与其他操作 ==========
+    let selectedChartMonth = null;
+    let chartEndMonth = null; // 用于控制柱状图显示的“结束月份” (视图窗口)
+
+    // 获取预算 (统一使用全局预算)
+    function getBudgetForMonth(month) {
+      const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}');
+      return budgets['global'] || 9000;
+    }
+
     function renderCharts() {
-      // 既然全是支出，不再过滤 category='income'
-      const groups = {}; allExpenses.forEach(e => { if (!groups[e.statMonth]) groups[e.statMonth] = 0; groups[e.statMonth] += e.amount; });
-      const now = new Date(); const currentStatMonth = computeStatMonth(now.toISOString());
-      const months = []; for (let i = 5; i >= 0; i--) { let [y, m] = currentStatMonth.split('-').map(Number); m = m - i; while (m <= 0) { m += 12; y--; } while (m > 12) { m -= 12; y++; } months.push(`${y}-${String(m).padStart(2, '0')}`); }
-      const totals = months.map(m => groups[m] || 0); currentBudget = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}')[currentStatMonth] || 9000; document.getElementById('budgetTitle').textContent = `各月总支出 (预算 ¥ ${currentBudget})`;
-      const ctxBar = document.getElementById('monthlyBarChart').getContext('2d'); if (monthlyBarChart) monthlyBarChart.destroy(); monthlyBarChart = new Chart(ctxBar, { type: 'bar', data: { labels: months, datasets: [{ label: '支出', data: totals, backgroundColor: months.map(m => (m === currentStatMonth && (groups[m] || 0) > currentBudget) ? '#e57373' : '#90a4ae'), borderRadius: 4 }] }, options: { responsive: true, plugins: { legend: { display: false }, annotation: { annotations: { line1: { type: 'line', yMin: currentBudget, yMax: currentBudget, borderColor: '#b0bec5', borderDash: [5, 5], borderWidth: 2 } } } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } } });
-      const curTotal = groups[currentStatMonth] || 0; const percent = Math.min(100, (curTotal / currentBudget) * 100); const remain = currentBudget - curTotal;
-      // 增加空格
-      if (remain >= 0) { document.getElementById('progressGreen').style.width = (remain / currentBudget * 100) + '%'; document.getElementById('progressRed').style.width = '0%'; document.getElementById('progressText').textContent = `剩余 ¥ ${remain.toFixed(0)} (${(100 - percent).toFixed(0)}%)`; document.getElementById('progressText').style.color = "#2c3e50"; } else { document.getElementById('progressGreen').style.width = '0%'; document.getElementById('progressRed').style.width = Math.min(100, (Math.abs(remain) / currentBudget * 100)) + '%'; document.getElementById('progressText').textContent = `超支 ¥ ${Math.abs(remain).toFixed(0)}`; document.getElementById('progressText').style.color = "#b71c1c"; }
+      // 1. 准备数据
+      const groups = {};
+      allExpenses.forEach(e => {
+        if (!groups[e.statMonth]) groups[e.statMonth] = 0;
+        groups[e.statMonth] += e.amount;
+      });
+
+      // 获取当前真实月份 (使用本地时间)
+      const now = new Date();
+      const localNowStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      const currentRealMonth = computeStatMonth(localNowStr);
+
+      // 初始化选中月份
+      if (!selectedChartMonth) selectedChartMonth = currentRealMonth;
+
+      // 确定视图窗口：以选中的月份为中心，前后各2个月 (共5个月)
+      // Range: [Selected-2, Selected-1, Selected, Selected+1, Selected+2]
+      const months = [];
+      const [sYear, sMonth] = selectedChartMonth.split('-').map(Number);
+
+      for (let i = -2; i <= 2; i++) {
+        let m = sMonth + i;
+        let y = sYear;
+        while (m <= 0) { m += 12; y--; }
+        while (m > 12) { m -= 12; y++; }
+        months.push(`${y}-${String(m).padStart(2, '0')}`);
+      }
+
+      // 更新自定义显示文本 (2026.01)
+      const displaySpan = document.getElementById('chartDateDisplay');
+      if (displaySpan) {
+        displaySpan.textContent = selectedChartMonth.replace('-', '.');
+      }
+
+      const totals = months.map(m => groups[m] || 0);
+
+      // 2. 获取选中月份的预算信息
+      currentBudget = getBudgetForMonth(selectedChartMonth);
+      const selectedTotal = groups[selectedChartMonth] || 0;
+
+      // 更新标题 (包含预算)
+      const formattedMonth = selectedChartMonth.replace('-', '.');
+      document.getElementById('budgetTitle').innerHTML = `
+        ${formattedMonth} 总支出 
+        <span style="font-size:0.85em; font-weight:normal; color:#78909c; margin-left:8px;">
+           (预算 ¥${currentBudget})
+        </span>
+      `;
+
+      // 3. 渲染柱状图
+      const ctxBar = document.getElementById('monthlyBarChart').getContext('2d');
+      if (monthlyBarChart) monthlyBarChart.destroy();
+
+      // 颜色逻辑: 
+      const barColors = months.map(m => {
+        if (m === selectedChartMonth) {
+          const mTotal = groups[m] || 0;
+          const mBudget = currentBudget;
+          return mTotal > mBudget ? '#e57373' : '#81c784';
+        }
+        return '#cfd8dc'; // 默认为浅灰
+      });
+
+      monthlyBarChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{
+            label: '支出',
+            data: totals,
+            backgroundColor: barColors,
+            borderRadius: 6,
+            barPercentage: 0.5,
+            hoverBackgroundColor: '#90a4ae'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (e, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const clickedMonth = months[index];
+              if (clickedMonth !== selectedChartMonth) {
+                selectedChartMonth = clickedMonth;
+                renderCharts();
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: context => context.parsed.y ? '¥ ' + formatMoney(context.parsed.y) : ''
+              }
+            },
+            annotation: {
+              annotations: {
+                line1: {
+                  type: 'line',
+                  yMin: currentBudget,
+                  yMax: currentBudget,
+                  borderColor: '#90a4ae',
+                  borderDash: [4, 4],
+                  borderWidth: 1.5,
+                  label: {
+                    display: true,
+                    content: `预算 ¥ ${currentBudget}`,
+                    position: 'end',
+                    color: '#78909c',
+                    font: { size: 10 },
+                    backgroundColor: 'rgba(255,255,255,0.8)'
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: '#f1f5f9', drawBorder: false },
+              ticks: { color: '#b0bec5', font: { size: 10 } },
+              border: { display: false }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b', font: { size: 11 } },
+              border: { display: false }
+            }
+          }
+        }
+      });
+
+      // 4. 更新进度条 (基于 selectedChartMonth)
+      const percent = Math.min(100, (selectedTotal / currentBudget) * 100);
+      const remain = currentBudget - selectedTotal;
+
+      const pGreen = document.getElementById('progressGreen');
+      const pRed = document.getElementById('progressRed');
+      const pText = document.getElementById('progressText');
+
+      if (remain >= 0) {
+        pGreen.style.width = ((remain / currentBudget) * 100) + '%';
+        pRed.style.width = '0%';
+        pText.textContent = `${selectedChartMonth} 剩余 ¥ ${remain.toFixed(0)} (${(100 - percent).toFixed(0)}%)`;
+        pText.style.color = "#2e7d32";
+      } else {
+        pGreen.style.width = '0%';
+        const overPercent = Math.min(100, (Math.abs(remain) / currentBudget) * 100);
+        const overRate = ((Math.abs(remain) / currentBudget) * 100).toFixed(0);
+
+        pRed.style.width = overPercent + '%';
+        pText.textContent = `${selectedChartMonth} 超支 ¥ ${Math.abs(remain).toFixed(0)} (超 ${overRate}%)`;
+        pText.style.color = "#c62828";
+      }
+
       renderEChartsPie();
     }
+
+    // ========== Custom Month Picker Logic ==========
+    let pickerYear = new Date().getFullYear();
+
+    function toggleMonthPicker(e) {
+      const pop = document.getElementById('customMonthPopover');
+      if (!pop) return;
+
+      const isOpen = pop.classList.contains('active');
+      if (isOpen) {
+        pop.classList.remove('active');
+      } else {
+        // 同步当前的年份到 Picker
+        if (selectedChartMonth) {
+          pickerYear = parseInt(selectedChartMonth.split('-')[0]);
+        }
+        renderPickerGrid();
+        pop.classList.add('active');
+      }
+    }
+
+    // 点击外部关闭
+    document.addEventListener('click', function (e) {
+      const wrapper = document.querySelector('.date-display-wrapper');
+      const popover = document.getElementById('customMonthPopover');
+      if (wrapper && popover && !wrapper.contains(e.target)) {
+        popover.classList.remove('active');
+      }
+    });
+
+    function changePickerYear(offset) {
+      pickerYear += offset;
+      renderPickerGrid();
+    }
+
+    function renderPickerGrid() {
+      document.getElementById('pickerYearDisplay').innerText = pickerYear;
+      const grid = document.getElementById('pickerMonthGrid');
+      grid.innerHTML = '';
+
+      // Get all unique statMonths from allExpenses for the current pickerYear
+      const monthsWithData = new Set(allExpenses
+        .filter(e => e.statMonth.startsWith(`${pickerYear}-`))
+        .map(e => e.statMonth));
+
+      for (let m = 1; m <= 12; m++) {
+        const mStr = String(m).padStart(2, '0');
+        const fullMonth = `${pickerYear}-${mStr}`;
+
+        const div = document.createElement('div');
+        div.className = 'month-cell';
+        div.innerText = `${m}月`;
+
+        // 检查是否有数据
+        const hasData = monthsWithData.has(fullMonth);
+        if (hasData) div.classList.add('has-data');
+
+        // 检查是否当前选中
+        if (fullMonth === selectedChartMonth) div.classList.add('selected');
+
+        div.onclick = function () {
+          if (!hasData) {
+            alert(`${fullMonth} 无数据`);
+            return;
+          }
+          selectedChartMonth = fullMonth;
+          renderCharts();
+          document.getElementById('customMonthPopover').classList.remove('active');
+        };
+
+        grid.appendChild(div);
+      }
+    }
+
+    function shiftChartMonth(offset) {
+      if (!selectedChartMonth) return;
+      let [y, m] = selectedChartMonth.split('-').map(Number);
+
+      // 计算目标月份
+      m += offset;
+      while (m <= 0) { m += 12; y--; }
+      while (m > 12) { m -= 12; y++; }
+
+      const targetMonth = `${y}-${String(m).padStart(2, '0')}`;
+
+      // 检查目标月份是否有数据
+      const hasData = allExpenses.some(e => e.statMonth === targetMonth);
+      if (!hasData) {
+        alert(`月份 ${targetMonth} 无账单数据`);
+        return;
+      }
+
+      selectedChartMonth = targetMonth;
+      renderCharts();
+    }
+
     function renderEChartsPie() {
       const dom = document.getElementById('echartsPie'); if (!echartsPieInstance) { echartsPieInstance = echarts.init(dom); echartsPieInstance.on('click', function (params) { handleChartClick(params.name); }); echartsPieInstance.on('legendselectchanged', function (params) { handleChartClick(params.name); }); }
       let pieSourceData = getTimeFilteredExpenses(); const typeMap = {}; pieSourceData.forEach(e => { typeMap[e.type1] = (typeMap[e.type1] || 0) + e.amount; });
@@ -2588,7 +3127,16 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
       document.getElementById('aiInput').value = '';
       document.getElementById('modalTitle').innerText = '编辑记录'; document.getElementById('addModal').classList.add('active');
     }
-    document.getElementById('editBudgetBtn').onclick = () => { const v = prompt('输入本月预算', currentBudget); if (v && !isNaN(v)) { const nowStr = computeStatMonth(new Date().toISOString().slice(0, 10)); const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}'); budgets[nowStr] = parseFloat(v); localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets)); renderCharts(); updateDashboardCards(); } };
+    document.getElementById('editBudgetBtn').onclick = () => {
+      const v = prompt(`修改每月通用预算`, currentBudget);
+      if (v && !isNaN(v)) {
+        const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}');
+        budgets['global'] = parseFloat(v);
+        localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets));
+        renderCharts();
+        updateDashboardCards();
+      }
+    };
     function exportToCSV() { let csv = '统计月份,日期,一级类型,记账人,二级类型,金额\n'; filteredExpenses.forEach(e => { csv += `${e.statMonth},${e.date.substring(0, 10)},${e.type1},${e.username},${e.type2},${e.amount}\n`; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = '支出明细.csv'; a.click(); }
     function printCurrentPage() { window.print(); }
     // ========== 9. 复盘模式 (Retro Mode) ==========
