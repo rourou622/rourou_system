@@ -2136,24 +2136,39 @@
     // === 【核心修改】Dashboard 数据计算 ===
     function updateDashboardCards() {
       const now = new Date();
-      const currentStatMonth = computeStatMonth(now.toISOString());
-      const currentDay = now.getDate();
+      // 使用本地时间构建 YYYY-MM-DD，避免 toISOString() 导致的 UTC 偏移问题 (如凌晨时分日期回拨)
+      const localNowStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      const currentStatMonth = computeStatMonth(localNowStr);
+
+      // Compute days passed in the current cycle (starts on the 5th)
+      const [cYear, cMonth] = currentStatMonth.split('-').map(Number);
+      const cycleStart = new Date(cYear, cMonth - 1, 5); // Month is 0-indexed
+      // Normalize to midnight for accurate day diff
+      const calcNow = new Date(now);
+      calcNow.setHours(0, 0, 0, 0);
+      cycleStart.setHours(0, 0, 0, 0);
+
+      let daysPassed = Math.floor((calcNow - cycleStart) / (1000 * 60 * 60 * 24)) + 1;
+      if (daysPassed < 1) daysPassed = 1;
+
       const thisMonthData = allExpenses.filter(e => e.statMonth === currentStatMonth);
       const monthTotalExpense = thisMonthData.reduce((sum, item) => sum + item.amount, 0);
       const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}');
       const thisMonthBudget = budgets[currentStatMonth] || 9000;
       const monthBalance = thisMonthBudget - monthTotalExpense;
       const largeCount = thisMonthData.filter(e => e.amount > 500).length;
-      const dailyAvg = monthTotalExpense / (currentDay || 1);
+      const dailyAvg = monthTotalExpense / daysPassed;
 
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(now.getDate() - 6);
-      const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+      // 修复近7天计算逻辑
+      const sevenDaysAgo = new Date(now); // Clone now
+      sevenDaysAgo.setDate(now.getDate() - 6); // Past 6 days + Today = 7 days range
+      const sevenDaysAgoStr = sevenDaysAgo.getFullYear() + '-' + String(sevenDaysAgo.getMonth() + 1).padStart(2, '0') + '-' + String(sevenDaysAgo.getDate()).padStart(2, '0');
 
       let weeklyExpense = 0;
       let monthlyEntShopping = 0;
       let lastMonthExpense = 0;
 
+      // 修正环比月份计算逻辑
       let [currYearNum, currMonthNum] = currentStatMonth.split('-').map(Number);
       let lastMonthNum = currMonthNum - 1;
       let lastYearNum = currYearNum;
