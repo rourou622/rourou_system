@@ -2202,8 +2202,10 @@
     let openRouterKey = ""; // 全局变量存储 Key
 
     const MY_FAMILY_ID = "big banana house";
-    let BUDGET_STORAGE_KEY = 'expense_budget_' + MY_FAMILY_ID;
     const EXPENSE_CLASS_NAME = 'rourou_YellowChamberPot';
+    const BUDGET_CLASS_NAME = 'rourou_FamilyBudget'; // 云端预算表
+    let BudgetClass = null;  // LeanCloud 预算类
+    let cloudBudget = 9000;  // 云端同步的预算值
 
     // 支出类型定义 (已移除房租)
     const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '宠物', '其他'];
@@ -2260,6 +2262,7 @@
         }
         AV.init({ appId: id, appKey: key, serverURLs: url });
         ExpenseClass = AV.Object.extend(EXPENSE_CLASS_NAME);
+        BudgetClass = AV.Object.extend(BUDGET_CLASS_NAME);  // 初始化预算类
         checkLoginStatus();
       } catch (e) {
         console.error(e);
@@ -2272,11 +2275,12 @@
       document.getElementById('loadingSection').style.display = 'none';
       if (currentUser) { enterApp(); } else { showAuthForm(); }
     }
-    function enterApp() {
+    async function enterApp() {
       document.getElementById('authContainer').style.display = 'none';
       document.getElementById('appContainer').style.display = 'block';
       document.getElementById('currentUserDisplay').textContent = `${currentUser.getUsername()}`;
       initCustomDropdown();
+      await loadBudgetFromCloud();  // 从云端加载预算
       renderExpenses();
       window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
     }
@@ -2440,8 +2444,7 @@
 
       const thisMonthData = allExpenses.filter(e => e.statMonth === currentStatMonth);
       const monthTotalExpense = thisMonthData.reduce((sum, item) => sum + item.amount, 0);
-      const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}');
-      const thisMonthBudget = budgets['global'] || 9000; // Use global budget
+      const thisMonthBudget = cloudBudget || 9000; // 使用云端同步的预算
       const monthBalance = thisMonthBudget - monthTotalExpense;
       const largeCount = thisMonthData.filter(e => e.amount > 500).length;
       const dailyAvg = monthTotalExpense / daysPassed;
@@ -2703,10 +2706,73 @@
     let selectedChartMonth = null;
     let chartEndMonth = null; // 用于控制柱状图显示的“结束月份” (视图窗口)
 
-    // 获取预算 (统一使用全局预算)
+    // 获取预算 (使用云端同步的预算值)
     function getBudgetForMonth(month) {
-      const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}');
-      return budgets['global'] || 9000;
+      return cloudBudget || 9000;
+    }
+
+    // 从云端加载预算
+    async function loadBudgetFromCloud() {
+      try {
+        const query = new AV.Query(BUDGET_CLASS_NAME);
+        query.equalTo('familyId', MY_FAMILY_ID);
+        const result = await query.first();
+        if (result) {
+          cloudBudget = result.get('budgetAmount') || 9000;
+        } else {
+          cloudBudget = 9000; // 默认预算
+        }
+        console.log('云端预算已加载:', cloudBudget);
+      } catch (err) {
+        // 如果 Class 不存在 (404/101)，使用默认预算，稍后保存时会自动创建
+        if (err.code === 101 || (err.message && err.message.includes("doesn't exist"))) {
+          console.log('预算表尚未创建，使用默认预算');
+          cloudBudget = 9000;
+        } else {
+          console.error('加载云端预算失败:', err);
+          cloudBudget = 9000;
+        }
+      }
+    }
+
+    // 保存预算到云端
+    async function saveBudgetToCloud(newBudget) {
+      try {
+        // 先尝试查询已有记录
+        let budgetObj = null;
+        try {
+          const query = new AV.Query(BUDGET_CLASS_NAME);
+          query.equalTo('familyId', MY_FAMILY_ID);
+          budgetObj = await query.first();
+        } catch (queryErr) {
+          // Class 不存在时查询会报错，忽略并继续创建新记录
+          console.log('预算表不存在，将自动创建');
+        }
+
+        if (budgetObj) {
+          // 更新已有记录
+          budgetObj.set('budgetAmount', newBudget);
+        } else {
+          // 创建新记录
+          budgetObj = new BudgetClass();
+          budgetObj.set('familyId', MY_FAMILY_ID);
+          budgetObj.set('budgetAmount', newBudget);
+          // 设置公开读写权限（家庭成员共享）
+          const acl = new AV.ACL();
+          acl.setPublicReadAccess(true);
+          acl.setPublicWriteAccess(true);
+          budgetObj.setACL(acl);
+        }
+
+        await budgetObj.save();
+        cloudBudget = newBudget;
+        console.log('预算已保存到云端:', newBudget);
+        return true;
+      } catch (err) {
+        console.error('保存云端预算失败:', err);
+        alert('保存预算失败: ' + err.message);
+        return false;
+      }
     }
 
     function renderCharts() {
@@ -3127,14 +3193,15 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
       document.getElementById('aiInput').value = '';
       document.getElementById('modalTitle').innerText = '编辑记录'; document.getElementById('addModal').classList.add('active');
     }
-    document.getElementById('editBudgetBtn').onclick = () => {
-      const v = prompt(`修改每月通用预算`, currentBudget);
+    document.getElementById('editBudgetBtn').onclick = async () => {
+      const v = prompt(`修改每月通用预算（所有设备同步）`, currentBudget);
       if (v && !isNaN(v)) {
-        const budgets = JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || '{}');
-        budgets['global'] = parseFloat(v);
-        localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets));
-        renderCharts();
-        updateDashboardCards();
+        const newBudget = parseFloat(v);
+        const success = await saveBudgetToCloud(newBudget);
+        if (success) {
+          renderCharts();
+          updateDashboardCards();
+        }
       }
     };
     function exportToCSV() { let csv = '统计月份,日期,一级类型,记账人,二级类型,金额\n'; filteredExpenses.forEach(e => { csv += `${e.statMonth},${e.date.substring(0, 10)},${e.type1},${e.username},${e.type2},${e.amount}\n`; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = '支出明细.csv'; a.click(); }
