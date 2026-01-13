@@ -1713,11 +1713,11 @@
                             // Fallback list (Prioritize robust mirrors)
                             const candidates = savedCustom ? [savedCustom] : [
                                 'yisol/IDM-VTON',
+                                'skivap/IDM-VTON',
+                                'kwai-kolors/Kolors-Virtual-Try-On',
                                 'virajw/idm-vton',
                                 'human-ai/idm-vton',
-                                'Nymbo/Virtual-Try-On',
-                                'fffiloni/IDM-VTON',
-                                'cuuupid/IDM-VTON'
+                                'Nymbo/Virtual-Try-On'
                             ];
 
                             const hasToken = !!options.hf_token;
@@ -1762,7 +1762,9 @@
                         if (tryOnModelFile.value) {
                             currentPersonImageBlob = tryOnModelFile.value;
                         } else {
-                            currentPersonImageBlob = await (await fetch(tryOnModelImage.value)).blob();
+                            // Fix Mixed Content: Force HTTPS
+                            const secureUrl = tryOnModelImage.value.replace(/^http:\/\//, 'https://');
+                            currentPersonImageBlob = await (await fetch(secureUrl)).blob();
                         }
 
                         const itemsToProcess = [...selectedTryOnItems.value];
@@ -1773,7 +1775,8 @@
 
                             tryOnStatus.value = `正在处理第 ${i + 1}/${itemsToProcess.length} 件: ${item.get('category')}... (排队中)`;
 
-                            const garmentBlob = await (await fetch(item.get('imageUrl'))).blob();
+                            const secureItemUrl = item.get('imageUrl').replace(/^http:\/\//, 'https://');
+                            const garmentBlob = await (await fetch(secureItemUrl)).blob();
                             const humanInput = { background: currentPersonImageBlob, layers: [], composite: null };
                             const description = item.get('note') || "A fashion item";
 
