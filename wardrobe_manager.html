@@ -1700,7 +1700,9 @@
                     tryOnStatus.value = "正在初始化 Client...";
 
                     try {
-                        const { Client } = await import('https://cdn.jsdelivr.net/npm/@gradio/client/+esm');
+                        const module = await import('https://cdn.jsdelivr.net/npm/@gradio/client/+esm');
+                        const Client = module.Client || module.client || module.default.Client;
+                        console.log("Gradio Client loaded:", Client); // Debug
                         const token = localStorage.getItem('lc_hf_token');
                         const options = token ? { hf_token: token } : {};
 
@@ -1708,8 +1710,15 @@
 
                         const connectWithFailover = async (Client, options) => {
                             const savedCustom = localStorage.getItem('lc_hf_space_id');
-                            // Fallback list
-                            const candidates = savedCustom ? [savedCustom] : ['yisol/IDM-VTON', 'cuuupid/IDM-VTON'];
+                            // Fallback list (Prioritize robust mirrors)
+                            const candidates = savedCustom ? [savedCustom] : [
+                                'yisol/IDM-VTON',
+                                'virajw/idm-vton',
+                                'human-ai/idm-vton',
+                                'Nymbo/Virtual-Try-On',
+                                'fffiloni/IDM-VTON',
+                                'cuuupid/IDM-VTON'
+                            ];
 
                             const hasToken = !!options.hf_token;
 
