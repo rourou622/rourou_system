@@ -1323,7 +1323,16 @@
                     finally { isUploading.value = false; e.target.value = ''; }
                 };
                 const removeItemImage = async () => { if (itemForm.imageUrl && !isEditingItem.value) { await deleteFileByUrl(itemForm.imageUrl); } itemForm.imageUrl = ''; };
-                const closeItemModal = async () => { if (tempUploadedFiles.value.length > 0 && !itemForm.imageUrl) { for (const f of tempUploadedFiles.value) { try { await f.destroy(); } catch (e) { } } } tempUploadedFiles.value = []; showItemModal.value = false; };
+                const closeItemModal = async () => {
+                    // 如果是新建模式且有临时上传的文件，删除它们
+                    if (!isEditingItem.value && tempUploadedFiles.value.length > 0) {
+                        for (const f of tempUploadedFiles.value) {
+                            try { await f.destroy(); } catch (e) { console.warn('清理临时文件失败:', e); }
+                        }
+                    }
+                    tempUploadedFiles.value = [];
+                    showItemModal.value = false;
+                };
                 const saveItem = async () => {
                     if (!itemForm.category) return alert('请选择分类');
                     const ObjClass = AV.Object.extend('WardrobeItem');
@@ -1355,7 +1364,16 @@
                 };
                 const handleOutfitImageUpload = async (e) => { const file = e.target.files[0]; if (!file) return; if (file.size > 5 * 1024 * 1024) { alert('图片不能超过5MB'); return; } isUploading.value = true; try { outfitForm.imageUrl = await uploadFileToLeanCloud(file); } catch (err) { alert('上传失败'); } finally { isUploading.value = false; e.target.value = ''; } };
                 const removeOutfitImage = async () => { if (outfitForm.imageUrl && !isEditingOutfit.value) { await deleteFileByUrl(outfitForm.imageUrl); } outfitForm.imageUrl = ''; };
-                const closeOutfitModal = async () => { if (tempUploadedFiles.value.length > 0 && !outfitForm.imageUrl) { for (const f of tempUploadedFiles.value) { try { await f.destroy(); } catch (e) { } } } tempUploadedFiles.value = []; showOutfitModal.value = false; };
+                const closeOutfitModal = async () => {
+                    // 如果是新建模式且有临时上传的文件，删除它们
+                    if (!isEditingOutfit.value && tempUploadedFiles.value.length > 0) {
+                        for (const f of tempUploadedFiles.value) {
+                            try { await f.destroy(); } catch (e) { console.warn('清理临时文件失败:', e); }
+                        }
+                    }
+                    tempUploadedFiles.value = [];
+                    showOutfitModal.value = false;
+                };
                 const saveOutfit = async () => {
                     if (outfitForm.selectedItems.length === 0) return alert('请至少选择一件衣物');
                     const ObjClass = AV.Object.extend('WardrobeOutfit');
@@ -1526,7 +1544,16 @@ ${JSON.stringify(itemsInfo, null, 2)}
                 };
                 const handleOotdImageUpload = async (e) => { const file = e.target.files[0]; if (!file) return; if (file.size > 5 * 1024 * 1024) { alert('图片不能超过5MB'); return; } isUploading.value = true; try { ootdForm.imageUrl = await uploadFileToLeanCloud(file); } catch (err) { alert('上传失败'); } finally { isUploading.value = false; e.target.value = ''; } };
                 const removeOotdImage = async () => { if (ootdForm.imageUrl && !isEditingOotd.value) { await deleteFileByUrl(ootdForm.imageUrl); } ootdForm.imageUrl = ''; };
-                const closeOotdModal = async () => { if (tempUploadedFiles.value.length > 0 && !ootdForm.imageUrl) { for (const f of tempUploadedFiles.value) { try { await f.destroy(); } catch (e) { } } } tempUploadedFiles.value = []; showOotdModal.value = false; };
+                const closeOotdModal = async () => {
+                    // 如果是新建模式且有临时上传的文件，删除它们
+                    if (!isEditingOotd.value && tempUploadedFiles.value.length > 0) {
+                        for (const f of tempUploadedFiles.value) {
+                            try { await f.destroy(); } catch (e) { console.warn('清理临时文件失败:', e); }
+                        }
+                    }
+                    tempUploadedFiles.value = [];
+                    showOotdModal.value = false;
+                };
 
                 // 检查搭配是否已存在
                 const isOutfitExists = (itemIds) => {
