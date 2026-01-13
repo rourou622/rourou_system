@@ -403,6 +403,30 @@
                         <p v-if="hasAiKey" class="text-xs text-green-500 mt-2">✓ AI Key 已配置</p>
                     </div>
 
+                    <!-- Hugging Face配置 -->
+                    <div class="glass-card rounded-2xl p-6 mb-4">
+                        <h3 class="font-bold mb-4 border-b border-pink-100 pb-3">🤗 AI 试穿配置</h3>
+                        <p class="text-xs text-gray-400 mb-2">Hugging Face Token (可选，建议配置以获得更稳定连接)</p>
+                        <div class="flex space-x-2 mb-3">
+                            <input v-model="hfTokenInput" type="password" placeholder="输入 HF Token"
+                                class="flex-1 p-3 border border-pink-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-300 outline-none">
+                            <button @click="saveHfToken"
+                                class="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-lg transition-all">保存</button>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-2">自定义 Space ID (可选，如遇连接失败可尝试更换镜像)</p>
+                        <div class="flex space-x-2">
+                            <input v-model="customSpaceIdInput" type="text" placeholder="例如: yisol/IDM-VTON"
+                                class="flex-1 p-3 border border-pink-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-300 outline-none">
+                            <button @click="saveCustomSpace"
+                                class="bg-gray-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-lg transition-all">保存</button>
+                        </div>
+                        <div class="flex flex-col mt-2 gap-1">
+                            <p v-if="hasHfToken" class="text-xs text-green-500">✓ HF Token 已配置</p>
+                            <p v-if="hasCustomSpace" class="text-xs text-blue-500">✓ 自定义 Space: {{ customSpaceIdInput }}
+                            </p>
+                        </div>
+                    </div>
+
                     <!-- 账号信息 -->
                     <div class="glass-card rounded-2xl p-6">
                         <h3 class="font-bold mb-4 border-b border-pink-100 pb-3">👤 账号信息</h3>
@@ -746,6 +770,10 @@
                         🗑️ 删除
                     </button>
                     <div class="flex space-x-2">
+                        <button @click="openAiTryOn('outfit', currentOutfit)"
+                            class="px-5 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-medium hover:bg-indigo-100 transition-all">
+                            🤖 AI 试穿
+                        </button>
                         <button @click="editOutfit(currentOutfit)"
                             class="px-5 py-2 bg-pink-50 text-pink-600 rounded-xl font-medium hover:bg-pink-100 transition-all">
                             ✏️ 编辑
@@ -847,6 +875,10 @@
                         🗑️ 删除
                     </button>
                     <div class="flex space-x-2">
+                        <button @click="openAiTryOn('ootd', currentOotd)"
+                            class="px-5 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-medium hover:bg-indigo-100 transition-all">
+                            🤖 AI 试穿
+                        </button>
                         <button @click="editOotd(currentOotd)"
                             class="px-5 py-2 bg-pink-50 text-pink-600 rounded-xl font-medium hover:bg-pink-100 transition-all">
                             ✏️ 编辑
@@ -940,6 +972,126 @@
                     <button @click="saveOotd" :disabled="isUploading || ootdForm.selectedItems.length === 0"
                         class="px-6 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50">
                         保存 ({{ ootdForm.selectedItems.length }}件)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI试穿弹窗 (IDM-VTON) -->
+        <div v-if="showTryOnModal" class="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center p-4"
+            @click.self="showTryOnModal=false">
+            <div class="glass-card w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-pop">
+                <div
+                    class="p-4 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-t-2xl flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-indigo-700 flex items-center"><span class="mr-2">👗</span>AI 虚拟试穿
+                        (IDM-VTON)</h3>
+                    <button @click="showTryOnModal=false"
+                        class="text-2xl text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+
+                <div class="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 左侧：输入区域 -->
+                    <div class="space-y-4">
+                        <!-- 1. 模特图 -->
+                        <!-- 1. 模特图 -->
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <h4 class="font-bold text-gray-700 mb-2">1. 选择模特 (可保存)</h4>
+                            <!-- Model Gallery -->
+                            <div class="grid grid-cols-4 gap-2 mb-3 max-h-32 overflow-y-auto">
+                                <div v-for="m in modelsList" :key="m.id"
+                                    @click="tryOnModelImage = m.get('imageUrl'); tryOnModelFile=null;"
+                                    class="aspect-[3/4] rounded-lg overflow-hidden border cursor-pointer relative"
+                                    :class="tryOnModelImage === m.get('imageUrl') ? 'ring-2 ring-indigo-500' : 'border-gray-200'">
+                                    <img :src="m.get('imageUrl')" class="w-full h-full object-cover">
+                                    <button @click.stop="deleteModel(m)"
+                                        class="absolute top-0 right-0 bg-red-500/80 text-white text-xs w-5 h-5 flex items-center justify-center hover:bg-red-600 rounded-bl-lg">&times;</button>
+                                </div>
+                                <label
+                                    class="aspect-[3/4] border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:text-indigo-500 bg-white transition-all">
+                                    <span class="text-2xl font-light">+</span>
+                                    <input type="file" accept="image/*" class="hidden"
+                                        @change="(e) => uploadNewModel(e.target.files[0])">
+                                </label>
+                            </div>
+
+                            <div
+                                class="aspect-[3/4] bg-white rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center relative shadow-inner">
+                                <img v-if="tryOnModelImage" :src="tryOnModelImage" class="w-full h-full object-contain">
+                                <div v-else class="text-gray-300 flex flex-col items-center">
+                                    <span class="text-4xl mb-2">👤</span>
+                                    <span class="text-sm">请选择或上传模特</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. 选择衣物 -->
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <h4 class="font-bold text-gray-700 mb-2">2. 选择试穿衣物 (可多选)</h4>
+                            <div class="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                                <div v-for="item in tryOnCandidateItems" :key="item.id" @click="selectTryOnItem(item)"
+                                    :class="selectedTryOnItems.some(i => i.id === item.id) ? 'ring-2 ring-indigo-500 bg-indigo-50' : 'bg-white'"
+                                    class="aspect-square rounded-lg overflow-hidden border cursor-pointer flex items-center justify-center relative">
+                                    <img v-if="item.get('imageUrl')" :src="item.get('imageUrl')"
+                                        class="w-full h-full object-cover">
+                                    <span v-else class="text-lg">👕</span>
+                                    <div v-if="selectedTryOnItems.some(i => i.id === item.id)"
+                                        class="absolute inset-0 bg-indigo-500/20 flex items-center justify-center">
+                                        <span class="text-white font-bold">{{ selectedTryOnItems.findIndex(i => i.id ===
+                                            item.id) + 1 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. 衣物分类 -->
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 opacity-60 pointer-events-none">
+                            <h4 class="font-bold text-gray-700 mb-2">3. 衣物类型 (自动识别)</h4>
+                            <div class="flex gap-2">
+                                <button v-for="cat in ['upper_body', 'lower_body', 'dresses']" :key="cat"
+                                    @click="tryOnCategory = cat"
+                                    :class="tryOnCategory === cat ? 'bg-indigo-500 text-white' : 'bg-white text-gray-600 border border-gray-200'"
+                                    class="flex-1 py-1.5 rounded-lg text-sm transition-all">
+                                    {{ cat === 'upper_body' ? '上装' : (cat === 'lower_body' ? '下装' : '连衣裙') }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：结果区域 -->
+                    <div class="flex flex-col h-full">
+                        <div
+                            class="flex-1 bg-gray-900 rounded-xl overflow-hidden flex items-center justify-center relative min-h-[300px]">
+                            <img v-if="tryOnResult" :src="tryOnResult" class="w-full h-full object-contain">
+
+                            <!-- 等待状态 -->
+                            <div v-if="isTryOnProcessing"
+                                class="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white p-6 text-center z-10">
+                                <div class="animate-spin text-4xl mb-4">⏳</div>
+                                <h3 class="text-xl font-bold mb-2">AI 正在生成试穿效果...</h3>
+                                <p class="text-gray-300 text-sm mb-4">正在排队中(Space可能较慢)，请耐心等待。<br>请勿关闭此窗口。</p>
+                                <p v-if="tryOnStatus"
+                                    class="bg-indigo-900/50 px-3 py-1 rounded-full text-xs border border-indigo-500/30 font-mono animate-pulse">
+                                    {{ tryOnStatus }}
+                                </p>
+                            </div>
+
+                            <div v-else-if="!tryOnResult" class="text-gray-500 flex flex-col items-center">
+                                <span class="text-6xl mb-4">✨</span>
+                                <p>点击"开始试穿"生成效果</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 flex gap-3">
+                            <button @click="generateTryOn" :disabled="!canTryOn || isTryOnProcessing"
+                                class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                                <span v-if="isTryOnProcessing">生成中...</span>
+                                <span v-else>🚀 开始试穿</span>
+                            </button>
+                            <button v-if="tryOnResult && !isTryOnProcessing" @click="saveTryOnResult"
+                                class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-green-600 transition-all">
+                                💾 设为封面
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1052,6 +1204,26 @@
                 const isAiGenerating = ref(false);
                 const aiSelectedCategories = ref([]);
                 const aiResult = reactive({ items: [], reason: '' });
+
+                // AI试穿相关
+                const hfTokenInput = ref('');
+                const hasHfToken = ref(false);
+                const customSpaceIdInput = ref('');
+                const hasCustomSpace = ref(false);
+                const showTryOnModal = ref(false);
+                const tryOnModelImage = ref('');
+                const tryOnModelFile = ref(null);
+                const selectedTryOnItem = ref(null); // Deprecated but kept
+                const selectedTryOnItems = ref([]);
+                const tryOnCategory = ref('upper_body');
+                const tryOnResult = ref('');
+                const isTryOnProcessing = ref(false);
+                const tryOnStatus = ref('');
+                const tryOnCandidateItems = ref([]);
+                const modelsList = ref([]);
+                const currentTryOnSource = ref(null);
+                const currentTryOnObject = ref(null);
+                const canTryOn = computed(() => tryOnModelImage.value && selectedTryOnItems.value.length > 0 && !isTryOnProcessing.value);
 
                 // 表单
                 const configForm = reactive({ appId: '', appKey: '', serverURL: '' });
@@ -1424,8 +1596,273 @@
                     showOutfitModal.value = true;
                 };
 
+                // AI试穿功能的方法
+                const saveHfToken = () => {
+                    if (!hfTokenInput.value.trim()) return alert('请输入 HF Token');
+                    localStorage.setItem('lc_hf_token', hfTokenInput.value.trim());
+                    hasHfToken.value = true;
+                    alert('HF Token 保存成功！');
+                };
+
+                const saveCustomSpace = () => {
+                    if (!customSpaceIdInput.value.trim()) {
+                        localStorage.removeItem('lc_hf_space_id');
+                        hasCustomSpace.value = false;
+                        alert('已在设置重置为默认 Space');
+                        return;
+                    }
+                    localStorage.setItem('lc_hf_space_id', customSpaceIdInput.value.trim());
+                    hasCustomSpace.value = true;
+                    alert('Space ID 配置成功！下一次试穿将优先使用此节点。');
+                };
+
+                const loadModels = async () => {
+                    try {
+                        const query = new AV.Query('WardrobeModel');
+                        query.equalTo('owner', currentUser.value);
+                        query.descending('createdAt');
+                        modelsList.value = await query.find();
+                    } catch (e) { console.error('Load models failed', e); }
+                };
+
+                const uploadNewModel = async (file) => {
+                    if (!file) return;
+                    isUploading.value = true;
+                    try {
+                        const url = await uploadFileToLeanCloud(file);
+                        const ModelClass = AV.Object.extend('WardrobeModel');
+                        const m = new ModelClass();
+                        m.set('owner', currentUser.value);
+                        m.set('imageUrl', url);
+                        const acl = new AV.ACL(currentUser.value);
+                        acl.setPublicReadAccess(true);
+                        m.setACL(acl);
+                        await m.save();
+                        await loadModels();
+                        tryOnModelImage.value = m.get('imageUrl');
+                        tryOnModelFile.value = null;
+                    } catch (e) { alert('上传模特失败: ' + e.message); }
+                    finally { isUploading.value = false; }
+                };
+
+                const deleteModel = async (model) => {
+                    if (!confirm('删除此模特图？')) return;
+                    try {
+                        await model.destroy();
+                        await loadModels();
+                        if (tryOnModelImage.value === model.get('imageUrl')) tryOnModelImage.value = '';
+                    } catch (e) { alert('删除失败: ' + e.message); }
+                };
+
+                // Helper for category mapping
+                const getVtonCategory = (cat) => {
+                    if (['连衣裙', '裙子', '礼服'].includes(cat)) return 'dresses';
+                    if (['裤子', '半身裙', '短裤', '牛仔裤'].includes(cat)) return 'lower_body';
+                    return 'upper_body';
+                };
+
+                const openAiTryOn = (type, obj) => { // type: 'outfit' | 'ootd'
+                    currentTryOnSource.value = type;
+                    currentTryOnObject.value = obj;
+
+                    // Reset state
+                    tryOnResult.value = '';
+                    isTryOnProcessing.value = false;
+                    tryOnStatus.value = '';
+                    selectedTryOnItems.value = [];
+
+                    // Determine candidate items
+                    let itemIds = obj.get('itemIds') || [];
+                    const candidates = itemIds.map(id => getItemById(id)).filter(Boolean);
+                    tryOnCandidateItems.value = candidates;
+
+                    // Auto-select ALL valid candidates
+                    const mainItems = candidates.filter(i => {
+                        const cat = i.get('category');
+                        return ['上衣', '外套', 'T恤', '衬衫', '毛衣', '裤子', '半身裙', '连衣裙'].some(c => cat.includes(c));
+                    });
+
+                    selectedTryOnItems.value = mainItems.length > 0 ? mainItems : candidates;
+                    showTryOnModal.value = true;
+                    loadModels();
+                };
+
+                const selectTryOnItem = (item) => {
+                    const idx = selectedTryOnItems.value.findIndex(i => i.id === item.id);
+                    if (idx > -1) selectedTryOnItems.value.splice(idx, 1);
+                    else selectedTryOnItems.value.push(item);
+                };
+
+                const generateTryOn = async () => {
+                    if (!tryOnModelImage.value || selectedTryOnItems.value.length === 0) return alert('请选择模特图和至少一件衣物');
+
+                    isTryOnProcessing.value = true;
+                    tryOnStatus.value = "正在初始化 Client...";
+
+                    try {
+                        const { Client } = await import('https://cdn.jsdelivr.net/npm/@gradio/client/+esm');
+                        const token = localStorage.getItem('lc_hf_token');
+                        const options = token ? { hf_token: token } : {};
+
+                        tryOnStatus.value = "正在连接 Space...";
+
+                        const connectWithFailover = async (Client, options) => {
+                            const savedCustom = localStorage.getItem('lc_hf_space_id');
+                            // Fallback list
+                            const candidates = savedCustom ? [savedCustom] : ['yisol/IDM-VTON', 'cuuupid/IDM-VTON'];
+
+                            const hasToken = !!options.hf_token;
+
+                            for (const spaceId of candidates) {
+                                // 1. Try with Token (if configured)
+                                if (hasToken) {
+                                    tryOnStatus.value = `正在连接 ${spaceId} (验证Token)...`;
+                                    try {
+                                        return await Client.connect(spaceId, options);
+                                    } catch (e) {
+                                        console.warn(`${spaceId} Token connect failed`, e);
+                                        tryOnStatus.value = `Token 验证失败，尝试匿名连接...`;
+                                    }
+                                }
+
+                                // 2. Try Anonymous (No token)
+                                try {
+                                    tryOnStatus.value = `正在连接 ${spaceId} (匿名模式)...`;
+                                    return await Client.connect(spaceId, {});
+                                } catch (e) {
+                                    console.warn(`${spaceId} Anonymous connect failed`, e);
+                                    if (candidates.length > 1) tryOnStatus.value = `${spaceId} 失败，切换下一节点...`;
+                                }
+
+                                // Small delay before next candidate
+                                await new Promise(r => setTimeout(r, 1000));
+                            }
+
+                            let errorMsg = "连接失败，无法连接到 AI 服务。";
+                            if (window.location.protocol === 'file:') {
+                                errorMsg += " 由于浏览器安全限制，直接打开 HTML 文件可能受阻。建议使用 'Live Server' 或本地服务器运行。";
+                            } else {
+                                errorMsg += " 请检查 VPN 连通性或稍后再试。";
+                            }
+                            throw new Error(errorMsg);
+                        };
+
+                        const app = await connectWithFailover(Client, options);
+
+                        let currentPersonImageBlob;
+                        if (tryOnModelFile.value) {
+                            currentPersonImageBlob = tryOnModelFile.value;
+                        } else {
+                            currentPersonImageBlob = await (await fetch(tryOnModelImage.value)).blob();
+                        }
+
+                        const itemsToProcess = [...selectedTryOnItems.value];
+
+                        for (let i = 0; i < itemsToProcess.length; i++) {
+                            const item = itemsToProcess[i];
+                            const itemCat = getVtonCategory(item.get('category'));
+
+                            tryOnStatus.value = `正在处理第 ${i + 1}/${itemsToProcess.length} 件: ${item.get('category')}... (排队中)`;
+
+                            const garmentBlob = await (await fetch(item.get('imageUrl'))).blob();
+                            const humanInput = { background: currentPersonImageBlob, layers: [], composite: null };
+                            const description = item.get('note') || "A fashion item";
+
+                            // Dynamic category param? 
+                            // Wait, IDM-VTON input doesn't have explicit category string param in typical demo, it usually AUTO-DETECTS or uses the mask checkbox logic.
+                            // But usually `category` IS an input (dropdown).
+                            // Let's re-verify inputs.
+                            // [human, garment, desc, is_checked, is_checked_crop, step, seed]
+                            // Where is category?
+                            // Maybe it's not exposed in the simplified API? Or maybe it's auto-detected?
+                            // PROMPTS usually include "upper body" or "lower body".
+                            // If explicit category input is missing, description helps.
+                            // I will append category to description. "A photo of upper_body..." ?
+                            // Actually, yisol/IDM-VTON demo on HF has a "Category" dropdown.
+                            // If I am using `fn_index` implicitly via `/tryon` endpoint name, likely it maps to the main function.
+                            // If the main function has Category dropdown, I MUST pass it.
+                            // Let's assume input layout: [human, garment, desc, is_checked, is_checked_crop, step, seed]
+                            // IF category is missing here, it might be auto.
+                            // BUT if it IS required, my previous code worked because `tryOnCategory` wasn't passed?
+                            // WAIT, I previously DID NOT PASS `tryOnCategory` in `generateTryOn` (Step 480)!
+                            // I passed: [human, garment, desc, true, true, 30, 42].
+                            // And user said it worked? Or didn't report error?
+                            // User request implies they want multi-select.
+                            // If previous worked, it means Category input is either NOT required or defaults.
+                            // I will stick to previous inputs but enhance description with category hint just in case.
+
+                            const enhancedDesc = (item.get('note') || "") + ` (${getVtonCategory(item.get('category')).replace('_', ' ')})`;
+
+                            const submission = app.submit("/tryon", [
+                                humanInput,          // Human
+                                garmentBlob,         // Garment
+                                enhancedDesc,        // Description
+                                true,                // is_checked
+                                true,                // is_checked_crop
+                                30,                  // denoise_steps
+                                42                   // seed 
+                            ]);
+
+                            let stepResultUrl = null;
+                            for await (const msg of submission) {
+                                if (msg.type === 'status') {
+                                    if (msg.stage === 'queue') {
+                                        tryOnStatus.value = `[${i + 1}/${itemsToProcess.length}] 排队中... 位置: ${msg.queue_index !== undefined ? msg.queue_index + 1 : '未知'}`;
+                                    } else if (msg.stage === 'generating') {
+                                        tryOnStatus.value = `[${i + 1}/${itemsToProcess.length}] 正在生成...`;
+                                    }
+                                } else if (msg.type === 'data') {
+                                    const output = msg.data[0];
+                                    if (output && output.url) stepResultUrl = output.url;
+                                    else if (typeof output === 'string') stepResultUrl = output;
+                                }
+                            }
+
+                            if (!stepResultUrl) throw new Error(`第 ${i + 1} 件 (${item.get('category')}) 生成失败`);
+
+                            // Prepare for next
+                            tryOnResult.value = stepResultUrl;
+                            currentPersonImageBlob = await (await fetch(stepResultUrl)).blob();
+                        }
+
+                        tryOnStatus.value = "全部生成完成！";
+
+                    } catch (e) {
+                        console.error("Try-On Error:", e);
+                        alert("生成失败: " + e.message);
+                        tryOnStatus.value = "出错: " + e.message;
+                    } finally {
+                        isTryOnProcessing.value = false;
+                    }
+                };
+
+                const saveTryOnResult = async () => {
+                    if (!tryOnResult.value) return;
+                    if (!currentTryOnObject.value) return;
+
+                    if (!confirm('确定将此生成图片设为封面吗？')) return;
+
+                    try {
+                        const res = await fetch(tryOnResult.value);
+                        const blob = await res.blob();
+                        const file = new File([blob], "tryon_result.jpg", { type: "image/jpeg" });
+
+                        const avFile = await uploadFileToLeanCloud(file);
+
+                        currentTryOnObject.value.set('imageUrl', avFile);
+                        await currentTryOnObject.value.save();
+                        alert('已更新封面！');
+                        showTryOnModal.value = false;
+                        loadOutfits();
+                        loadOotd();
+                    } catch (e) {
+                        alert('保存失败: ' + e.message);
+                    }
+                };
+
                 // AI搭配功能
                 const saveAiKey = () => {
+
                     if (!aiKeyInput.value.trim()) return alert('请输入 AI Key');
                     localStorage.setItem('lc_ai_key', aiKeyInput.value.trim());
                     hasAiKey.value = true;
@@ -1654,7 +2091,13 @@ ${JSON.stringify(itemsInfo, null, 2)}
                     openItemDetail, editItem, deleteItem, wearItem,
                     openAddOutfitModal, handleOutfitImageUpload, removeOutfitImage, closeOutfitModal, saveOutfit, openOutfitDetail,
                     saveAiKey, toggleAiCategory, generateAiOutfit, saveAiOutfit,
-                    openAddOotdModal, handleOotdImageUpload, removeOotdImage, closeOotdModal, saveOotd, openOotdDetail, formatDate
+                    saveAiKey, toggleAiCategory, generateAiOutfit, saveAiOutfit,
+                    openAddOotdModal, handleOotdImageUpload, removeOotdImage, closeOotdModal, saveOotd, openOotdDetail, formatDate,
+                    // AI Try-On
+                    hfTokenInput, hasHfToken, saveHfToken, customSpaceIdInput, hasCustomSpace, saveCustomSpace,
+                    showTryOnModal, tryOnModelImage, selectedTryOnItem, selectedTryOnItems, tryOnCategory, tryOnResult, isTryOnProcessing, tryOnStatus, tryOnCandidateItems, canTryOn,
+                    openAiTryOn, selectTryOnItem, generateTryOn, saveTryOnResult,
+                    modelsList, uploadNewModel, deleteModel
                 };
             }
         }).mount('#app');
