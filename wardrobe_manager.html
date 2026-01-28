@@ -405,26 +405,17 @@
 
                     <!-- Hugging Face配置 -->
                     <div class="glass-card rounded-2xl p-6 mb-4">
-                        <h3 class="font-bold mb-4 border-b border-pink-100 pb-3">🤗 AI 试穿配置</h3>
-                        <p class="text-xs text-gray-400 mb-2">Hugging Face Token (可选，建议配置以获得更稳定连接)</p>
-                        <div class="flex space-x-2 mb-3">
-                            <input v-model="hfTokenInput" type="password" placeholder="输入 HF Token"
-                                class="flex-1 p-3 border border-pink-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-300 outline-none">
-                            <button @click="saveHfToken"
-                                class="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-lg transition-all">保存</button>
+                        <h3 class="font-bold mb-4 border-b border-pink-100 pb-3">🤗 AI 穿搭灵感配置</h3>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Hugging Face Token (可选)</label>
+                            <input v-model="hfTokenInput" type="password" placeholder="用于访问受限模型"
+                                class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-pink-300 outline-none transition-all">
+                            <p class="text-xs text-gray-400 mt-1">仅在使用特定私有模型时需要</p>
                         </div>
-                        <p class="text-xs text-gray-400 mb-2">自定义 Space ID (可选，如遇连接失败可尝试更换镜像)</p>
-                        <div class="flex space-x-2">
-                            <input v-model="customSpaceIdInput" type="text" placeholder="例如: yisol/IDM-VTON"
-                                class="flex-1 p-3 border border-pink-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-300 outline-none">
-                            <button @click="saveCustomSpace"
-                                class="bg-gray-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-lg transition-all">保存</button>
-                        </div>
-                        <div class="flex flex-col mt-2 gap-1">
-                            <p v-if="hasHfToken" class="text-xs text-green-500">✓ HF Token 已配置</p>
-                            <p v-if="hasCustomSpace" class="text-xs text-blue-500">✓ 自定义 Space: {{ customSpaceIdInput }}
-                            </p>
-                        </div>
+                        <button @click="saveHfToken"
+                            class="w-full py-2 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-all shadow-md active:scale-95">
+                            💾 保存令牌
+                        </button>
                     </div>
 
                     <!-- 账号信息 -->
@@ -458,7 +449,7 @@
                     <button @click="currentView='profile'"
                         :class="currentView==='profile' ? 'text-pink-500' : 'text-gray-400'"
                         class="flex flex-col items-center transition-colors">
-                        <span class="text-2xl">�</span><span class="text-xs mt-1">我的</span>
+                        <span class="text-2xl">👤</span><span class="text-xs mt-1">我的</span>
                     </button>
                 </div>
             </nav>
@@ -675,7 +666,7 @@
                                 <div class="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
                                     <img v-if="item.get('imageUrl')" :src="item.get('imageUrl')"
                                         class="w-full h-full object-cover">
-                                    <span v-else class="text-2xl text-gray-300">�</span>
+                                    <span v-else class="text-2xl text-gray-300">👕</span>
                                 </div>
                                 <div class="p-1.5 text-center">
                                     <p class="text-xs text-gray-500 truncate">{{ item.get('category') }}</p>
@@ -982,8 +973,8 @@
             <div class="glass-card w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-pop">
                 <div
                     class="p-4 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-t-2xl flex justify-between items-center">
-                    <h3 class="font-bold text-lg text-indigo-700 flex items-center"><span class="mr-2">👗</span>AI 虚拟试穿
-                        (IDM-VTON)</h3>
+                    <h3 class="font-bold text-lg text-indigo-700 flex items-center"><span class="mr-2">🧩</span>智能搭配拼图
+                        (所见即所得)</h3>
                     <button @click="showTryOnModal=false"
                         class="text-2xl text-gray-400 hover:text-gray-600">&times;</button>
                 </div>
@@ -1041,55 +1032,102 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- 3. 衣物分类 -->
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 opacity-60 pointer-events-none">
-                            <h4 class="font-bold text-gray-700 mb-2">3. 衣物类型 (自动识别)</h4>
-                            <div class="flex gap-2">
-                                <button v-for="cat in ['upper_body', 'lower_body', 'dresses']" :key="cat"
-                                    @click="tryOnCategory = cat"
-                                    :class="tryOnCategory === cat ? 'bg-indigo-500 text-white' : 'bg-white text-gray-600 border border-gray-200'"
-                                    class="flex-1 py-1.5 rounded-lg text-sm transition-all">
-                                    {{ cat === 'upper_body' ? '上装' : (cat === 'lower_body' ? '下装' : '连衣裙') }}
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- 右侧：结果区域 -->
-                    <div class="flex flex-col h-full">
-                        <div
-                            class="flex-1 bg-gray-900 rounded-xl overflow-hidden flex items-center justify-center relative min-h-[300px]">
-                            <img v-if="tryOnResult" :src="tryOnResult" class="w-full h-full object-contain">
-
-                            <!-- 等待状态 -->
-                            <div v-if="isTryOnProcessing"
-                                class="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white p-6 text-center z-10">
-                                <div class="animate-spin text-4xl mb-4">⏳</div>
-                                <h3 class="text-xl font-bold mb-2">AI 正在生成试穿效果...</h3>
-                                <p class="text-gray-300 text-sm mb-4">正在排队中(Space可能较慢)，请耐心等待。<br>请勿关闭此窗口。</p>
-                                <p v-if="tryOnStatus"
-                                    class="bg-indigo-900/50 px-3 py-1 rounded-full text-xs border border-indigo-500/30 font-mono animate-pulse">
-                                    {{ tryOnStatus }}
-                                </p>
+                    <!-- 右侧：结果/编辑区域 -->
+                    <div class="col-span-1 md:col-span-2 lg:col-span-1 h-full flex flex-col">
+                        <div class="glass-card rounded-2xl p-4 h-full flex flex-col relative overflow-hidden">
+                            <!-- Mode Switcher -->
+                            <div class="flex p-1 bg-gray-100 rounded-xl mb-4 shrink-0">
+                                <button @click="tryOnMode='manual'; tryOnResult=''"
+                                    :class="tryOnMode==='manual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                                    class="flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center">
+                                    <span class="mr-1">🖐️</span> 手动贴纸
+                                </button>
+                                <button @click="tryOnMode='ai'; tryOnResult=''"
+                                    :class="tryOnMode==='ai' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                                    class="flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center">
+                                    <span class="mr-1">✨</span> AI 灵感
+                                </button>
                             </div>
 
-                            <div v-else-if="!tryOnResult" class="text-gray-500 flex flex-col items-center">
-                                <span class="text-6xl mb-4">✨</span>
-                                <p>点击"开始试穿"生成效果</p>
-                            </div>
-                        </div>
+                            <!-- Main Canvas / Preview Area -->
+                            <div
+                                class="flex-1 relative bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl overflow-hidden group">
 
-                        <div class="mt-4 flex gap-3">
-                            <button @click="generateTryOn" :disabled="!canTryOn || isTryOnProcessing"
-                                class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
-                                <span v-if="isTryOnProcessing">生成中...</span>
-                                <span v-else>🚀 开始试穿</span>
-                            </button>
-                            <button v-if="tryOnResult && !isTryOnProcessing" @click="saveTryOnResult"
-                                class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-green-600 transition-all">
-                                💾 设为封面
-                            </button>
+                                <!-- MANUAL EDITOR -->
+                                <div v-if="tryOnMode==='manual' && !tryOnResult" ref="manualCanvasRef"
+                                    class="relative w-full h-full overflow-hidden select-none touch-none bg-white"
+                                    @mousemove="onDrag" @mouseup="endDrag" @mouseleave="endDrag" @touchmove="onDrag"
+                                    @touchend="endDrag">
+
+                                    <!-- Background: Model Image -->
+                                    <img v-if="tryOnModelImage" :src="tryOnModelImage"
+                                        class="absolute inset-0 w-full h-full object-contain pointer-events-none z-0 opacity-90">
+                                    <div v-else class="flex flex-col items-center justify-center h-full text-gray-400">
+                                        <span class="text-4xl mb-2">👤</span>
+                                        <p>请先在左侧选择/上传模特图</p>
+                                    </div>
+
+                                    <!-- Items (Draggable Stickers) -->
+                                    <div v-for="item in manualItems" :key="item.id" :style="{
+                                            transform: `translate(${item.x}px, ${item.y}px) scale(${item.scale})`,
+                                            zIndex: item.zIndex,
+                                            cursor: isDragging ? 'grabbing' : 'grab'
+                                        }" class="absolute top-0 left-0 w-[200px] origin-center will-change-transform"
+                                        @mousedown="startDrag($event, item)" @touchstart="startDrag($event, item)"
+                                        @wheel="onWheelResize($event, item)">
+                                        <img :src="item.url"
+                                            class="w-full h-auto mix-blend-multiply pointer-events-none select-none drop-shadow-xl hover:drop-shadow-2xl transition-shadow"
+                                            style="-webkit-user-drag: none;">
+                                    </div>
+
+                                    <!-- Helper Hint -->
+                                    <div
+                                        class="absolute bottom-4 left-0 right-0 text-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span
+                                            class="bg-black/60 text-white px-4 py-1.5 rounded-full text-xs backdrop-blur-sm">
+                                            🖱️ 拖拽移动 • ⚙️ 滚轮缩放 • 自动去白底
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- RESULT PREVIEW (AI or Manual Saved) -->
+                                <div v-else
+                                    class="w-full h-full flex items-center justify-center bg-gray-900/5 relative">
+                                    <img v-if="tryOnResult" :src="tryOnResult"
+                                        class="max-w-full max-h-full rounded-lg shadow-2xl object-contain">
+                                    <div v-else class="text-center text-gray-400 p-8">
+                                        <div class="animate-pulse text-6xl mb-4">🎨</div>
+                                        <p>点击下方按钮开始生成</p>
+                                    </div>
+
+                                    <!-- Re-edit button for manual mode -->
+                                    <button v-if="tryOnResult && tryOnMode==='manual'" @click="tryOnResult=''"
+                                        class="absolute top-4 right-4 bg-white/90 p-2 rounded-full shadow-lg hover:bg-white text-gray-700 transition-all hover:scale-110"
+                                        title="重新编辑">
+                                        ✏️
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="mt-4 flex gap-3 shrink-0">
+                                <button @click="generateTryOn"
+                                    :disabled="isTryOnProcessing || (!tryOnModelImage && tryOnMode==='manual')"
+                                    class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span v-if="isTryOnProcessing">⏳ 处理中...</span>
+                                    <span v-else>{{ tryOnButtonText }}</span>
+                                </button>
+                                <button v-if="tryOnResult && !isTryOnProcessing" @click="saveTryOnResult()"
+                                    class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-green-600 transition-all hover:scale-[1.02] active:scale-95">
+                                    💾 设为封面
+                                </button>
+                            </div>
+
+                            <!-- Status Text -->
+                            <p class="text-center text-xs text-gray-400 mt-2 h-4">{{ tryOnStatus }}</p>
                         </div>
                     </div>
                 </div>
@@ -1208,14 +1246,14 @@
                 // AI试穿相关
                 const hfTokenInput = ref('');
                 const hasHfToken = ref(false);
-                const customSpaceIdInput = ref('');
-                const hasCustomSpace = ref(false);
+                const customSpaceIdInput = ref(''); // This will be removed
+                const hasCustomSpace = ref(false); // This will be removed
                 const showTryOnModal = ref(false);
                 const tryOnModelImage = ref('');
                 const tryOnModelFile = ref(null);
                 const selectedTryOnItem = ref(null); // Deprecated but kept
                 const selectedTryOnItems = ref([]);
-                const tryOnCategory = ref('upper_body');
+                const tryOnCategory = ref('upper_body'); // This will be removed
                 const tryOnResult = ref('');
                 const isTryOnProcessing = ref(false);
                 const tryOnStatus = ref('');
@@ -1223,7 +1261,15 @@
                 const modelsList = ref([]);
                 const currentTryOnSource = ref(null);
                 const currentTryOnObject = ref(null);
-                const canTryOn = computed(() => tryOnModelImage.value && selectedTryOnItems.value.length > 0 && !isTryOnProcessing.value);
+                const canTryOn = computed(() => !!tryOnModelImage.value && selectedTryOnItems.value.length > 0);
+
+                const tryOnButtonText = computed(() => {
+                    if (tryOnMode.value === 'manual') {
+                        return tryOnResult.value ? '💾 重新合成' : '📸 合成图片';
+                    } else {
+                        return '🚀 生成 AI 灵感';
+                    }
+                });
 
                 // 表单
                 const configForm = reactive({ appId: '', appKey: '', serverURL: '' });
@@ -1604,17 +1650,7 @@
                     alert('HF Token 保存成功！');
                 };
 
-                const saveCustomSpace = () => {
-                    if (!customSpaceIdInput.value.trim()) {
-                        localStorage.removeItem('lc_hf_space_id');
-                        hasCustomSpace.value = false;
-                        alert('已在设置重置为默认 Space');
-                        return;
-                    }
-                    localStorage.setItem('lc_hf_space_id', customSpaceIdInput.value.trim());
-                    hasCustomSpace.value = true;
-                    alert('Space ID 配置成功！下一次试穿将优先使用此节点。');
-                };
+                // Removed saveCustomSpace and related logic as per instruction
 
                 const loadModels = async () => {
                     try {
@@ -1654,7 +1690,7 @@
                     } catch (e) { alert('删除失败: ' + e.message); }
                 };
 
-                // Helper for category mapping
+                // Helper for category mapping (kept for potential future use or if needed for prompt)
                 const getVtonCategory = (cat) => {
                     if (['连衣裙', '裙子', '礼服'].includes(cat)) return 'dresses';
                     if (['裤子', '半身裙', '短裤', '牛仔裤'].includes(cat)) return 'lower_body';
@@ -1693,158 +1729,216 @@
                     else selectedTryOnItems.value.push(item);
                 };
 
-                const generateTryOn = async () => {
-                    if (!tryOnModelImage.value || selectedTryOnItems.value.length === 0) return alert('请选择模特图和至少一件衣物');
+                // --- TRY-ON MODES ---
+                const tryOnMode = ref('manual'); // 'manual' or 'ai'
+                const manualCanvasRef = ref(null);
+                const manualItems = ref([]); // { id, x, y, scale, rotation, imgUrl, zIndex }
+                const isDragging = ref(false);
+                const draggingId = ref(null);
+                let dragStartX = 0, dragStartY = 0;
+                let initialItemX = 0, initialItemY = 0;
 
+                // Watch selection to update manual items
+                watch(selectedTryOnItems, (newItems) => {
+                    // Sync manual items
+                    const currentIds = new Set(manualItems.value.map(i => i.id));
+
+                    // Add new
+                    newItems.forEach((item, idx) => {
+                        if (!currentIds.has(item.id)) {
+                            let url = item.get('imageUrl');
+                            if (url.startsWith('http://')) url = url.replace(/^http:\/\//, 'https://');
+
+                            manualItems.value.push({
+                                id: item.id,
+                                url: url,
+                                x: 100 + (idx * 30),
+                                y: 100 + (idx * 30),
+                                scale: 1,
+                                zIndex: idx + 1
+                            });
+                        }
+                    });
+
+                    // Remove old
+                    const newIds = new Set(newItems.map(i => i.id));
+                    manualItems.value = manualItems.value.filter(i => newIds.has(i.id));
+                }, { deep: true });
+
+                // Manual Interaction Handlers
+                const startDrag = (e, item) => {
+                    e.preventDefault();
+                    isDragging.value = true;
+                    draggingId.value = item.id;
+                    // Bring to front
+                    const maxZ = Math.max(...manualItems.value.map(i => i.zIndex), 0);
+                    item.zIndex = maxZ + 1;
+
+                    if (e.type === 'touchstart') {
+                        dragStartX = e.touches[0].clientX;
+                        dragStartY = e.touches[0].clientY;
+                    } else {
+                        dragStartX = e.clientX;
+                        dragStartY = e.clientY;
+                    }
+                    initialItemX = item.x;
+                    initialItemY = item.y;
+                };
+
+                const onDrag = (e) => {
+                    if (!isDragging.value || !draggingId.value) return;
+                    e.preventDefault();
+
+                    let clientX, clientY;
+                    if (e.type === 'touchmove') {
+                        clientX = e.touches[0].clientX;
+                        clientY = e.touches[0].clientY;
+                    } else {
+                        clientX = e.clientX;
+                        clientY = e.clientY;
+                    }
+
+                    const deltaX = clientX - dragStartX;
+                    const deltaY = clientY - dragStartY;
+
+                    const item = manualItems.value.find(i => i.id === draggingId.value);
+                    if (item) {
+                        item.x = initialItemX + deltaX;
+                        item.y = initialItemY + deltaY;
+                    }
+                };
+
+                const endDrag = () => {
+                    isDragging.value = false;
+                    draggingId.value = null;
+                };
+
+                const onWheelResize = (e, item) => {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    let newScale = item.scale + delta;
+                    if (newScale < 0.2) newScale = 0.2;
+                    if (newScale > 5) newScale = 5;
+                    item.scale = newScale;
+                };
+
+                // Mode 1: Save Manual Collage
+                const saveManualCollage = async () => {
+                    if (!manualCanvasRef.value) return;
+                    tryOnStatus.value = "正在合成图片...";
                     isTryOnProcessing.value = true;
-                    tryOnStatus.value = "正在初始化 Client...";
 
+                    // Create a real canvas to draw the composition
+                    const container = manualCanvasRef.value;
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Get container dimensions
+                    const rect = container.getBoundingClientRect();
+                    canvas.width = rect.width;
+                    canvas.height = rect.height;
+
+                    // 1. Draw Background (Model)
+                    if (tryOnModelImage.value) {
+                        await new Promise((resolve) => {
+                            const img = new Image();
+                            img.crossOrigin = "Anonymous";
+                            img.onload = () => {
+                                // Draw image "cover" style
+                                const ratio = Math.max(canvas.width / img.width, canvas.height / img.height);
+                                const cx = (canvas.width - img.width * ratio) / 2;
+                                const cy = (canvas.height - img.height * ratio) / 2;
+                                ctx.drawImage(img, 0, 0, img.width, img.height, cx, cy, img.width * ratio, img.height * ratio);
+                                resolve();
+                            };
+                            img.onerror = resolve; // Continue even if bg fails
+                            let url = tryOnModelImage.value;
+                            if (url.startsWith('http://')) url = url.replace(/^http:\/\//, 'https://');
+                            img.src = url;
+                        });
+                    } else {
+                        ctx.fillStyle = "#fff";
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    // 2. Draw Items (Sorted by Z-Index)
+                    const sortedItems = [...manualItems.value].sort((a, b) => a.zIndex - b.zIndex);
+
+                    for (const item of sortedItems) {
+                        await new Promise((resolve) => {
+                            const img = new Image();
+                            img.crossOrigin = "Anonymous";
+                            img.onload = () => {
+                                ctx.save();
+                                // Translate to center of item
+                                // Item x/y is top-left in CSS. 
+                                // We need to match CSS transform-origin logic (usually center).
+                                // Let's simplistic match: x,y is visual position.
+                                const w = 150 * item.scale; // Base width defined in CSS is 150px approx? 
+                                // Actually CSS uses width:150px. 
+                                // Better: capture the actual rendered size if possible? 
+                                // Let's approximate: base size 200px (from template).
+
+                                const drawW = 200 * item.scale;
+                                const drawH = (img.height / img.width) * drawW;
+
+                                // Apply Multiply Blend Mode
+                                ctx.globalCompositeOperation = 'multiply';
+                                ctx.drawImage(img, item.x, item.y, drawW, drawH);
+                                ctx.restore();
+                                resolve();
+                            };
+                            img.onerror = resolve;
+                            img.src = item.url;
+                        });
+                    }
+
+                    // Export
+                    canvas.toBlob(blob => {
+                        currentPersonImageBlob = blob;
+                        tryOnResult.value = URL.createObjectURL(blob);
+                        tryOnStatus.value = "✨ 合成完成！";
+                        isTryOnProcessing.value = false;
+                    }, 'image/jpeg', 0.9);
+                };
+
+                // Mode 2: Generate AI Inspiration
+                const generateAiInspiration = async () => {
+                    if (selectedTryOnItems.value.length === 0) return alert('请至少选择一件衣物');
+                    tryOnStatus.value = "正在构思穿搭灵感...";
+                    isTryOnProcessing.value = true;
                     try {
-                        const module = await import('https://cdn.jsdelivr.net/npm/@gradio/client/+esm');
-                        const Client = module.Client || module.client || module.default.Client;
-                        console.log("Gradio Client loaded:", Client); // Debug
-                        const token = localStorage.getItem('lc_hf_token');
-                        const options = token ? { hf_token: token } : {};
-
-                        tryOnStatus.value = "正在连接 Space...";
-
-                        const connectWithFailover = async (Client, options) => {
-                            const savedCustom = localStorage.getItem('lc_hf_space_id');
-                            // Fallback list (Prioritize robust mirrors)
-                            const candidates = savedCustom ? [savedCustom] : [
-                                'yisol/IDM-VTON',
-                                'skivap/IDM-VTON',
-                                'kwai-kolors/Kolors-Virtual-Try-On',
-                                'virajw/idm-vton',
-                                'human-ai/idm-vton',
-                                'Nymbo/Virtual-Try-On'
-                            ];
-
-                            const hasToken = !!options.hf_token;
-
-                            for (const spaceId of candidates) {
-                                // 1. Try with Token (if configured)
-                                if (hasToken) {
-                                    tryOnStatus.value = `正在连接 ${spaceId} (验证Token)...`;
-                                    try {
-                                        return await Client.connect(spaceId, options);
-                                    } catch (e) {
-                                        console.warn(`${spaceId} Token connect failed`, e);
-                                        tryOnStatus.value = `Token 验证失败，尝试匿名连接...`;
-                                    }
-                                }
-
-                                // 2. Try Anonymous (No token)
-                                try {
-                                    tryOnStatus.value = `正在连接 ${spaceId} (匿名模式)...`;
-                                    return await Client.connect(spaceId, {});
-                                } catch (e) {
-                                    console.warn(`${spaceId} Anonymous connect failed`, e);
-                                    if (candidates.length > 1) tryOnStatus.value = `${spaceId} 失败，切换下一节点...`;
-                                }
-
-                                // Small delay before next candidate
-                                await new Promise(r => setTimeout(r, 1000));
-                            }
-
-                            let errorMsg = "连接失败，无法连接到 AI 服务。";
-                            if (window.location.protocol === 'file:') {
-                                errorMsg += " 由于浏览器安全限制，直接打开 HTML 文件可能受阻。建议使用 'Live Server' 或本地服务器运行。";
-                            } else {
-                                errorMsg += " 请检查 VPN 连通性或稍后再试。";
-                            }
-                            throw new Error(errorMsg);
-                        };
-
-                        const app = await connectWithFailover(Client, options);
-
-                        let currentPersonImageBlob;
-                        if (tryOnModelFile.value) {
-                            currentPersonImageBlob = tryOnModelFile.value;
-                        } else {
-                            // Fix Mixed Content: Force HTTPS
-                            const secureUrl = tryOnModelImage.value.replace(/^http:\/\//, 'https://');
-                            currentPersonImageBlob = await (await fetch(secureUrl)).blob();
+                        let descriptionParts = [];
+                        for (const item of selectedTryOnItems.value) {
+                            descriptionParts.push(`(wearing ${item.get('note') || ""} ${item.get('category')})`);
                         }
+                        const clothingDesc = descriptionParts.join(", ");
+                        const prompt = `realistic fashion photography, full body shot of a beautiful asian female model, ${clothingDesc}, standing pose, soft lighting, high quality, 4k, photorealistic, clean background, trending on artstation`;
 
-                        const itemsToProcess = [...selectedTryOnItems.value];
+                        const seed = Math.floor(Math.random() * 10000);
+                        const encodedPrompt = encodeURIComponent(prompt);
+                        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=768&height=1024&model=flux&nologo=true&seed=${seed}`;
 
-                        for (let i = 0; i < itemsToProcess.length; i++) {
-                            const item = itemsToProcess[i];
-                            const itemCat = getVtonCategory(item.get('category'));
+                        const response = await fetch(imageUrl);
+                        if (!response.ok) throw new Error("Generation failed");
 
-                            tryOnStatus.value = `正在处理第 ${i + 1}/${itemsToProcess.length} 件: ${item.get('category')}... (排队中)`;
-
-                            const secureItemUrl = item.get('imageUrl').replace(/^http:\/\//, 'https://');
-                            const garmentBlob = await (await fetch(secureItemUrl)).blob();
-                            const humanInput = { background: currentPersonImageBlob, layers: [], composite: null };
-                            const description = item.get('note') || "A fashion item";
-
-                            // Dynamic category param? 
-                            // Wait, IDM-VTON input doesn't have explicit category string param in typical demo, it usually AUTO-DETECTS or uses the mask checkbox logic.
-                            // But usually `category` IS an input (dropdown).
-                            // Let's re-verify inputs.
-                            // [human, garment, desc, is_checked, is_checked_crop, step, seed]
-                            // Where is category?
-                            // Maybe it's not exposed in the simplified API? Or maybe it's auto-detected?
-                            // PROMPTS usually include "upper body" or "lower body".
-                            // If explicit category input is missing, description helps.
-                            // I will append category to description. "A photo of upper_body..." ?
-                            // Actually, yisol/IDM-VTON demo on HF has a "Category" dropdown.
-                            // If I am using `fn_index` implicitly via `/tryon` endpoint name, likely it maps to the main function.
-                            // If the main function has Category dropdown, I MUST pass it.
-                            // Let's assume input layout: [human, garment, desc, is_checked, is_checked_crop, step, seed]
-                            // IF category is missing here, it might be auto.
-                            // BUT if it IS required, my previous code worked because `tryOnCategory` wasn't passed?
-                            // WAIT, I previously DID NOT PASS `tryOnCategory` in `generateTryOn` (Step 480)!
-                            // I passed: [human, garment, desc, true, true, 30, 42].
-                            // And user said it worked? Or didn't report error?
-                            // User request implies they want multi-select.
-                            // If previous worked, it means Category input is either NOT required or defaults.
-                            // I will stick to previous inputs but enhance description with category hint just in case.
-
-                            const enhancedDesc = (item.get('note') || "") + ` (${getVtonCategory(item.get('category')).replace('_', ' ')})`;
-
-                            const submission = app.submit("/tryon", [
-                                humanInput,          // Human
-                                garmentBlob,         // Garment
-                                enhancedDesc,        // Description
-                                true,                // is_checked
-                                true,                // is_checked_crop
-                                30,                  // denoise_steps
-                                42                   // seed 
-                            ]);
-
-                            let stepResultUrl = null;
-                            for await (const msg of submission) {
-                                if (msg.type === 'status') {
-                                    if (msg.stage === 'queue') {
-                                        tryOnStatus.value = `[${i + 1}/${itemsToProcess.length}] 排队中... 位置: ${msg.queue_index !== undefined ? msg.queue_index + 1 : '未知'}`;
-                                    } else if (msg.stage === 'generating') {
-                                        tryOnStatus.value = `[${i + 1}/${itemsToProcess.length}] 正在生成...`;
-                                    }
-                                } else if (msg.type === 'data') {
-                                    const output = msg.data[0];
-                                    if (output && output.url) stepResultUrl = output.url;
-                                    else if (typeof output === 'string') stepResultUrl = output;
-                                }
-                            }
-
-                            if (!stepResultUrl) throw new Error(`第 ${i + 1} 件 (${item.get('category')}) 生成失败`);
-
-                            // Prepare for next
-                            tryOnResult.value = stepResultUrl;
-                            currentPersonImageBlob = await (await fetch(stepResultUrl)).blob();
-                        }
-
-                        tryOnStatus.value = "全部生成完成！";
-
+                        const imageBlob = await response.blob();
+                        currentPersonImageBlob = imageBlob;
+                        tryOnResult.value = URL.createObjectURL(imageBlob);
+                        tryOnStatus.value = "✨ 灵感生成完毕！";
                     } catch (e) {
-                        console.error("Try-On Error:", e);
-                        alert("生成失败: " + e.message);
-                        tryOnStatus.value = "出错: " + e.message;
+                        alert(e.message);
                     } finally {
                         isTryOnProcessing.value = false;
+                    }
+                };
+
+                // Main Dispatcher
+                const generateTryOn = async () => {
+                    if (tryOnMode.value === 'manual') {
+                        await saveManualCollage();
+                    } else {
+                        await generateAiInspiration();
                     }
                 };
 
@@ -2103,12 +2197,12 @@ ${JSON.stringify(itemsInfo, null, 2)}
                     openItemDetail, editItem, deleteItem, wearItem,
                     openAddOutfitModal, handleOutfitImageUpload, removeOutfitImage, closeOutfitModal, saveOutfit, openOutfitDetail,
                     saveAiKey, toggleAiCategory, generateAiOutfit, saveAiOutfit,
-                    saveAiKey, toggleAiCategory, generateAiOutfit, saveAiOutfit,
                     openAddOotdModal, handleOotdImageUpload, removeOotdImage, closeOotdModal, saveOotd, openOotdDetail, formatDate,
-                    // AI Try-On
-                    hfTokenInput, hasHfToken, saveHfToken, customSpaceIdInput, hasCustomSpace, saveCustomSpace,
-                    showTryOnModal, tryOnModelImage, selectedTryOnItem, selectedTryOnItems, tryOnCategory, tryOnResult, isTryOnProcessing, tryOnStatus, tryOnCandidateItems, canTryOn,
-                    openAiTryOn, selectTryOnItem, generateTryOn, saveTryOnResult,
+                    // AI Try-On & Manual Editor
+                    tryOnMode, manualItems, manualCanvasRef, startDrag, onDrag, endDrag, onWheelResize,
+                    hfTokenInput, hasHfToken, saveHfToken,
+                    showTryOnModal, tryOnModelImage, selectedTryOnItem, selectedTryOnItems, tryOnResult, isTryOnProcessing, tryOnStatus, tryOnCandidateItems, canTryOn,
+                    openAiTryOn, selectTryOnItem, generateTryOn, saveTryOnResult, tryOnButtonText,
                     modelsList, uploadNewModel, deleteModel
                 };
             }
