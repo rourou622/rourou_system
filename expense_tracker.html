@@ -90,40 +90,178 @@
       font-size: 0.85rem;
     }
 
-    /* === Dashboard 卡片样式 === */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
+    /* === Dashboard 卡片滑动窗口样式 === */
+    .cards-scroll-wrapper {
+      position: relative;
       margin-bottom: 25px;
     }
 
-    @media (max-width: 900px) {
-      .dashboard-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .cards-scroll-container {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding: 6px 4px 14px 4px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(144, 164, 174, 0.35) transparent;
+      scroll-behavior: smooth;
+      cursor: grab;
+    }
+
+    .cards-scroll-container.is-dragging {
+      cursor: grabbing;
+      scroll-behavior: auto;
+      user-select: none;
+    }
+
+    .cards-scroll-container::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .cards-scroll-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .cards-scroll-container::-webkit-scrollbar-thumb {
+      background: rgba(144, 164, 174, 0.35);
+      border-radius: 10px;
+    }
+
+    .cards-scroll-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(144, 164, 174, 0.6);
+    }
+
+    /* 单个微卡片 */
+    .stat-card-compact {
+      flex: 1 1 0;
+      min-width: 230px;
+      scroll-snap-align: start;
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s, border-color 0.25s;
+      overflow: hidden;
+    }
+
+    .stat-card-compact:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    @media (max-width: 1024px) {
+      .stat-card-compact {
+        flex: 0 0 250px;
+        min-width: 250px;
       }
     }
 
     @media (max-width: 600px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
+      .stat-card-compact {
+        flex: 0 0 78vw; /* 移动端露出下一张卡片的边缘，给用户明确的横滑手势预期 */
+        min-width: 240px;
+        padding: 15px 16px;
       }
     }
 
-    .stat-card {
-      background: #ffffff;
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      position: relative;
-      display: flex;
+    .card-top-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow-sm);
-      border: 1px solid rgba(0, 0, 0, 0.03);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
-      min-height: 100px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 0.82rem;
+      color: #90a4ae;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-icon-pill {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .card-main-val {
+      font-size: 1.45rem;
+      font-weight: 700;
+      font-family: 'Roboto', sans-serif;
+      line-height: 1.2;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .card-sub-info {
+      font-size: 0.78rem;
+      color: #78909c;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    /* 迷你滑动箭头（PC悬停时可见） */
+    .scroll-arrow-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border: 1px solid #e2e8f0;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.2s, background 0.2s;
+    }
+
+    .cards-scroll-wrapper:hover .scroll-arrow-btn {
+      opacity: 0.9;
+    }
+
+    .scroll-arrow-btn:hover {
+      opacity: 1 !important;
+      background: #f8fafc;
+    }
+
+    .scroll-arrow-left { left: -14px; }
+    .scroll-arrow-right { right: -14px; }
+
+    @media (max-width: 768px) {
+      .scroll-arrow-btn { display: none !important; }
     }
 
     /* 新增 Chart Header 样式 */
@@ -311,7 +449,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(30, 41, 59, 0.5);
+      background: rgba(30, 41, 59, 0.55);
       backdrop-filter: blur(4px);
       display: flex;
       align-items: center;
@@ -319,7 +457,10 @@
       z-index: 1000;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 16px 12px;
+      overflow-y: auto;
+      touch-action: pan-y;
     }
 
     .modal-overlay.active {
@@ -329,49 +470,80 @@
 
     .modal {
       background: #fff;
-      padding: 35px;
-      border-radius: 24px;
-      width: 90%;
+      padding: 20px 24px 20px;
+      border-radius: 20px;
+      width: 95%;
       max-width: 500px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-      transform: scale(0.95);
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+      transform: scale(0.96);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      margin: auto;
+      position: relative;
     }
 
     .modal-overlay.active .modal {
       transform: scale(1);
     }
 
+    /* 顶部下拉关闭条 (移动端拖动/点击手势条) */
+    .modal-drag-bar {
+      width: 44px;
+      height: 5px;
+      background: #cbd5e1;
+      border-radius: 4px;
+      margin: -6px auto 12px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .modal-drag-bar:hover {
+      background: #94a3b8;
+      transform: scaleX(1.1);
+    }
+
     .modal-header {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 25px;
+      align-items: center;
+      margin-bottom: 14px;
       border-bottom: 1px solid var(--border-color);
-      padding-bottom: 15px;
-      font-size: 1.2rem;
+      padding-bottom: 10px;
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--text-main);
+      flex-shrink: 0;
+    }
+
+    .modal-body-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 4px;
     }
 
     /* AI 区域优化 */
     .ai-section {
       background: linear-gradient(145deg, #f0fdf4 0%, #e8f5e9 100%);
-      padding: 18px;
-      border-radius: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
       border: 1px dashed #a5d6a7;
-      margin-bottom: 25px;
+      margin-bottom: 14px;
     }
 
     .ai-textarea {
       width: 100%;
-      height: 70px;
-      padding: 12px;
+      height: 68px;
+      padding: 10px 12px;
       border: 1px solid #c8e6c9;
-      border-radius: 12px;
+      border-radius: 10px;
       resize: none;
       font-family: inherit;
       font-size: 0.95rem;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       background: #fff;
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
       transition: all 0.3s ease;
@@ -1334,172 +1506,90 @@
       </div>
     </div>
 
-    <div class="dashboard-grid">
+    <!-- 顶部卡片横向滑动窗口 (移动端丝滑触控，桌面端可拖拽/滚动) -->
+    <div class="cards-scroll-wrapper">
+      <button class="scroll-arrow-btn scroll-arrow-left" onclick="scrollCards(-1)" title="向左滚动">❮</button>
+      <button class="scroll-arrow-btn scroll-arrow-right" onclick="scrollCards(1)" title="向右滚动">❯</button>
 
-      <div class="stat-card theme-red">
-        <div class="stat-content">
-          <div class="stat-label">本月消费</div>
-          <div class="stat-value" id="dashMonthExpense">--</div>
-        </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
-            <polyline points="17 18 23 18 23 12" />
-          </svg>
-        </div>
-      </div>
+      <div class="cards-scroll-container" id="cardsScrollContainer">
 
-      <div class="stat-card theme-green">
-        <div class="stat-content">
-          <div class="stat-label">本月结余</div>
-          <div class="stat-value" id="dashMonthBalance">--</div>
+        <!-- 1. 本月消费 (含环比上期) -->
+        <div class="stat-card-compact theme-red">
+          <div class="card-top-row">
+            <span class="card-title">本月消费</span>
+            <div class="card-icon-pill" style="background: #ffebee; color: #c62828;">📉</div>
+          </div>
+          <div class="card-main-val" id="dashMonthExpense" style="color: #c62828;">--</div>
+          <div class="card-sub-info">
+            <span>环比上期:</span>
+            <span id="dashMomGrowth" class="badge-pill" style="background:#f1f5f9; color:#475569;">--</span>
+          </div>
         </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-          </svg>
-        </div>
-      </div>
 
-      <div class="stat-card theme-blue">
-        <div class="stat-content">
-          <div class="stat-label">本月大额消费笔数(>500)</div>
-          <div class="stat-value" id="dashLargeCount">--</div>
+        <!-- 2. 本月结余 (含预算使用双轨进度条) -->
+        <div class="stat-card-compact theme-green">
+          <div class="card-top-row">
+            <span class="card-title">本月结余</span>
+            <div class="card-icon-pill" style="background: #e8f5e9; color: #2e7d32;">💼</div>
+          </div>
+          <div class="card-main-val" id="dashMonthBalance" style="color: #2e7d32;">--</div>
+          <div style="margin-top: 2px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #78909c; margin-bottom: 4px;">
+              <span id="budgetUsageText">预算已用 0%</span>
+              <span id="budgetTotalText">预算: ¥9,000</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 5px;">
+              <div id="budgetProgressBar" style="height: 100%; width: 0%; background: #2e7d32; border-radius: 4px; transition: width 0.4s ease, background-color 0.4s ease;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem;">
+              <span id="budgetPaceBadge" class="badge-pill" style="background: #e8f5e9; color: #2e7d32; font-size: 0.68rem; padding: 1px 6px;">健康</span>
+              <span id="budgetTimeProgressText" style="color: #94a3b8; font-size: 0.68rem;">时间已过 0%</span>
+            </div>
+          </div>
         </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M16 12l-4-4-4 4"></path>
-            <line x1="12" y1="16" x2="12" y2="8"></line>
-          </svg>
-        </div>
-      </div>
 
-      <div class="stat-card theme-blue">
-        <div class="stat-content">
-          <div class="stat-label">本月日均消费</div>
-          <div class="stat-value" id="dashMonthDailyAvg">--</div>
+        <!-- 3. 日均消费节奏 (当月日均 + 近7天日均) -->
+        <div class="stat-card-compact theme-blue">
+          <div class="card-top-row">
+            <span class="card-title">日均消费</span>
+            <div class="card-icon-pill" style="background: #e3f2fd; color: #1976d2;">📅</div>
+          </div>
+          <div class="card-main-val" id="dashMonthDailyAvg" style="color: #1976d2;">--</div>
+          <div class="card-sub-info">
+            <span>近7天日均:</span>
+            <span id="dashWeeklyAvg" style="font-weight: 600; color: #37474f;">--</span>
+          </div>
         </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2v-1a2 2 0 0 1 2-2h2"></path>
-            <path d="M2 6h20v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z"></path>
-          </svg>
-        </div>
-      </div>
 
-      <div class="stat-card theme-red">
-        <div class="stat-content">
-          <div class="stat-label">本月娱乐/购物</div>
-          <div class="stat-value" id="dashEntertainment">--</div>
+        <!-- 4. 大额消费监控 (>500，点击一键联动筛选) -->
+        <div class="stat-card-compact" id="cardLargeExpense" style="cursor: pointer; border: 1px solid #e0f2fe; background: #f8fafc;" onclick="toggleLargeExpenseFilter()" title="点击一键筛选/还原大额消费">
+          <div class="card-top-row">
+            <span class="card-title" style="color: #0284c7;">大额消费 (>500)</span>
+            <div class="card-icon-pill" style="background: #e0f2fe; color: #0284c7;">⚡</div>
+          </div>
+          <div class="card-main-val" id="dashLargeCount" style="color: #0369a1;">--</div>
+          <div class="card-sub-info">
+            <span id="dashLargeTotalText">共 ¥ 0.00</span>
+            <span id="dashLargeActionBadge" class="badge-pill" style="background: #e0f2fe; color: #0284c7;">点击筛选</span>
+          </div>
         </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <path d="M16 10a4 4 0 0 1-8 0"></path>
-          </svg>
-        </div>
-      </div>
 
-      <div class="stat-card theme-blue">
-        <div class="stat-content">
-          <div class="stat-label">近7天日均消费</div>
-          <div class="stat-value" id="dashWeeklyAvg">--</div>
+        <!-- 5. 上月复盘与反思 (聚合卡片) -->
+        <div class="stat-card-compact" style="background: #fffaf0; border: 1px solid #fed7aa;">
+          <div class="card-top-row">
+            <span class="card-title" id="dashWasteLabel" style="color: #c2410c;">上月浪费</span>
+            <div class="card-icon-pill" style="background: #ffedd5; color: #c2410c;">🗑️</div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
+            <div class="card-main-val" id="dashWasteValue" style="color: #c62828; margin-bottom: 0;">--</div>
+            <span id="dashWasteTrendValue" class="badge-pill" style="background: #fee2e2; color: #991b1b; font-size: 0.7rem;">--</span>
+          </div>
+          <div style="display: flex; gap: 6px; margin-top: 4px;">
+            <button class="action-btn" style="flex: 1; padding: 4px 6px; font-size: 0.75rem; background: white; border: 1px solid #fdba74; color: #c2410c; border-radius: 8px;" onclick="openWasteListModal()">📜 反省清单</button>
+            <button class="action-btn btn-brown" style="flex: 1; padding: 4px 6px; font-size: 0.75rem; border-radius: 8px;" onclick="openRetroSetup()">✨ 开始复盘</button>
+          </div>
         </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        </div>
-      </div>
 
-      <div class="stat-card theme-purple">
-        <div class="stat-content">
-          <div class="stat-label">支出环比增长</div>
-          <div class="stat-value" id="dashMomGrowth">--</div>
-        </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <line x1="12" y1="20" x2="12" y2="10"></line>
-            <polyline points="18 20 18 4 6 4 6 20"></polyline>
-            <line x1="6" y1="16" x2="18" y2="16"></line>
-          </svg>
-        </div>
-      </div>
-
-      <div class="stat-card theme-purple-highlight">
-        <div class="stat-content">
-          <div class="stat-label">当前筛选结果</div>
-          <div class="stat-value" id="filterResultText">加载中...</div>
-        </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- 复盘功能入口区域 (4个卡片) -->
-    <div class="dashboard-grid" style="margin-bottom: 25px;">
-      <!-- 卡片 1: 上月浪费 -->
-      <div class="stat-card theme-red">
-        <div class="stat-content">
-          <div class="stat-label" id="dashWasteLabel">上月浪费</div>
-          <div class="stat-value" id="dashWasteValue">--</div>
-        </div>
-        <div class="stat-icon-box">
-          <span style="font-size: 1.5rem;">🗑️</span>
-        </div>
-      </div>
-      <!-- 卡片 2: 浪费环比 -->
-      <div class="stat-card" style="border: 1px solid #e0e0e0;">
-        <div class="stat-content">
-          <div class="stat-label">浪费环比变动</div>
-          <div class="stat-value" id="dashWasteTrendValue" style="font-size:1.1rem;">--</div>
-        </div>
-        <div class="stat-icon-box">
-          <span style="font-size: 1.5rem;">📉</span>
-        </div>
-      </div>
-      <!-- 反省清单入口 -->
-      <div class="stat-card" style="cursor: pointer; border: 1px solid #ffebee; background: #fffaf0;"
-        onclick="openWasteListModal()">
-        <div class="stat-content">
-          <div class="stat-label" style="color:#d32f2f;">反省清单</div>
-          <div class="stat-value" style="font-size: 1.1rem; color:#c62828;">📜 查看浪费详情</div>
-        </div>
-        <div class="stat-icon-box">
-          <span style="font-size: 1.5rem;">🧐</span>
-        </div>
-      </div>
-      <!-- 复盘入口卡片 -->
-      <div class="stat-card theme-red" style="cursor: pointer;" onclick="openRetroSetup()">
-        <div class="stat-content">
-          <div class="stat-label">月度账单复盘</div>
-          <div class="stat-value" style="font-size: 1.25rem;">✨ 开始复盘</div>
-        </div>
-        <div class="stat-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-            <path d="M9 14l2 2 4-4"></path>
-          </svg>
-        </div>
       </div>
     </div>
 
@@ -1836,8 +1926,9 @@
     </div>
 
     <div class="details-card">
-      <div class="details-header">
+      <div class="details-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
         <div class="details-title">支出明细</div>
+        <div id="filterResultText" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 6px 16px; font-size: 0.85rem; color: #475569; font-weight: 500;">加载中...</div>
       </div>
 
       <div class="filter-bar">
@@ -1854,7 +1945,7 @@
             </div>
           </div>
         </div>
-        <div style="flex: 2; display: flex; gap: 10px;">
+        <div style="flex: 2; min-width: 280px; display: flex; gap: 10px;">
           <div style="flex: 1;">
             <label for="startDate">明细开始日期</label>
             <input type="date" id="startDate" onchange="applyDateRangeFilter()" />
@@ -1897,7 +1988,7 @@
               <th>记账人</th>
               <th>二级类型</th>
               <th>金额</th>
-              <th style="width: 160px;">操作</th>
+              <th style="min-width: 215px;">操作</th>
             </tr>
           </thead>
           <tbody id="expenseList"></tbody>
@@ -1932,9 +2023,11 @@
       </div>
     </div>
 
-    <div class="action-bar">
-      <button class="action-btn-large btn-light" onclick="exportToCSV()">导出 CSV</button>
-      <button class="action-btn-large btn-light" onclick="printCurrentPage()">打印</button>
+    <div class="action-bar" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+      <button class="action-btn-large btn-light" onclick="exportToCSV()">导出明细 CSV</button>
+      <button class="action-btn-large btn-light" onclick="exportFullBackupJSON()">📥 全量 JSON 备份</button>
+      <button class="action-btn-large btn-light" onclick="triggerImportBackup()">📤 恢复 JSON 备份</button>
+      <input type="file" id="backupFileInput" accept=".json" style="display: none;" onchange="handleImportBackup(this)">
     </div>
 
   </div>
@@ -1963,59 +2056,118 @@
       <div id="aiSettingsFormSection" style="display: none; flex: 1; overflow-y: auto;">
         <form id="aiSettingsForm" onsubmit="saveAiSettings(event)">
           <input type="hidden" id="settingsAiId" />
+
+          <div style="margin-bottom: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px;">
+            <div style="font-size: 0.78rem; font-weight: 600; color: #64748b; margin-bottom: 6px;">快捷一键填入模板：</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="action-btn btn-light" style="font-size: 0.8rem; padding: 4px 10px; border-color: #0284c7; color: #0284c7; background: #f0f9ff;" onclick="applyTeamoRouterPreset()">
+                ⚡ TeamoRouter (DeepSeek Flash)
+              </button>
+              <button type="button" class="action-btn btn-light" style="font-size: 0.8rem; padding: 4px 10px;" onclick="applyOpenRouterPreset()">
+                OpenRouter (GLM-4.5)
+              </button>
+            </div>
+          </div>
+
           <div class="form-group">
             <label for="settingsAiConfigName">配置名称 (Name)</label>
-            <input type="text" id="settingsAiConfigName" placeholder="例如：DeepSeek 官方" />
+            <input type="text" id="settingsAiConfigName" placeholder="例如：TeamoRouter (DeepSeek Flash)" />
           </div>
           <div class="form-group">
             <label for="settingsAiKey">API Key</label>
-            <input type="password" id="settingsAiKey" placeholder="请输入 API Key" />
+            <input type="password" id="settingsAiKey" placeholder="请输入 TeamoRouter API Key" />
           </div>
           <div class="form-group">
             <label for="settingsAiModel">模型名称 (Model Name)</label>
-            <input type="text" id="settingsAiModel" placeholder="例如：deepseek-chat" />
+            <input type="text" id="settingsAiModel" placeholder="例如：deepseek-flash-1017" />
           </div>
           <div class="form-group">
             <label for="settingsAiEndpoint">模型地址 (API Endpoint)</label>
-            <input type="text" id="settingsAiEndpoint" placeholder="例如：https://api.deepseek.com/v1/chat/completions" />
+            <input type="text" id="settingsAiEndpoint" placeholder="例如：https://api.teamorouter.cn/v1/chat/completions" />
           </div>
           <div class="modal-footer" style="display:flex; justify-content:flex-end; gap: 10px; margin-top: 25px;">
             <button type="button" class="btn-light" style="width:100px;" onclick="hideAiConfigForm()">返回列表</button>
-            <button type="submit" class="btn-brown" style="width:100px;">保存</button>
+            <button type="submit" class="btn-brown" style="width:100px;">保存并激活</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
+  <!-- 自定义预算修改模态框 -->
+  <div class="modal-overlay" id="budgetModal">
+    <div class="modal" style="max-width: 400px; padding: 20px 24px; text-align: left;">
+      <div class="modal-drag-bar" onclick="closeBudgetModal()" title="点击关闭"></div>
+      <div class="modal-header" style="margin-bottom: 16px;">
+        <div class="modal-title">💰 修改每月通用预算</div>
+        <button class="action-btn" style="background:none; color:#999; font-size:1.5em; padding:0;" onclick="closeBudgetModal()">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 16px; margin-top: -6px; line-height: 1.4;">
+        预算数据将实时保存至云端并在所有设备间同步。
+      </p>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 8px;">快捷预设选择</label>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+          <button type="button" class="action-btn btn-light" style="padding: 6px 0; font-size: 0.85rem; font-weight: 500;" onclick="setBudgetPreset(6000)">6,000</button>
+          <button type="button" class="action-btn btn-light" style="padding: 6px 0; font-size: 0.85rem; font-weight: 500;" onclick="setBudgetPreset(8000)">8,000</button>
+          <button type="button" class="action-btn btn-light" style="padding: 6px 0; font-size: 0.85rem; font-weight: 500;" onclick="setBudgetPreset(9000)">9,000</button>
+          <button type="button" class="action-btn btn-light" style="padding: 6px 0; font-size: 0.85rem; font-weight: 500;" onclick="setBudgetPreset(10000)">10,000</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 22px;">
+        <label for="customBudgetInput">预算金额 (元)</label>
+        <div style="position: relative;">
+          <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #999; font-weight: bold; font-size: 1.2rem;">¥</span>
+          <input type="number" id="customBudgetInput" step="100" min="100" placeholder="请输入每月预算" style="padding-left: 32px; font-size: 1.25rem; font-weight: bold; color: #2e7d32;" />
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn-light" style="width: 90px;" onclick="closeBudgetModal()">取消</button>
+        <button type="button" class="btn-brown" style="width: 110px; box-shadow: 0 4px 10px rgba(96, 125, 139, 0.3);" onclick="saveCustomBudget()">保存预算</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="addModal">
     <div class="modal">
+      <div class="modal-drag-bar" onclick="closeAddModal()" title="点击或下拉关闭"></div>
       <div class="modal-header">
         <div class="modal-title" id="modalTitle">新增记录</div>
-        <button class="action-btn" style="background:none; color:#999; font-size:1.5em; padding:0;"
+        <button class="action-btn" style="background:none; color:#999; font-size:1.5em; padding:0; line-height: 1;"
           onclick="closeAddModal()">&times;</button>
       </div>
 
-      <form id="modalExpenseForm">
+      <form id="modalExpenseForm" class="modal-body-scroll">
         <input type="hidden" id="modalEditId" />
 
         <div class="ai-section">
           <label
             style="color: #388e3c; display:flex; align-items:center; gap:6px; font-weight:600; font-size:0.95rem; margin-bottom:8px;">
-            <span>AI 智能识别</span>
+            <span>AI 智能识别 (支持多条连续批量)</span>
           </label>
-          <textarea id="aiInput" class="ai-textarea" placeholder="输入如：昨天买奶茶花了18元..."></textarea>
+          <textarea id="aiInput" class="ai-textarea" placeholder="输入如：昨天买奶茶18元 或 多条：前天打车25，昨天肯德基48，晚上买菜35..."></textarea>
           <button type="button" class="btn-ai" onclick="handleSmartIdentify()" id="btnSmartIdentify">
-            智能填充
+            智能识别填充
           </button>
         </div>
 
-        <div class="form-group" style="display:none;">
-          <label>收支类型</label>
-          <div class="radio-group">
-            <label class="radio-label">
-              <input type="radio" name="modalCategory" value="expense" checked onchange="updateModalTypeOptions()"> 支出
-            </label>
+        <!-- 批量识别预览展示区 (>=2条时自动弹出) -->
+        <div id="aiBatchPreviewSection" style="display: none; margin-bottom: 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-weight: 600; font-size: 0.95rem; color: #166534;" id="aiBatchCountTitle">📋 识别出多笔账单</span>
+            <button type="button" class="action-btn btn-light" style="font-size: 0.75rem; padding: 2px 8px;" onclick="cancelBatchPreview()">✕ 取消批量</button>
+          </div>
+          <div id="aiBatchList" style="max-height: 180px; overflow-y: auto; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;"></div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="action-btn-large btn-accent" style="flex: 2; height: 38px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(129, 161, 139, 0.3);" onclick="saveAllBatchExpenses()" id="btnSaveBatchAll">
+              ⚡ 一键全部入库保存
+            </button>
+            <button type="button" class="action-btn-large btn-light" style="flex: 1; height: 38px; font-size: 0.85rem;" onclick="useFirstBatchExpense()">
+              仅填第1条
+            </button>
           </div>
         </div>
 
@@ -2063,6 +2215,7 @@
           style="width:100%; height:46px; border-radius:12px; border:1px solid #e0e0e0; padding:0 12px; font-size:1rem; outline:none;">
           <!-- JS Populate -->
         </select>
+        <div id="retroCycleHint" style="font-size:0.85rem; color:#546e7a; margin-top:8px; background:#f0f4f8; padding:8px 12px; border-radius:8px; line-height:1.4;"></div>
       </div>
 
       <div class="setup-group">
@@ -2257,11 +2410,8 @@
     let BudgetClass = null;  // LeanCloud 预算类
     let cloudBudget = 9000;  // 云端同步的预算值
 
-    // 支出类型定义 (已移除房租)
+    // 支出类型定义
     const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '宠物', '其他'];
-
-    // 收入类型 (虽然UI不显示，保留定义以防报错)
-    const INCOME_TYPES = ['其他'];
 
     const MORANDI_PALETTE = [
       '#90a4ae', '#a1887f', '#e57373', '#81c784', '#64b5f6',
@@ -2284,6 +2434,7 @@
     let pageSize = 10;
     let currentBudget = 9000;
     let authMode = 'login';
+    let isLargeOnlyFilter = false;
 
     // ========== 1. 启动逻辑 ==========
     window.onload = () => { checkAppConfig(); };
@@ -2331,11 +2482,153 @@
       document.getElementById('currentUserDisplay').textContent = `${currentUser.getUsername()}`;
       updateActiveAiDisplay();
       initCustomDropdown();
+      initCardsDraggable();
+      initModalInteractions();
       await loadBudgetFromCloud();  // 从云端加载预算
       renderExpenses();
       window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
     }
     function logout() { AV.User.logOut(); location.reload(); }
+
+    // --- 顶部卡片横向拖动与滑动逻辑 ---
+    function scrollCards(direction) {
+      const container = document.getElementById('cardsScrollContainer');
+      if (!container) return;
+      const scrollAmount = container.clientWidth * 0.75 * direction;
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+
+    function initCardsDraggable() {
+      const slider = document.getElementById('cardsScrollContainer');
+      if (!slider) return;
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+
+      slider.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button') || e.target.closest('input')) return;
+        isDown = true;
+        slider.classList.add('is-dragging');
+        startX = e.pageX - slider.offsetLeft;
+        scrollLeft = slider.scrollLeft;
+      });
+      slider.addEventListener('mouseleave', () => {
+        isDown = false;
+        slider.classList.remove('is-dragging');
+      });
+      slider.addEventListener('mouseup', () => {
+        isDown = false;
+        slider.classList.remove('is-dragging');
+      });
+      slider.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - slider.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        slider.scrollLeft = scrollLeft - walk;
+      });
+    }
+
+    // --- 模态框通用交互增强：点击背景遮罩关闭、ESC关闭、移动端触摸下拉拖动关闭 ---
+    function initModalInteractions() {
+      // 1. 点击背景遮罩层自动关闭对应模态框
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) {
+            overlay.classList.remove('active');
+          }
+        });
+      });
+
+      // 2. ESC 键关闭所有打开的模态框
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+        }
+      });
+
+      // 3. 移动端/触摸下拉拖动关闭手势 (抓取顶部拖动条或模态框头部)
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        const modal = overlay.querySelector('.modal');
+        if (!modal) return;
+        const dragHandle = modal.querySelector('.modal-drag-bar') || modal.querySelector('.modal-header');
+        if (!dragHandle) return;
+
+        let startY = 0;
+        let diffY = 0;
+        let isTouching = false;
+
+        dragHandle.addEventListener('touchstart', (e) => {
+          if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('textarea')) return;
+          startY = e.touches[0].clientY;
+          diffY = 0;
+          isTouching = true;
+          modal.style.transition = 'none';
+        }, { passive: true });
+
+        dragHandle.addEventListener('touchmove', (e) => {
+          if (!isTouching) return;
+          const currentY = e.touches[0].clientY;
+          diffY = currentY - startY;
+          if (diffY > 0) {
+            modal.style.transform = `translateY(${diffY * 0.8}px)`;
+          }
+        }, { passive: true });
+
+        dragHandle.addEventListener('touchend', () => {
+          if (!isTouching) return;
+          isTouching = false;
+          modal.style.transition = 'transform 0.25s ease';
+          if (diffY > 75) {
+            modal.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+              overlay.classList.remove('active');
+              modal.style.transform = '';
+            }, 200);
+          } else {
+            modal.style.transform = '';
+          }
+        });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initModalInteractions);
+    } else {
+      initModalInteractions();
+    }
+
+    // --- 大额消费卡片一键联动筛选 ---
+    function toggleLargeExpenseFilter() {
+      isLargeOnlyFilter = !isLargeOnlyFilter;
+      const card = document.getElementById('cardLargeExpense');
+      const badge = document.getElementById('dashLargeActionBadge');
+      if (isLargeOnlyFilter) {
+        if (card) {
+          card.style.borderColor = '#0284c7';
+          card.style.background = '#e0f2fe';
+          card.style.boxShadow = '0 0 0 2px rgba(2, 132, 199, 0.2)';
+        }
+        if (badge) {
+          badge.textContent = '已筛选大额 (点击还原)';
+          badge.style.background = '#0284c7';
+          badge.style.color = '#ffffff';
+        }
+      } else {
+        if (card) {
+          card.style.borderColor = '#e0f2fe';
+          card.style.background = '#f8fafc';
+          card.style.boxShadow = 'none';
+        }
+        if (badge) {
+          badge.textContent = '点击筛选';
+          badge.style.background = '#e0f2fe';
+          badge.style.color = '#0284c7';
+        }
+      }
+      currentPage = 1;
+      renderExpenses();
+    }
 
     // ========== 2. 认证界面逻辑 ==========
     function showConfigForm() { document.getElementById('configSection').style.display = 'block'; document.getElementById('authSection').style.display = 'none'; document.getElementById('loadingSection').style.display = 'none'; }
@@ -2471,6 +2764,9 @@
       updateDashboardCards();
 
       let temp = getTimeFilteredExpenses();
+      if (isLargeOnlyFilter) {
+        temp = temp.filter(e => e.amount > 500);
+      }
       if (!activeSelectedTypes.includes('全部类型')) { temp = temp.filter(e => activeSelectedTypes.includes(e.type1)); }
       const kw = document.getElementById('searchInput').value.trim(); if (kw) temp = temp.filter(e => e.type2.includes(kw));
       temp.sort((a, b) => { const dateA = String(a.date || "").substring(0, 10); const dateB = String(b.date || "").substring(0, 10); if (dateA > dateB) return -1; if (dateA < dateB) return 1; const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0; const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0; return timeB - timeA; });
@@ -2489,19 +2785,29 @@
       // Compute days passed in the current cycle (starts on the 5th)
       const [cYear, cMonth] = currentStatMonth.split('-').map(Number);
       const cycleStart = new Date(cYear, cMonth - 1, 5); // Month is 0-indexed
+      let endM = cMonth;
+      let endY = cYear;
+      if (endM > 11) { endM = 0; endY++; }
+      const cycleEnd = new Date(endY, endM, 4);
+
       // Normalize to midnight for accurate day diff
       const calcNow = new Date(now);
       calcNow.setHours(0, 0, 0, 0);
       cycleStart.setHours(0, 0, 0, 0);
+      cycleEnd.setHours(0, 0, 0, 0);
 
       let daysPassed = Math.floor((calcNow - cycleStart) / (1000 * 60 * 60 * 24)) + 1;
       if (daysPassed < 1) daysPassed = 1;
+      const totalCycleDays = Math.max(1, Math.floor((cycleEnd - cycleStart) / (1000 * 60 * 60 * 24)) + 1);
+      const timePct = Math.min(100, Math.max(0, (daysPassed / totalCycleDays) * 100));
 
       const thisMonthData = allExpenses.filter(e => e.statMonth === currentStatMonth);
       const monthTotalExpense = thisMonthData.reduce((sum, item) => sum + item.amount, 0);
       const thisMonthBudget = cloudBudget || 9000; // 使用云端同步的预算
       const monthBalance = thisMonthBudget - monthTotalExpense;
-      const largeCount = thisMonthData.filter(e => e.amount > 500).length;
+      const largeItems = thisMonthData.filter(e => e.amount > 500);
+      const largeCount = largeItems.length;
+      const largeTotal = largeItems.reduce((sum, item) => sum + item.amount, 0);
       const dailyAvg = monthTotalExpense / daysPassed;
 
       // 修复近7天计算逻辑
@@ -2543,9 +2849,53 @@
       document.getElementById('dashMonthExpense').innerText = `¥ ${formatMoney(monthTotalExpense)}`;
       document.getElementById('dashMonthBalance').innerText = `¥ ${formatMoney(monthBalance)}`;
       document.getElementById('dashMonthBalance').style.color = monthBalance >= 0 ? '#2e7d32' : '#c62828';
+      
+      // 更新预算进度条与时间进度/防超支感知
+      const budgetProgressBar = document.getElementById('budgetProgressBar');
+      const budgetUsageText = document.getElementById('budgetUsageText');
+      const budgetTotalText = document.getElementById('budgetTotalText');
+      const budgetPaceBadge = document.getElementById('budgetPaceBadge');
+      const budgetTimeProgressText = document.getElementById('budgetTimeProgressText');
+
+      if (budgetProgressBar && budgetUsageText && budgetTotalText) {
+        const usedPct = thisMonthBudget > 0 ? (monthTotalExpense / thisMonthBudget) * 100 : 0;
+        budgetUsageText.innerText = `已用 ${usedPct.toFixed(1)}%`;
+        budgetTotalText.innerText = `预算: ¥${formatMoney(thisMonthBudget)}`;
+        budgetProgressBar.style.width = `${Math.min(usedPct, 100)}%`;
+
+        if (budgetTimeProgressText) {
+          budgetTimeProgressText.innerText = `时间 ${timePct.toFixed(0)}% (第${daysPassed}/${totalCycleDays}天)`;
+        }
+
+        if (budgetPaceBadge) {
+          if (usedPct >= 100) {
+            budgetPaceBadge.innerText = `🚨 已超支 ${(usedPct - 100).toFixed(0)}%`;
+            budgetPaceBadge.style.background = '#ffebee';
+            budgetPaceBadge.style.color = '#c62828';
+            budgetProgressBar.style.backgroundColor = '#c62828';
+          } else if (usedPct > timePct + 15 && usedPct > 30) {
+            budgetPaceBadge.innerText = `⚠️ 消耗偏快 (预计超支)`;
+            budgetPaceBadge.style.background = '#fff3e0';
+            budgetPaceBadge.style.color = '#e65100';
+            budgetProgressBar.style.backgroundColor = '#f57c00';
+          } else {
+            budgetPaceBadge.innerText = `✅ 消费节奏健康`;
+            budgetPaceBadge.style.background = '#e8f5e9';
+            budgetPaceBadge.style.color = '#2e7d32';
+            budgetProgressBar.style.backgroundColor = '#2e7d32';
+          }
+        }
+      }
+
       document.getElementById('dashLargeCount').innerText = `${largeCount} 笔`;
+      const largeTotalEl = document.getElementById('dashLargeTotalText');
+      if (largeTotalEl) {
+        largeTotalEl.innerText = `共 ¥ ${formatMoney(largeTotal)}`;
+      }
+
       document.getElementById('dashMonthDailyAvg').innerText = `¥ ${formatMoney(dailyAvg)}`;
-      document.getElementById('dashEntertainment').innerText = `¥ ${formatMoney(monthlyEntShopping)}`;
+      const entEl = document.getElementById('dashEntertainment');
+      if (entEl) entEl.innerText = `¥ ${formatMoney(monthlyEntShopping)}`;
       document.getElementById('dashWeeklyAvg').innerText = `¥ ${formatMoney(weeklyAvg)}`;
       const momEl = document.getElementById('dashMomGrowth');
       momEl.innerText = momText;
@@ -2603,7 +2953,7 @@
       const tbody = document.getElementById('expenseList'); tbody.innerHTML = ''; const start = (currentPage - 1) * pageSize; const pageData = filteredExpenses.slice(start, start + pageSize);
       const targetTotal = filteredExpenses.reduce((a, b) => a + b.amount, 0); const targetCount = filteredExpenses.length;
 
-      const filterResultText = document.getElementById('filterResultText'); if (filterResultText) { filterResultText.innerHTML = `共 ${targetCount} 笔<br>总额 ¥ ${formatMoney(targetTotal)}`; }
+      const filterResultText = document.getElementById('filterResultText'); if (filterResultText) { filterResultText.innerHTML = `共 <strong>${targetCount}</strong> 笔 · 总额 <strong>¥ ${formatMoney(targetTotal)}</strong>`; }
       const groups = {}; pageData.forEach(e => { if (!groups[e.statMonth]) groups[e.statMonth] = []; groups[e.statMonth].push(e); });
 
       Object.keys(groups).sort().reverse().forEach(mon => {
@@ -2646,6 +2996,7 @@
             <div class="action-cell-content">
                <button class="action-btn" style="${btnStyle} padding:4px 8px; min-width:32px;" onclick="openEditNote('${item.id}')" title="${btnTitle}">${btnIcon}</button>
                <button class="action-btn btn-brown" onclick="editExp('${item.id}')">编辑</button>
+               <button class="action-btn btn-light" onclick="copyExp('${item.id}')" title="以此账单为模板复制新增">复制</button>
                <button class="action-btn btn-dark" onclick="delExp('${item.id}')">删除</button>
             </div>
           </td>`;
@@ -3098,14 +3449,25 @@
     function formatMoney(n) { return n.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'); }
     function applyMonthOrSearchFilter() { currentPage = 1; renderExpenses(); }
     function applyDateRangeFilter() { const start = document.getElementById('startDate').value; const end = document.getElementById('endDate').value; if (start && end && start > end) { alert('开始时间不能晚于结束时间'); document.getElementById('startDate').value = ''; return; } currentPage = 1; renderExpenses(); }
-    function resetFilters() { activeSelectedTypes = ['全部类型']; tempSelectedTypes = ['全部类型']; updateTriggerText(); renderDropdownCheckboxes(); document.getElementById('typeSelectWrapper').classList.remove('open'); document.getElementById('startDate').value = ''; document.getElementById('endDate').value = ''; const sel = document.getElementById('monthFilter'); const memSel = document.getElementById('memberFilter'); memSel.value = ""; const currentMonth = computeStatMonth(new Date().toISOString()); let found = false; for (let i = 0; i < sel.options.length; i++) { if (sel.options[i].value === currentMonth) { sel.value = currentMonth; found = true; break; } } if (!found) sel.value = ""; document.getElementById('searchInput').value = ''; currentPage = 1; renderExpenses(); }
+    function resetFilters() {
+      if (isLargeOnlyFilter) {
+        isLargeOnlyFilter = false;
+        const card = document.getElementById('cardLargeExpense');
+        const badge = document.getElementById('dashLargeActionBadge');
+        if (card) { card.style.borderColor = '#e0f2fe'; card.style.background = '#f8fafc'; card.style.boxShadow = 'none'; }
+        if (badge) { badge.textContent = '点击筛选'; badge.style.background = '#e0f2fe'; badge.style.color = '#0284c7'; }
+      }
+      activeSelectedTypes = ['全部类型']; tempSelectedTypes = ['全部类型']; updateTriggerText(); renderDropdownCheckboxes(); document.getElementById('typeSelectWrapper').classList.remove('open'); document.getElementById('startDate').value = ''; document.getElementById('endDate').value = ''; const sel = document.getElementById('monthFilter'); const memSel = document.getElementById('memberFilter'); memSel.value = ""; const currentMonth = computeStatMonth(new Date().toISOString()); let found = false; for (let i = 0; i < sel.options.length; i++) { if (sel.options[i].value === currentMonth) { sel.value = currentMonth; found = true; break; } } if (!found) sel.value = ""; document.getElementById('searchInput').value = ''; currentPage = 1; renderExpenses();
+    }
     function changePageSize() { pageSize = parseInt(document.getElementById('pageSizeSelect').value); currentPage = 1; renderExpenses(); }
     function jumpToPage() { const inputVal = parseInt(document.getElementById('pageJumpInput').value); const maxPage = Math.ceil(filteredExpenses.length / pageSize) || 1; if (isNaN(inputVal) || inputVal < 1) currentPage = 1; else if (inputVal > maxPage) currentPage = maxPage; else currentPage = inputVal; renderTable(); document.getElementById('pageJumpInput').value = currentPage; }
     function changePageRelative(offset) { const maxPage = Math.ceil(filteredExpenses.length / pageSize) || 1; let newPage = currentPage + offset; if (newPage < 1) newPage = 1; if (newPage > maxPage) newPage = maxPage; if (newPage !== currentPage) { currentPage = newPage; renderTable(); document.getElementById('pageJumpInput').value = currentPage; } }
     function checkBatchBtn() { const n = document.querySelectorAll('.item-cb:checked').length; const btn = document.getElementById('batchDeleteBtn'); btn.disabled = (n === 0); btn.style.opacity = n === 0 ? '0.5' : '1'; }
     function toggleAllCheckboxes() { const v = document.getElementById('selectAll').checked; document.querySelectorAll('.item-cb').forEach(c => c.checked = v); checkBatchBtn(); }
 
-    // --- AI 智能识别 (使用指定模型) ---
+    // --- AI 智能识别 (使用指定模型，支持单条与多条连续批量) ---
+    let currentBatchAiItems = [];
+
     async function handleSmartIdentify() {
       const inputVal = document.getElementById('aiInput').value.trim();
       if (!inputVal) return alert('请先输入描述文字');
@@ -3126,29 +3488,28 @@
       const btn = document.getElementById('btnSmartIdentify');
       const originalText = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = '正在分析中...';
+      btn.innerHTML = '正在智能分析拆解中...';
 
       try {
         const todayStr = new Date().toISOString().split('T')[0];
         const expenseTypesStr = EXPENSE_TYPES.join('、');
 
-        // 提示词只包含支出类型
         const systemPrompt = `
-You are a smart expense tracker assistant. 
+You are a smart expense tracker assistant.
 Today is ${todayStr}.
-Existing Expense Types: [${expenseTypesStr}]
+Allowed Expense Types (type1): [${expenseTypesStr}]
 
-Your task is to extract information from the user's input and return a JSON object.
-Rules:
-1. "date": Format YYYY-MM-DD. Handle relative dates like "yesterday", "today".
-2. "amount": Number.
-3. "category": Always "expense".
-4. "type1": Choose the most appropriate one from the Existing Expense Types list.
-5. "type2": A short description of the item.
+Your task is to extract all expense items from the user's input and return a JSON array of objects.
+Even for a single expense, return an array with one element: [{...}].
+Rules for each item:
+1. "date": Format YYYY-MM-DD. Calculate relative dates like '前天', '昨天', '今天', '大前天', '周一' relative to ${todayStr}.
+2. "amount": Number (positive number, rounded to 2 decimal places).
+3. "type1": Must choose the most appropriate one from the Allowed Expense Types list: [${expenseTypesStr}].
+4. "type2": Short descriptive item name (e.g. 肯德基, 打车, 奶茶, 买菜).
 
-Output strictly valid JSON only.
-Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "吃", "type2": "奶茶"}
-            `;
+Output strictly valid JSON array only. No markdown, no additional comments.
+Example: [{"date":"${todayStr}","amount":25.5,"type1":"吃","type2":"奶茶"},{"date":"${todayStr}","amount":35,"type1":"交通","type2":"打车"}]
+        `;
 
         const response = await fetch(apiEndpoint, {
           method: "POST",
@@ -3176,32 +3537,160 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
         if (!result.choices || result.choices.length === 0) throw new Error('API 返回数据为空');
 
         let content = result.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim();
+        const firstBracket = content.indexOf('[');
+        const firstBrace = content.indexOf('{');
+        if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+          const lastBracket = content.lastIndexOf(']');
+          if (lastBracket !== -1) {
+            content = content.substring(firstBracket, lastBracket + 1);
+          }
+        } else if (firstBrace !== -1) {
+          const lastBrace = content.lastIndexOf('}');
+          if (lastBrace !== -1) {
+            content = content.substring(firstBrace, lastBrace + 1);
+          }
+        }
+
         let aiData = JSON.parse(content);
-        console.log('AI 识别结果:', aiData);
+        const items = Array.isArray(aiData) ? aiData : [aiData];
+        console.log('AI 识别拆解结果:', items);
 
-        if (aiData.date) document.getElementById('modalDate').value = aiData.date;
-        if (aiData.amount) document.getElementById('modalAmount').value = aiData.amount;
-        if (aiData.type2) document.getElementById('modalType2').value = aiData.type2;
+        if (items.length === 0) {
+          throw new Error('未识别到有效的消费项目');
+        }
 
-        // 强制为 expense
-        document.querySelector('input[name="modalCategory"][value="expense"]').checked = true;
-        updateModalTypeOptions();
+        if (items.length === 1) {
+          // 单条记录：直接填入表单
+          const single = items[0];
+          if (single.date) document.getElementById('modalDate').value = single.date;
+          if (single.amount) document.getElementById('modalAmount').value = single.amount;
+          if (single.type2) document.getElementById('modalType2').value = single.type2;
+          updateModalTypeOptions();
 
-        if (aiData.type1) {
-          setTimeout(() => {
-            const select = document.getElementById('modalType1');
-            for (let i = 0; i < select.options.length; i++) {
-              if (select.options[i].value === aiData.type1) {
-                select.value = aiData.type1;
-                break;
+          if (single.type1) {
+            setTimeout(() => {
+              const select = document.getElementById('modalType1');
+              for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === single.type1) {
+                  select.value = single.type1;
+                  break;
+                }
               }
-            }
-          }, 50);
+            }, 50);
+          }
+          cancelBatchPreview();
+        } else {
+          // 多条记录：批量预览与一键入库
+          renderBatchPreview(items);
         }
 
       } catch (error) {
         console.error(error);
         alert('❌ 识别失败: ' + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    function renderBatchPreview(items) {
+      currentBatchAiItems = items;
+      const previewSection = document.getElementById('aiBatchPreviewSection');
+      const titleEl = document.getElementById('aiBatchCountTitle');
+      const listContainer = document.getElementById('aiBatchList');
+      const btnSaveAll = document.getElementById('btnSaveBatchAll');
+
+      titleEl.innerText = `📋 识别出 ${items.length} 笔账单 (可核对并一键批量入库)`;
+      btnSaveAll.innerText = `⚡ 一键保存全部 (${items.length}笔)`;
+      listContainer.innerHTML = '';
+
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.style.cssText = 'background: white; border: 1px solid #dcfce7; border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;';
+        div.innerHTML = `
+          <div style="display: flex; gap: 8px; align-items: center; flex: 1; overflow: hidden;">
+            <span style="font-weight: 600; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 6px; font-size: 0.75rem;">${escapeHtml(item.type1 || '其他')}</span>
+            <span style="color: #64748b; font-size: 0.8rem;">${escapeHtml(item.date || '')}</span>
+            <span style="color: #334155; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(item.type2 || '无描述')}</span>
+          </div>
+          <div style="font-weight: bold; color: #c62828; margin-left: 10px; font-size: 0.95rem;">
+            ¥ ${formatMoney(parseFloat(item.amount) || 0)}
+          </div>
+        `;
+        listContainer.appendChild(div);
+      });
+
+      previewSection.style.display = 'block';
+      useFirstBatchExpense(false);
+    }
+
+    function cancelBatchPreview() {
+      currentBatchAiItems = [];
+      const previewSection = document.getElementById('aiBatchPreviewSection');
+      if (previewSection) previewSection.style.display = 'none';
+    }
+
+    function useFirstBatchExpense(shouldHide = true) {
+      if (currentBatchAiItems.length > 0) {
+        const item = currentBatchAiItems[0];
+        if (item.date) document.getElementById('modalDate').value = item.date;
+        if (item.amount) document.getElementById('modalAmount').value = item.amount;
+        if (item.type2) document.getElementById('modalType2').value = item.type2;
+        updateModalTypeOptions();
+        if (item.type1) {
+          setTimeout(() => {
+            const select = document.getElementById('modalType1');
+            for (let i = 0; i < select.options.length; i++) {
+              if (select.options[i].value === item.type1) {
+                select.value = item.type1;
+                break;
+              }
+            }
+          }, 50);
+        }
+      }
+      if (shouldHide) cancelBatchPreview();
+    }
+
+    async function saveAllBatchExpenses() {
+      if (!currentUser) return alert('未登录');
+      if (!currentBatchAiItems || currentBatchAiItems.length === 0) return;
+
+      const btn = document.getElementById('btnSaveBatchAll');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '正在批量入库保存中...';
+
+      try {
+        const avObjects = currentBatchAiItems.map(item => {
+          const cleanAmount = Math.round((parseFloat(item.amount) || 0) * 100) / 100;
+          const data = {
+            date: item.date || new Date().toISOString().substring(0, 10),
+            type1: item.type1 || '其他',
+            type2: item.type2 || '',
+            amount: cleanAmount,
+            familyId: MY_FAMILY_ID,
+            category: 'expense'
+          };
+          const obj = new ExpenseClass();
+          obj.set(data);
+          obj.set('owner', currentUser);
+          const acl = new AV.ACL();
+          acl.setPublicReadAccess(true);
+          acl.setPublicWriteAccess(true);
+          obj.setACL(acl);
+          return obj;
+        });
+
+        await AV.Object.saveAll(avObjects);
+        alert(`🎉 成功批量录入 ${avObjects.length} 笔账单！`);
+        cancelBatchPreview();
+        closeAddModal();
+        allExpenses = [];
+        await renderExpenses();
+      } catch (err) {
+        console.error(err);
+        alert('❌ 批量入库失败: ' + err.message);
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
@@ -3361,6 +3850,22 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
       document.getElementById('settingsAiId').value = '';
     }
 
+    function applyTeamoRouterPreset() {
+      document.getElementById('settingsAiConfigName').value = 'TeamoRouter (DeepSeek Flash)';
+      document.getElementById('settingsAiModel').value = 'deepseek-flash-1017';
+      document.getElementById('settingsAiEndpoint').value = 'https://api.teamorouter.cn/v1/chat/completions';
+      const keyInput = document.getElementById('settingsAiKey');
+      keyInput.focus();
+    }
+
+    function applyOpenRouterPreset() {
+      document.getElementById('settingsAiConfigName').value = 'OpenRouter (GLM-4.5)';
+      document.getElementById('settingsAiModel').value = 'z-ai/glm-4.5-air:free';
+      document.getElementById('settingsAiEndpoint').value = 'https://openrouter.ai/api/v1/chat/completions';
+      const keyInput = document.getElementById('settingsAiKey');
+      keyInput.focus();
+    }
+
     // 切换/激活选中的大模型
     function activateAiConfig(id) {
       localStorage.setItem('lc_ai_selected_id', id);
@@ -3464,7 +3969,7 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
       document.getElementById('modalEditId').value = '';
       document.getElementById('modalTitle').innerText = '新增记录';
       document.getElementById('aiInput').value = '';
-      document.querySelector('input[name="modalCategory"][value="expense"]').checked = true;
+      cancelBatchPreview();
       updateModalTypeOptions();
       document.getElementById('modalDate').valueAsDate = new Date();
       document.getElementById('addModal').classList.add('active');
@@ -3477,7 +3982,6 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
       const id = document.getElementById('modalEditId').value;
       const cleanAmount = Math.round(parseFloat(document.getElementById('modalAmount').value) * 100) / 100;
 
-      // 强制 category 为 expense
       const data = { date: document.getElementById('modalDate').value, type1: document.getElementById('modalType1').value, type2: document.getElementById('modalType2').value, amount: cleanAmount, familyId: MY_FAMILY_ID, category: 'expense' };
       try {
         if (id) { const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id); obj.set(data); await obj.save(); } else { const obj = new ExpenseClass(); obj.set(data); obj.set('owner', currentUser); const acl = new AV.ACL(); acl.setPublicReadAccess(true); acl.setPublicWriteAccess(true); obj.setACL(acl); await obj.save(); }
@@ -3486,32 +3990,269 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
     };
     async function delExp(id) { if (!confirm('确定删除?')) return; const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id); await obj.destroy(); allExpenses = allExpenses.filter(e => e.id !== id); renderExpenses(); }
     async function batchDeleteSelected() { const ids = Array.from(document.querySelectorAll('.item-cb:checked')).map(c => c.value); if (!confirm(`确定删除 ${ids.length} 条?`)) return; const objs = ids.map(id => AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id)); await AV.Object.destroyAll(objs); allExpenses = allExpenses.filter(e => !ids.includes(e.id)); renderExpenses(); document.getElementById('selectAll').checked = false; }
+    
     function editExp(id) {
-      const item = allExpenses.find(e => e.id === id); document.getElementById('modalEditId').value = id;
-      // 编辑时强制选中 expense
-      document.querySelector(`input[name="modalCategory"][value="expense"]`).checked = true;
+      const item = allExpenses.find(e => e.id === id);
+      document.getElementById('modalEditId').value = id;
+      cancelBatchPreview();
       updateModalTypeOptions();
-      document.getElementById('modalDate').value = item.date.substring(0, 10); document.getElementById('modalType1').value = item.type1; document.getElementById('modalType2').value = item.type2; document.getElementById('modalAmount').value = item.amount;
+      document.getElementById('modalDate').value = item.date.substring(0, 10);
+      document.getElementById('modalType1').value = item.type1;
+      document.getElementById('modalType2').value = item.type2;
+      document.getElementById('modalAmount').value = item.amount;
       document.getElementById('aiInput').value = '';
-      document.getElementById('modalTitle').innerText = '编辑记录'; document.getElementById('addModal').classList.add('active');
+      document.getElementById('modalTitle').innerText = '编辑记录';
+      document.getElementById('addModal').classList.add('active');
     }
-    document.getElementById('editBudgetBtn').onclick = async () => {
-      const v = prompt(`修改每月通用预算（所有设备同步）`, currentBudget);
-      if (v && !isNaN(v)) {
-        const newBudget = parseFloat(v);
-        const success = await saveBudgetToCloud(newBudget);
-        if (success) {
-          renderCharts();
-          updateDashboardCards();
-        }
+
+    function copyExp(id) {
+      const item = allExpenses.find(e => e.id === id);
+      if (!item) return;
+      document.getElementById('modalExpenseForm').reset();
+      document.getElementById('modalEditId').value = ''; // 复制视为新增记录，清空 ID
+      cancelBatchPreview();
+      updateModalTypeOptions();
+      // 默认为当天日期，方便快速记当天的日常账
+      document.getElementById('modalDate').valueAsDate = new Date();
+      document.getElementById('modalType1').value = item.type1 || '';
+      document.getElementById('modalType2').value = item.type2 || '';
+      document.getElementById('modalAmount').value = item.amount || '';
+      document.getElementById('aiInput').value = '';
+      document.getElementById('modalTitle').innerText = '复制记账 (以此为模板)';
+      document.getElementById('addModal').classList.add('active');
+    }
+
+    // 自定义预算弹窗交互
+    document.getElementById('editBudgetBtn').onclick = openBudgetModal;
+
+    function openBudgetModal() {
+      const input = document.getElementById('customBudgetInput');
+      if (input) input.value = currentBudget || 9000;
+      document.getElementById('budgetModal').classList.add('active');
+    }
+
+    function closeBudgetModal() {
+      document.getElementById('budgetModal').classList.remove('active');
+    }
+
+    function setBudgetPreset(val) {
+      const input = document.getElementById('customBudgetInput');
+      if (input) input.value = val;
+    }
+
+    async function saveCustomBudget() {
+      const input = document.getElementById('customBudgetInput');
+      const val = parseFloat(input.value);
+      if (isNaN(val) || val <= 0) return alert('请输入有效的预算金额');
+
+      const success = await saveBudgetToCloud(val);
+      if (success) {
+        closeBudgetModal();
+        renderCharts();
+        updateDashboardCards();
       }
-    };
-    function exportToCSV() { let csv = '统计月份,日期,一级类型,记账人,二级类型,金额\n'; filteredExpenses.forEach(e => { csv += `${e.statMonth},${e.date.substring(0, 10)},${e.type1},${e.username},${e.type2},${e.amount}\n`; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = '支出明细.csv'; a.click(); }
-    function printCurrentPage() { window.print(); }
+    }
+
+    function exportToCSV() {
+      if (!filteredExpenses || filteredExpenses.length === 0) {
+        return alert('当前筛选条件下没有可导出的数据');
+      }
+      const escapeCSV = (val) => {
+        if (val === null || val === undefined) return '';
+        const s = String(val).replace(/"/g, '""');
+        return `"${s}"`;
+      };
+      // 添加 \uFEFF 防止 Excel 打开 UTF-8 出现中文乱码
+      let csv = '\uFEFF统计月份,消费日期,一级类型,记账人,二级类型,金额,是否已复盘,浪费金额,反省备注\n';
+      filteredExpenses.forEach(e => {
+        const reviewedText = e.isReviewed ? '是' : '否';
+        const wasteAmt = e.wasteAmount || 0;
+        const wasteNote = e.wasteNote || '';
+        csv += `${escapeCSV(e.statMonth)},${escapeCSV(e.date.substring(0, 10))},${escapeCSV(e.type1)},${escapeCSV(e.username)},${escapeCSV(e.type2)},${e.amount},${reviewedText},${wasteAmt},${escapeCSV(wasteNote)}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const nowStr = new Date().toISOString().substring(0, 10);
+      a.download = `家庭支出明细_${nowStr}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // 全量 JSON 备份
+    function exportFullBackupJSON() {
+      if (!allExpenses || allExpenses.length === 0) {
+        return alert('暂无账单数据可供备份');
+      }
+      const backupData = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        familyId: MY_FAMILY_ID,
+        cloudBudget: cloudBudget || 9000,
+        totalCount: allExpenses.length,
+        expenses: allExpenses.map(e => ({
+          id: e.id,
+          date: e.date,
+          type1: e.type1,
+          type2: e.type2 || '',
+          amount: e.amount,
+          username: e.username,
+          category: e.category || 'expense',
+          isReviewed: !!e.isReviewed,
+          wasteAmount: e.wasteAmount || 0,
+          wasteNote: e.wasteNote || '',
+          createdAt: e.createdAt
+        }))
+      };
+      const jsonStr = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const nowStr = new Date().toISOString().substring(0, 10);
+      a.download = `家庭账目全量备份_${nowStr}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // 触发 JSON 备份导入
+    function triggerImportBackup() {
+      const input = document.getElementById('backupFileInput');
+      if (input) input.click();
+    }
+
+    // 处理 JSON 备份导入与恢复
+    async function handleImportBackup(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      if (!currentUser) return alert('请先登录后再导入数据！');
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const content = e.target.result;
+          const data = JSON.parse(content);
+          let itemsToImport = [];
+
+          if (Array.isArray(data)) {
+            itemsToImport = data;
+          } else if (data && Array.isArray(data.expenses)) {
+            itemsToImport = data.expenses;
+          } else {
+            return alert('备份文件格式不正确，未找到账单数据列表');
+          }
+
+          if (itemsToImport.length === 0) {
+            return alert('备份文件中没有账单数据');
+          }
+
+          // 去重逻辑：比对已存在的账单
+          // 相同日期(前10位)、一级分类、二级描述、金额 视为重复记录
+          const existingKeySet = new Set(allExpenses.map(item =>
+            `${String(item.date).substring(0, 10)}_${item.type1}_${item.type2 || ''}_${item.amount}`
+          ));
+
+          const newItems = [];
+          let duplicateCount = 0;
+
+          for (const item of itemsToImport) {
+            const dateStr = String(item.date || '').substring(0, 10);
+            const amount = parseFloat(item.amount);
+            if (!dateStr || isNaN(amount) || !item.type1) continue;
+
+            const key = `${dateStr}_${item.type1}_${item.type2 || ''}_${amount}`;
+            if (existingKeySet.has(key)) {
+              duplicateCount++;
+            } else {
+              existingKeySet.add(key); // 避免文件自身内部重复
+              newItems.push({
+                date: dateStr,
+                type1: item.type1,
+                type2: item.type2 || '',
+                amount: Math.round(amount * 100) / 100,
+                familyId: MY_FAMILY_ID,
+                category: 'expense',
+                isReviewed: !!item.isReviewed,
+                wasteAmount: parseFloat(item.wasteAmount) || 0,
+                wasteNote: item.wasteNote || ''
+              });
+            }
+          }
+
+          if (newItems.length === 0) {
+            return alert(`备份中共有 ${itemsToImport.length} 条记录，全部与现有账单重复，无需导入。`);
+          }
+
+          const confirmed = confirm(
+            `备份文件解析成功：\n` +
+            `• 总记录数：${itemsToImport.length} 条\n` +
+            `• 自动跳过重复：${duplicateCount} 条\n` +
+            `• 待导入新记录：${newItems.length} 条\n\n` +
+            `确定要将这 ${newItems.length} 条新记录导入并同步到云端吗？`
+          );
+          if (!confirmed) return;
+
+          // 分批上传（每批 50 条，避免超过云端单次负载上限）
+          const chunkSize = 50;
+          let savedCount = 0;
+
+          for (let i = 0; i < newItems.length; i += chunkSize) {
+            const chunk = newItems.slice(i, i + chunkSize);
+            const avObjects = chunk.map(d => {
+              const obj = new ExpenseClass();
+              obj.set(d);
+              obj.set('owner', currentUser);
+              const acl = new AV.ACL();
+              acl.setPublicReadAccess(true);
+              acl.setPublicWriteAccess(true);
+              obj.setACL(acl);
+              return obj;
+            });
+            await AV.Object.saveAll(avObjects);
+            savedCount += chunk.length;
+          }
+
+          alert(`✅ 导入成功！已成功恢复并同步 ${savedCount} 条新记录。`);
+          allExpenses = [];
+          await renderExpenses();
+
+        } catch (err) {
+          console.error(err);
+          alert('❌ 备份导入失败: ' + err.message);
+        } finally {
+          input.value = ''; // 重置 file input，允许重复选择同一文件
+        }
+      };
+      reader.onerror = () => {
+        alert('读取备份文件失败，请重试');
+        input.value = '';
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
     // ========== 9. 复盘模式 (Retro Mode) ==========
     let retroList = [];
     let retroIndex = 0;
     let retroScope = 'unreviewed'; // unreviewed | all
+
+    function getStatMonthRangeText(statMonth) {
+      if (!statMonth || !statMonth.includes('-')) return '';
+      let [y, m] = statMonth.split('-').map(Number);
+      let nextM = m + 1;
+      let nextY = y;
+      if (nextM > 12) { nextM = 1; nextY++; }
+      return `${y}.${String(m).padStart(2, '0')}.05 ~ ${nextY}.${String(nextM).padStart(2, '0')}.04`;
+    }
+
+    function updateRetroCycleHint() {
+      const select = document.getElementById('retroMonthSelect');
+      const hint = document.getElementById('retroCycleHint');
+      if (!select || !hint) return;
+      const val = select.value;
+      if (!val) { hint.textContent = ''; return; }
+      const range = getStatMonthRangeText(val);
+      hint.innerHTML = `📅 账期范围：<strong>${range}</strong> (上月5号至本月4号)`;
+    }
 
     function openRetroSetup() {
       document.getElementById('retroOverlay').classList.add('active');
@@ -3519,21 +4260,41 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
       document.getElementById('retroRunningArea').style.display = 'none';
       document.getElementById('retroSummary').style.display = 'none';
 
-      // 填充月份选择器 (默认选上个月)
+      // 1. 获取当前进行中的账期
+      const now = new Date();
+      const localNowStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      const currentStatMonth = computeStatMonth(localNowStr);
+
+      // 2. 刚结束的上一个完整周期 (上月5号到本月4号，这是复盘的首选目标)
+      let [cy, cm] = currentStatMonth.split('-').map(Number);
+      cm--;
+      if (cm === 0) { cm = 12; cy--; }
+      const defaultRetroMonth = `${cy}-${String(cm).padStart(2, '0')}`;
+
+      // 3. 填充月份选择器 (标注周期日期范围)
       const select = document.getElementById('retroMonthSelect');
       select.innerHTML = '';
       const months = [...new Set(allExpenses.map(e => e.statMonth))].sort().reverse();
-      months.forEach(m => select.add(new Option(m, m)));
 
-      // 尝试选中上个月
-      const now = new Date();
-      let lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthStr = computeStatMonth(lastMonth.toISOString());
-      if (months.includes(lastMonthStr)) {
-        select.value = lastMonthStr;
+      months.forEach(m => {
+        let tag = '';
+        if (m === defaultRetroMonth) tag = ' ★刚结束';
+        else if (m === currentStatMonth) tag = ' (进行中)';
+        const labelText = `${m} [${getStatMonthRangeText(m)}]${tag}`;
+        select.add(new Option(labelText, m));
+      });
+
+      // 优先选中刚结束的周期（上月5号到本月4号）
+      if (months.includes(defaultRetroMonth)) {
+        select.value = defaultRetroMonth;
+      } else if (months.includes(currentStatMonth)) {
+        select.value = currentStatMonth;
       } else if (months.length > 0) {
         select.value = months[0];
       }
+
+      select.onchange = updateRetroCycleHint;
+      updateRetroCycleHint();
 
       // 重置 Scope UI
       setRetroScope('unreviewed');
@@ -3592,7 +4353,7 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
       // 强制重绘以重置动画状态 (hack)
       void card.offsetWidth;
 
-      document.getElementById('retroDate').innerText = `${item.date.substring(5, 10)}`;
+      document.getElementById('retroDate').innerText = `${item.date.substring(5, 10)} · ${item.statMonth}期`;
       document.getElementById('retroCount').innerText = `${retroIndex + 1} / ${retroList.length}`;
       document.getElementById('retroType').innerText = item.type1;
       document.getElementById('retroAmount').innerText = `¥ ${formatMoney(item.amount)}`;
@@ -3691,12 +4452,10 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
       document.getElementById('retroRunningArea').style.display = 'none';
       document.getElementById('retroSummary').style.display = 'block';
 
-      // 简单计算本次复盘结果
-      // 实际上应该只统计本次 Session 操作的，但这里为了简单，统计该月所有浪费
-      const selectedMonth = document.getElementById('retroMonthSelect').value;
+      // 计算本次复盘结果
       const totalWaste = retroList.reduce((acc, cur) => acc + (cur.wasteAmount || 0), 0);
-
-      document.getElementById('retroSummaryWaste').innerText = `¥ ${formatMoney(totalWaste)}`;
+      const totalEl = document.getElementById('retroTotalWaste') || document.getElementById('retroSummaryWaste');
+      if (totalEl) totalEl.innerText = `¥ ${formatMoney(totalWaste)}`;
     }
 
     function closeRetroMode() {
@@ -3714,15 +4473,34 @@ Example: {"date":"2023-10-10", "amount": 25.5, "category": "expense", "type1": "
     function openWasteListModal() {
       document.getElementById('wasteListModal').classList.add('active');
 
-      // 填充月份 Filter
+      // 填充月份 Filter (标注周期)
       const select = document.getElementById('wasteMonthSelect');
       select.innerHTML = '';
       const months = [...new Set(allExpenses.map(e => e.statMonth))].sort().reverse();
-      months.forEach(m => select.add(new Option(m, m)));
 
-      // 默认选中当前月或上个月
-      const nowStr = computeStatMonth(new Date().toISOString());
-      if (months.includes(nowStr)) select.value = nowStr;
+      const now = new Date();
+      const localNowStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      const currentStatMonth = computeStatMonth(localNowStr);
+      let [cy, cm] = currentStatMonth.split('-').map(Number);
+      cm--;
+      if (cm === 0) { cm = 12; cy--; }
+      const lastStatMonth = `${cy}-${String(cm).padStart(2, '0')}`;
+
+      months.forEach(m => {
+        let tag = '';
+        if (m === lastStatMonth) tag = ' ★刚结束';
+        else if (m === currentStatMonth) tag = ' (进行中)';
+        select.add(new Option(`${m} [${getStatMonthRangeText(m)}]${tag}`, m));
+      });
+
+      // 默认选中刚结束的周期（上月5号到本月4号）
+      if (months.includes(lastStatMonth)) {
+        select.value = lastStatMonth;
+      } else if (months.includes(currentStatMonth)) {
+        select.value = currentStatMonth;
+      } else if (months.length > 0) {
+        select.value = months[0];
+      }
 
       renderWasteList();
     }
