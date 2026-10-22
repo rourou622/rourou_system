@@ -6,17 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>家庭费用清单</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.14.0/dist/av-min.js"></script>
+  <link rel="preconnect" href="https://kbcmyanjtawfqesrzljq.supabase.co" crossorigin>
+  <link rel="dns-prefetch" href="https://kbcmyanjtawfqesrzljq.supabase.co">
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Roboto:wght@400;500&display=swap"
-    rel="stylesheet">
 
   <style>
     :root {
@@ -49,7 +45,7 @@
     }
 
     body {
-      font-family: 'Roboto', 'Noto Sans SC', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       background-color: var(--bg-body);
       margin: 0;
       padding: 20px;
@@ -1435,50 +1431,41 @@
         Family: Big Banana House
       </p>
 
-      <div id="configSection" style="display: none;">
+      <div id="configSection">
         <div class="helper-text">
-          请前往 LeanCloud 控制台获取应用的 App ID 和 App Key。<br>
-          控制台 > 设置 > 应用凭证
+          请前往 Supabase 控制台获取 Project URL 与 Publishable (Anon) Key。<br>
+          控制台 > Project Settings > API
         </div>
         <div class="form-group">
-          <label>App ID</label>
-          <input type="text" id="configAppId" placeholder="输入 App ID">
+          <label>Supabase URL</label>
+          <input type="text" id="configSbUrl" placeholder="https://xxx.supabase.co" value="https://kbcmyanjtawfqesrzljq.supabase.co">
         </div>
         <div class="form-group">
-          <label>App Key</label>
-          <input type="password" id="configAppKey" placeholder="输入 App Key">
+          <label>Supabase Anon Key</label>
+          <input type="password" id="configSbKey" placeholder="输入 sb_publishable_... 或 anon key">
         </div>
-        <div class="form-group">
-          <label>REST API Server URL</label>
-          <input type="text" id="configServerUrl" placeholder="https://..." value="https://api.leancloud.cn">
-        </div>
-        <div class="form-group">
-          <label>OpenRouter API Key</label>
-          <input type="password" id="configAiKey" placeholder="输入 sk-or-v1-...">
-        </div>
-        <button class="action-btn-large btn-brown" onclick="saveConfig()">保存配置</button>
+        <button class="action-btn-large btn-brown" onclick="saveConfig()">保存并连接 Supabase</button>
       </div>
 
       <div id="authSection" style="display: none;">
-        <div class="auth-tabs">
-          <div class="auth-tab active" id="tabLogin" onclick="switchAuthMode('login')">登录</div>
-          <div class="auth-tab" id="tabSignup" onclick="switchAuthMode('signup')">注册</div>
+        <div style="margin-bottom: 20px; text-align: center;">
+          <label style="display:block; margin-bottom: 12px; color: var(--text-sub); font-size: 0.95rem; font-weight: 500;">选择记账人：</label>
+          <div style="display:flex; gap:12px; justify-content:center;">
+            <button type="button" class="action-btn-large" style="background:#fce4ec; color:#c2185b; border:1px solid #f8bbd0; flex:1; font-weight:bold; cursor:pointer;" onclick="quickLogin('hundun')">🐱 hundun</button>
+            <button type="button" class="action-btn-large" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; flex:1; font-weight:bold; cursor:pointer;" onclick="quickLogin('rourou622')">🐰 rourou622</button>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>用户名</label>
-          <input type="text" id="authUsername" placeholder="请输入用户名">
-        </div>
-        <div class="form-group">
-          <label>密码</label>
-          <input type="password" id="authPassword" placeholder="请输入密码">
+        <div class="form-group" style="margin-top: 15px;">
+          <label>或输入其他记账人</label>
+          <input type="text" id="authUsername" placeholder="输入用户名">
         </div>
 
-        <button class="action-btn-large btn-brown" id="authActionBtn" onclick="handleAuthAction()">登录</button>
+        <button class="action-btn-large btn-brown" id="authActionBtn" onclick="handleAuthAction()">进入系统</button>
 
         <div style="text-align: center; margin-top: 20px;">
           <button class="action-btn" style="color: var(--text-sub); text-decoration: underline;"
-            onclick="clearConfig()">重置 App 配置</button>
+            onclick="clearConfig()">重置 Supabase 配置</button>
         </div>
       </div>
 
@@ -2405,10 +2392,9 @@
     let openRouterKey = ""; // 全局变量存储 Key
 
     const MY_FAMILY_ID = "big banana house";
-    const EXPENSE_CLASS_NAME = 'rourou_YellowChamberPot';
-    const BUDGET_CLASS_NAME = 'rourou_FamilyBudget'; // 云端预算表
-    let BudgetClass = null;  // LeanCloud 预算类
-    let cloudBudget = 9000;  // 云端同步的预算值
+    const SUPABASE_TABLE = 'rourou_yellow_chamber_pot';
+    let sbClient = null;
+    let cloudBudget = 9000;  // 预算值
 
     // 支出类型定义
     const EXPENSE_TYPES = ['吃', '喝', '交通', '话费', '购物', '游戏', '充值', '电水费', '宠物', '其他'];
@@ -2422,7 +2408,15 @@
       "rourou622": { bg: '#e8f5e9', text: '#2e7d32' },
       "其他": { bg: '#f5f5f5', text: '#616161' }
     };
-    let ExpenseClass = null;
+    const OWNER_ID_MAP = {
+      "69295c3705564e312660bc51": "hundun",
+      "69324098171b217b0ee0bebb": "rourou622"
+    };
+    const NAME_TO_OWNER_ID = {
+      "hundun": "69295c3705564e312660bc51",
+      "rourou622": "69324098171b217b0ee0bebb"
+    };
+
     let currentUser = null;
     let allExpenses = [];
     let filteredExpenses = [];
@@ -2433,37 +2427,32 @@
     let currentPage = 1;
     let pageSize = 10;
     let currentBudget = 9000;
-    let authMode = 'login';
     let isLargeOnlyFilter = false;
 
     // ========== 1. 启动逻辑 ==========
-    window.onload = () => { checkAppConfig(); };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', checkAppConfig);
+    } else {
+      checkAppConfig();
+    }
     function getUserColor(username) { return USER_COLOR_MAP[username] || USER_COLOR_MAP["其他"]; }
     function checkAppConfig() {
-      const id = localStorage.getItem('lc_app_id');
-      const key = localStorage.getItem('lc_app_key');
-      const url = localStorage.getItem('lc_server_url');
-      const aiKey = localStorage.getItem('lc_ai_key');
-      if (id && key && url && aiKey) {
-        openRouterKey = aiKey; // 赋值给全局变量
-        initLeanCloud(id, key, url);
+      const url = localStorage.getItem('sb_url');
+      const key = localStorage.getItem('sb_key');
+
+      if (url && key) {
+        initSupabase(url, key);
       } else {
         showConfigForm();
       }
     }
-    function initLeanCloud(id, key, url) {
+    function initSupabase(url, key) {
       document.getElementById('configSection').style.display = 'none';
       document.getElementById('authSection').style.display = 'none';
       document.getElementById('loadingSection').style.display = 'block';
       try {
-        if (typeof AV === 'undefined') { alert('LeanCloud SDK 加载失败，请检查网络'); return; }
-        // 简单的 URL 格式检查
-        if (!url.startsWith('http')) {
-          throw new Error('API Server URL 必须以 http:// 或 https:// 开头');
-        }
-        AV.init({ appId: id, appKey: key, serverURLs: url });
-        ExpenseClass = AV.Object.extend(EXPENSE_CLASS_NAME);
-        BudgetClass = AV.Object.extend(BUDGET_CLASS_NAME);  // 初始化预算类
+        if (!window.supabase) { alert('Supabase SDK 加载失败，请检查网络'); return; }
+        sbClient = window.supabase.createClient(url, key);
         checkLoginStatus();
       } catch (e) {
         console.error(e);
@@ -2472,10 +2461,48 @@
       }
     }
     function checkLoginStatus() {
-      currentUser = AV.User.current();
+      const savedUser = localStorage.getItem('sb_current_user');
       document.getElementById('loadingSection').style.display = 'none';
-      if (currentUser) { enterApp(); } else { showAuthForm(); }
+      if (savedUser) {
+        currentUser = {
+          getUsername: () => savedUser,
+          id: NAME_TO_OWNER_ID[savedUser] || ('user_' + savedUser)
+        };
+        enterApp();
+      } else {
+        showAuthForm();
+      }
     }
+    const CACHE_KEY_EXPENSES = 'sb_cached_expenses';
+
+    function saveExpensesToCache(expenses) {
+      try {
+        if (Array.isArray(expenses) && expenses.length > 0) {
+          localStorage.setItem(CACHE_KEY_EXPENSES, JSON.stringify(expenses));
+        }
+      } catch (e) {
+        console.warn('缓存写入失败:', e);
+      }
+    }
+
+    let isSyncing = false;
+    async function syncExpensesFromCloud() {
+      if (isSyncing || !sbClient || !currentUser) return;
+      isSyncing = true;
+      try {
+        const fresh = await getExpenses();
+        if (fresh && fresh.length > 0) {
+          allExpenses = fresh;
+          saveExpensesToCache(fresh);
+          renderExpenses();
+        }
+      } catch (e) {
+        console.warn('后台同步失败:', e);
+      } finally {
+        isSyncing = false;
+      }
+    }
+
     async function enterApp() {
       document.getElementById('authContainer').style.display = 'none';
       document.getElementById('appContainer').style.display = 'block';
@@ -2484,11 +2511,38 @@
       initCustomDropdown();
       initCardsDraggable();
       initModalInteractions();
-      await loadBudgetFromCloud();  // 从云端加载预算
-      renderExpenses();
+      await loadBudgetFromCloud();
+
+      // 1. 优先读取有效缓存实现秒开
+      let hasCachedData = false;
+      const cached = localStorage.getItem(CACHE_KEY_EXPENSES);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            allExpenses = parsed;
+            renderExpenses();
+            hasCachedData = true;
+          }
+        } catch (e) {
+          console.warn('读取缓存失败:', e);
+        }
+      }
+
+      // 2. 如果无缓存，直接加载数据并渲染；若有缓存，后台静默同步
+      if (!hasCachedData) {
+        allExpenses = await getExpenses();
+        if (allExpenses.length > 0) {
+          saveExpensesToCache(allExpenses);
+        }
+        renderExpenses();
+      } else {
+        syncExpensesFromCloud();
+      }
+
       window.onresize = () => { if (echartsPieInstance) echartsPieInstance.resize(); };
     }
-    function logout() { AV.User.logOut(); location.reload(); }
+    function logout() { localStorage.removeItem('sb_current_user'); location.reload(); }
 
     // --- 顶部卡片横向拖动与滑动逻辑 ---
     function scrollCards(direction) {
@@ -2631,50 +2685,46 @@
     }
 
     // ========== 2. 认证界面逻辑 ==========
-    function showConfigForm() { document.getElementById('configSection').style.display = 'block'; document.getElementById('authSection').style.display = 'none'; document.getElementById('loadingSection').style.display = 'none'; }
+    function showConfigForm() {
+      document.getElementById('configSection').style.display = 'block';
+      document.getElementById('authSection').style.display = 'none';
+      document.getElementById('loadingSection').style.display = 'none';
+    }
     function saveConfig() {
-      const id = document.getElementById('configAppId').value.trim();
-      const key = document.getElementById('configAppKey').value.trim();
-      const url = document.getElementById('configServerUrl').value.trim();
-      const aiKey = document.getElementById('configAiKey').value.trim(); // 获取输入
+      const url = document.getElementById('configSbUrl').value.trim();
+      const key = document.getElementById('configSbKey').value.trim();
 
-      if (!id || !key || !url || !aiKey) return alert('请填写完整配置（包括 AI Key）');
+      if (!url || !key) return alert('请填写 Supabase URL 和 Anon Key');
 
-      localStorage.setItem('lc_app_id', id);
-      localStorage.setItem('lc_app_key', key);
-      localStorage.setItem('lc_server_url', url);
-      localStorage.setItem('lc_ai_key', aiKey); // 保存到本地
+      localStorage.setItem('sb_url', url);
+      localStorage.setItem('sb_key', key);
 
-      openRouterKey = aiKey; // 更新全局变量
-      initLeanCloud(id, key, url);
+      initSupabase(url, key);
     }
     function clearConfig() {
-      localStorage.removeItem('lc_app_id');
-      localStorage.removeItem('lc_app_key');
-      localStorage.removeItem('lc_server_url');
-      localStorage.removeItem('lc_ai_key'); // 清除 Key
+      localStorage.removeItem('sb_url');
+      localStorage.removeItem('sb_key');
+      localStorage.removeItem('sb_current_user');
+      localStorage.removeItem('lc_ai_key');
       localStorage.removeItem('lc_ai_model');
       localStorage.removeItem('lc_ai_endpoint');
       localStorage.removeItem('lc_ai_configs');
       localStorage.removeItem('lc_ai_selected_id');
       location.reload();
     }
-    function showAuthForm() { document.getElementById('authSection').style.display = 'block'; switchAuthMode('login'); }
-    function switchAuthMode(mode) {
-      authMode = mode;
-      const btn = document.getElementById('authActionBtn');
-      const tabLogin = document.getElementById('tabLogin');
-      const tabSignup = document.getElementById('tabSignup');
-      if (mode === 'login') { tabLogin.classList.add('active'); tabSignup.classList.remove('active'); btn.textContent = '立即登录'; btn.className = 'action-btn-large btn-brown'; } else { tabLogin.classList.remove('active'); tabSignup.classList.add('active'); btn.textContent = '注册并登录'; btn.className = 'action-btn-large btn-accent'; }
+    function showAuthForm() {
+      document.getElementById('configSection').style.display = 'none';
+      document.getElementById('authSection').style.display = 'block';
+      document.getElementById('loadingSection').style.display = 'none';
     }
-    async function handleAuthAction() {
+    function quickLogin(username) {
+      localStorage.setItem('sb_current_user', username);
+      checkLoginStatus();
+    }
+    function handleAuthAction() {
       const u = document.getElementById('authUsername').value.trim();
-      const p = document.getElementById('authPassword').value.trim();
-      if (!u || !p) return alert('请输入用户名和密码');
-      try {
-        if (authMode === 'login') { await AV.User.logIn(u, p); } else { const user = new AV.User(); user.setUsername(u); user.setPassword(p); await user.signUp(); }
-        checkLoginStatus();
-      } catch (error) { alert('操作失败: ' + error.message); }
+      if (!u) return alert('请输入记账人姓名');
+      quickLogin(u);
     }
 
     // ========== 3. 下拉框与筛选逻辑 ==========
@@ -2714,29 +2764,70 @@
       return `${y}-${String(m).padStart(2, '0')}`;
     }
     async function getExpenses() {
-      if (!ExpenseClass || !currentUser) return [];
-      const query = new AV.Query(ExpenseClass); query.equalTo('familyId', MY_FAMILY_ID); query.include('owner'); query.addDescending('date'); query.addDescending('createdAt'); query.limit(1000);
+      if (!sbClient || !currentUser) return [];
       try {
-        const results = await query.find();
-        return results.map(obj => {
-          const ownerObj = obj.get('owner'); const username = ownerObj ? ownerObj.getUsername() : '未知';
+        const batchSize = 1000;
+        // 并发拉取前两个区间 (0-999 与 1000-1999)，覆盖前 2000 条数据
+        const [res1, res2] = await Promise.all([
+          sbClient
+            .from(SUPABASE_TABLE)
+            .select('*')
+            .eq('family_id', MY_FAMILY_ID)
+            .order('date', { ascending: false })
+            .order('created_at', { ascending: false })
+            .range(0, batchSize - 1),
+          sbClient
+            .from(SUPABASE_TABLE)
+            .select('*')
+            .eq('family_id', MY_FAMILY_ID)
+            .order('date', { ascending: false })
+            .order('created_at', { ascending: false })
+            .range(batchSize, batchSize * 2 - 1)
+        ]);
+
+        let allData = [];
+        if (res1.data) allData = allData.concat(res1.data);
+        if (res2.data) allData = allData.concat(res2.data);
+
+        // 如果未来超过 2000 条，继续顺序拉取多余部分
+        if (res2.data && res2.data.length === batchSize) {
+          let from = batchSize * 2;
+          while (true) {
+            const { data, error } = await sbClient
+              .from(SUPABASE_TABLE)
+              .select('*')
+              .eq('family_id', MY_FAMILY_ID)
+              .order('date', { ascending: false })
+              .order('created_at', { ascending: false })
+              .range(from, from + batchSize - 1);
+            if (error || !data || data.length === 0) break;
+            allData = allData.concat(data);
+            if (data.length < batchSize) break;
+            from += batchSize;
+          }
+        }
+
+        return allData.map(row => {
+          const username = OWNER_ID_MAP[row.owner_id] || (row.owner_id ? (row.owner_id.startsWith('user_') ? row.owner_id.replace('user_', '') : row.owner_id) : '其他');
           return {
-            id: obj.id,
-            date: String(obj.get('date')),
-            type1: obj.get('type1'),
-            type2: obj.get('type2') || '',
-            amount: parseFloat(obj.get('amount')) || 0,
-            statMonth: computeStatMonth(obj.get('date')),
+            id: row.id,
+            date: String(row.date),
+            type1: row.type1,
+            type2: row.type2 || '',
+            amount: parseFloat(row.amount) || 0,
+            statMonth: computeStatMonth(row.date),
             username: username,
-            createdAt: obj.createdAt,
+            createdAt: row.created_at,
             category: 'expense',
-            // 新增复盘字段
-            wasteAmount: parseFloat(obj.get('wasteAmount')) || 0,
-            wasteNote: obj.get('wasteNote') || '',
-            isReviewed: obj.get('isReviewed') || false
+            wasteAmount: parseFloat(row.waste_amount) || 0,
+            wasteNote: row.waste_note || '',
+            isReviewed: row.is_reviewed || false
           };
         });
-      } catch (err) { console.error(err); return []; }
+      } catch (err) {
+        console.error(err);
+        return [];
+      }
     }
 
     function getTimeFilteredExpenses() {
@@ -2752,13 +2843,21 @@
     async function renderExpenses() {
       if (!currentUser) return;
       if (allExpenses.length === 0) {
-        allExpenses = await getExpenses();
-        const months = [...new Set(allExpenses.map(e => e.statMonth))].sort().reverse();
-        const sel = document.getElementById('monthFilter'); let targetVal = sel.value; sel.innerHTML = '<option value="">全部月份</option>'; months.forEach(m => sel.add(new Option(m, m)));
-        const currentMonth = computeStatMonth(new Date().toISOString());
-        if (!targetVal && months.includes(currentMonth)) targetVal = currentMonth;
-        if (targetVal) sel.value = targetVal;
+        // 尝试从持久化缓存读取
+        const cached = localStorage.getItem(CACHE_KEY_EXPENSES);
+        if (cached) {
+          try { allExpenses = JSON.parse(cached); } catch(e) {}
+        }
+        if (allExpenses.length === 0) {
+          allExpenses = await getExpenses();
+          saveExpensesToCache(allExpenses);
+        }
       }
+      const months = [...new Set(allExpenses.map(e => e.statMonth))].sort().reverse();
+      const sel = document.getElementById('monthFilter'); let targetVal = sel.value; sel.innerHTML = '<option value="">全部月份</option>'; months.forEach(m => sel.add(new Option(m, m)));
+      const currentMonth = computeStatMonth(new Date().toISOString());
+      if (!targetVal && months.includes(currentMonth)) targetVal = currentMonth;
+      if (targetVal) sel.value = targetVal;
       const memberSel = document.getElementById('memberFilter'); const currentMember = memberSel.value; const members = [...new Set(allExpenses.map(e => e.username))].filter(u => u && u !== '未知'); memberSel.innerHTML = '<option value="">全部成员</option>'; members.forEach(u => memberSel.add(new Option(u, u))); if (currentMember && members.includes(currentMember)) memberSel.value = currentMember;
 
       updateDashboardCards();
@@ -3117,65 +3216,31 @@
       return cloudBudget || 9000;
     }
 
-    // 从云端加载预算
+    // 从云端/本地加载预算
     async function loadBudgetFromCloud() {
       try {
-        const query = new AV.Query(BUDGET_CLASS_NAME);
-        query.equalTo('familyId', MY_FAMILY_ID);
-        const result = await query.first();
-        if (result) {
-          cloudBudget = result.get('budgetAmount') || 9000;
+        const localBudget = localStorage.getItem('sb_cloud_budget');
+        if (localBudget) {
+          cloudBudget = parseFloat(localBudget) || 9000;
         } else {
-          cloudBudget = 9000; // 默认预算
+          cloudBudget = 9000;
         }
-        console.log('云端预算已加载:', cloudBudget);
+        console.log('预算已加载:', cloudBudget);
       } catch (err) {
-        // 如果 Class 不存在 (404/101)，使用默认预算，稍后保存时会自动创建
-        if (err.code === 101 || (err.message && err.message.includes("doesn't exist"))) {
-          console.log('预算表尚未创建，使用默认预算');
-          cloudBudget = 9000;
-        } else {
-          console.error('加载云端预算失败:', err);
-          cloudBudget = 9000;
-        }
+        console.error('加载预算失败:', err);
+        cloudBudget = 9000;
       }
     }
 
-    // 保存预算到云端
+    // 保存预算
     async function saveBudgetToCloud(newBudget) {
       try {
-        // 先尝试查询已有记录
-        let budgetObj = null;
-        try {
-          const query = new AV.Query(BUDGET_CLASS_NAME);
-          query.equalTo('familyId', MY_FAMILY_ID);
-          budgetObj = await query.first();
-        } catch (queryErr) {
-          // Class 不存在时查询会报错，忽略并继续创建新记录
-          console.log('预算表不存在，将自动创建');
-        }
-
-        if (budgetObj) {
-          // 更新已有记录
-          budgetObj.set('budgetAmount', newBudget);
-        } else {
-          // 创建新记录
-          budgetObj = new BudgetClass();
-          budgetObj.set('familyId', MY_FAMILY_ID);
-          budgetObj.set('budgetAmount', newBudget);
-          // 设置公开读写权限（家庭成员共享）
-          const acl = new AV.ACL();
-          acl.setPublicReadAccess(true);
-          acl.setPublicWriteAccess(true);
-          budgetObj.setACL(acl);
-        }
-
-        await budgetObj.save();
         cloudBudget = newBudget;
-        console.log('预算已保存到云端:', newBudget);
+        localStorage.setItem('sb_cloud_budget', String(newBudget));
+        console.log('预算已更新:', newBudget);
         return true;
       } catch (err) {
-        console.error('保存云端预算失败:', err);
+        console.error('保存预算失败:', err);
         alert('保存预算失败: ' + err.message);
         return false;
       }
@@ -3662,28 +3727,25 @@ Example: [{"date":"${todayStr}","amount":25.5,"type1":"吃","type2":"奶茶"},{"
       btn.innerHTML = '正在批量入库保存中...';
 
       try {
-        const avObjects = currentBatchAiItems.map(item => {
+        const rows = currentBatchAiItems.map(item => {
           const cleanAmount = Math.round((parseFloat(item.amount) || 0) * 100) / 100;
-          const data = {
+          return {
+            id: 'ai_' + Date.now() + Math.random().toString(36).substring(2, 6),
             date: item.date || new Date().toISOString().substring(0, 10),
             type1: item.type1 || '其他',
             type2: item.type2 || '',
             amount: cleanAmount,
-            familyId: MY_FAMILY_ID,
-            category: 'expense'
+            family_id: MY_FAMILY_ID,
+            owner_id: currentUser.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           };
-          const obj = new ExpenseClass();
-          obj.set(data);
-          obj.set('owner', currentUser);
-          const acl = new AV.ACL();
-          acl.setPublicReadAccess(true);
-          acl.setPublicWriteAccess(true);
-          obj.setACL(acl);
-          return obj;
         });
 
-        await AV.Object.saveAll(avObjects);
-        alert(`🎉 成功批量录入 ${avObjects.length} 笔账单！`);
+        const { error } = await sbClient.from(SUPABASE_TABLE).insert(rows);
+        if (error) throw error;
+
+        alert(`🎉 成功批量录入 ${rows.length} 笔账单！`);
         cancelBatchPreview();
         closeAddModal();
         allExpenses = [];
@@ -3982,14 +4044,59 @@ Example: [{"date":"${todayStr}","amount":25.5,"type1":"吃","type2":"奶茶"},{"
       const id = document.getElementById('modalEditId').value;
       const cleanAmount = Math.round(parseFloat(document.getElementById('modalAmount').value) * 100) / 100;
 
-      const data = { date: document.getElementById('modalDate').value, type1: document.getElementById('modalType1').value, type2: document.getElementById('modalType2').value, amount: cleanAmount, familyId: MY_FAMILY_ID, category: 'expense' };
+      const payload = {
+        date: document.getElementById('modalDate').value,
+        type1: document.getElementById('modalType1').value,
+        type2: document.getElementById('modalType2').value,
+        amount: cleanAmount,
+        family_id: MY_FAMILY_ID,
+        updated_at: new Date().toISOString()
+      };
       try {
-        if (id) { const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id); obj.set(data); await obj.save(); } else { const obj = new ExpenseClass(); obj.set(data); obj.set('owner', currentUser); const acl = new AV.ACL(); acl.setPublicReadAccess(true); acl.setPublicWriteAccess(true); obj.setACL(acl); await obj.save(); }
-        closeAddModal(); allExpenses = []; renderExpenses();
-      } catch (err) { alert('保存失败: ' + err.message); }
+        if (id) {
+          const { error } = await sbClient.from(SUPABASE_TABLE).update(payload).eq('id', id);
+          if (error) throw error;
+        } else {
+          payload.id = 'rec_' + Date.now() + Math.random().toString(36).substring(2, 6);
+          payload.owner_id = currentUser.id;
+          payload.created_at = new Date().toISOString();
+          const { error } = await sbClient.from(SUPABASE_TABLE).insert([payload]);
+          if (error) throw error;
+        }
+        closeAddModal();
+        allExpenses = [];
+        localStorage.removeItem(CACHE_KEY_EXPENSES);
+        await renderExpenses();
+      } catch (err) {
+        alert('保存失败: ' + err.message);
+      }
     };
-    async function delExp(id) { if (!confirm('确定删除?')) return; const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id); await obj.destroy(); allExpenses = allExpenses.filter(e => e.id !== id); renderExpenses(); }
-    async function batchDeleteSelected() { const ids = Array.from(document.querySelectorAll('.item-cb:checked')).map(c => c.value); if (!confirm(`确定删除 ${ids.length} 条?`)) return; const objs = ids.map(id => AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id)); await AV.Object.destroyAll(objs); allExpenses = allExpenses.filter(e => !ids.includes(e.id)); renderExpenses(); document.getElementById('selectAll').checked = false; }
+    async function delExp(id) {
+      if (!confirm('确定删除?')) return;
+      try {
+        const { error } = await sbClient.from(SUPABASE_TABLE).delete().eq('id', id);
+        if (error) throw error;
+        allExpenses = allExpenses.filter(e => e.id !== id);
+        saveExpensesToCache(allExpenses);
+        renderExpenses();
+      } catch (err) {
+        alert('删除失败: ' + err.message);
+      }
+    }
+    async function batchDeleteSelected() {
+      const ids = Array.from(document.querySelectorAll('.item-cb:checked')).map(c => c.value);
+      if (!confirm(`确定删除 ${ids.length} 条?`)) return;
+      try {
+        const { error } = await sbClient.from(SUPABASE_TABLE).delete().in('id', ids);
+        if (error) throw error;
+        allExpenses = allExpenses.filter(e => !ids.includes(e.id));
+        saveExpensesToCache(allExpenses);
+        renderExpenses();
+        document.getElementById('selectAll').checked = false;
+      } catch (err) {
+        alert('批量删除失败: ' + err.message);
+      }
+    }
     
     function editExp(id) {
       const item = allExpenses.find(e => e.id === id);
@@ -4193,23 +4300,25 @@ Example: [{"date":"${todayStr}","amount":25.5,"type1":"吃","type2":"奶茶"},{"
           );
           if (!confirmed) return;
 
-          // 分批上传（每批 50 条，避免超过云端单次负载上限）
-          const chunkSize = 50;
+          // 分批上传（每批 100 条）
+          const chunkSize = 100;
           let savedCount = 0;
 
           for (let i = 0; i < newItems.length; i += chunkSize) {
             const chunk = newItems.slice(i, i + chunkSize);
-            const avObjects = chunk.map(d => {
-              const obj = new ExpenseClass();
-              obj.set(d);
-              obj.set('owner', currentUser);
-              const acl = new AV.ACL();
-              acl.setPublicReadAccess(true);
-              acl.setPublicWriteAccess(true);
-              obj.setACL(acl);
-              return obj;
-            });
-            await AV.Object.saveAll(avObjects);
+            const rows = chunk.map(d => ({
+              id: 'bak_' + Date.now() + Math.random().toString(36).substring(2, 6),
+              date: d.date,
+              type1: d.type1,
+              type2: d.type2 || '',
+              amount: d.amount,
+              family_id: MY_FAMILY_ID,
+              owner_id: currentUser.id,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }));
+            const { error } = await sbClient.from(SUPABASE_TABLE).insert(rows);
+            if (error) throw error;
             savedCount += chunk.length;
           }
 
@@ -4431,17 +4540,24 @@ Example: [{"date":"${todayStr}","amount":25.5,"type1":"吃","type2":"奶茶"},{"
     }
 
     async function updateExpenseStatus(id, updates) {
-      // 1. 本地更新 (allExpenses & filteredExpenses & retroList 指向同一对象引用吗？allExpenses 是源头)
+      // 1. 本地更新
       const idx = allExpenses.findIndex(e => e.id === id);
       if (idx !== -1) {
         Object.assign(allExpenses[idx], updates);
       }
 
       // 2. 云端更新
-      // 为了不阻塞 UI，我们不 await save，但 catch 错误
-      const obj = AV.Object.createWithoutData(EXPENSE_CLASS_NAME, id);
-      Object.keys(updates).forEach(key => obj.set(key, updates[key]));
-      obj.save().catch(console.error);
+      try {
+        const payload = {};
+        if (updates.wasteAmount !== undefined) payload.waste_amount = updates.wasteAmount;
+        if (updates.wasteNote !== undefined) payload.waste_note = updates.wasteNote;
+        if (updates.isReviewed !== undefined) payload.is_reviewed = updates.isReviewed;
+        if (Object.keys(payload).length > 0 && sbClient) {
+          sbClient.from(SUPABASE_TABLE).update(payload).eq('id', id).then(() => {}).catch(err => console.warn('更新复盘字段失败:', err));
+        }
+      } catch (e) {
+        console.warn('updateExpenseStatus error:', e);
+      }
     }
 
     // 记得在 getExpenses 中获取 wasteNote (已在 getExpenses 修改了吗？如果没有，需要额外处理，这里假设 getExpenses 里加了或者后续 Lazy Load)
