@@ -1921,36 +1921,149 @@
       background: rgba(239, 68, 68, 0.2) !important;
       border-color: #f87171 !important;
     }
+    /* 当批量预览激活时，隐藏多余单笔表单控件与多余底部入账按钮，保持弹窗视觉聚焦 */
+    #addModal.has-batch-preview .type-toggle,
+    #addModal.has-batch-preview .amount-entry,
+    #addModal.has-batch-preview .category-section,
+    #addModal.has-batch-preview .field-block,
+    #addModal.has-batch-preview .extra-options,
+    #addModal.has-batch-preview .entry-modal-footer {
+      display: none !important;
+    }
+
     #addModal .ai-batch-list {
-      max-height: 220px;
+      max-height: min(460px, 58vh);
       overflow-y: auto;
+      overscroll-behavior: contain;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 9px;
       margin-bottom: 12px;
-      padding-right: 2px;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: #4a5578 transparent;
     }
-    #addModal .ai-batch-item-row {
+    #addModal .ai-batch-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    #addModal .ai-batch-list::-webkit-scrollbar-thumb {
+      background: #4a5578;
+      border-radius: 4px;
+    }
+
+    #addModal .ai-batch-item-card {
       background: #1b2030 !important;
       border: 1.2px solid #3d4663 !important;
-      border-radius: 9px !important;
-      padding: 8px 12px !important;
+      border-radius: 10px !important;
+      overflow: hidden;
+      flex-shrink: 0 !important;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+    #addModal .ai-batch-item-card.is-expanded {
+      border-color: #deb16a !important;
+      box-shadow: 0 4px 14px rgba(222, 177, 106, 0.2) !important;
+      background: #20273a !important;
+    }
+
+    /* 方案A：两行清晰账单卡片摘要 (解决单行内容被挤没、日期截断问题) */
+    #addModal .ai-batch-item-summary {
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    #addModal .ai-batch-item-summary:hover {
+      background: rgba(222, 177, 106, 0.08);
+    }
+    
+    /* 摘要第 1 行: 序号 + 商户/名称 + 金额 + 删除 */
+    #addModal .batch-summary-main-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12.5px;
-      transition: all 0.15s ease;
-    }
-    #addModal .ai-batch-item-row:hover {
-      border-color: #deb16a !important;
-      background: #232a3f !important;
-    }
-    #addModal .ai-batch-item-left {
-      display: flex;
+      width: 100%;
       gap: 8px;
+    }
+    #addModal .batch-summary-left {
+      display: flex;
       align-items: center;
+      gap: 8px;
       flex: 1;
+      min-width: 0;
+    }
+    #addModal .batch-index-badge {
+      font-size: 11px;
+      font-weight: 800;
+      color: #deb16a !important;
+      background: rgba(222, 177, 106, 0.16) !important;
+      border: 1px solid rgba(222, 177, 106, 0.35) !important;
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-family: monospace;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #addModal .batch-summary-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #f3e7d3 !important;
       overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      min-width: 0;
+    }
+    #addModal .batch-summary-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    #addModal .batch-summary-amount {
+      font-weight: 700;
+      font-size: 14.5px;
+      white-space: nowrap;
+      font-family: monospace, var(--font-base, sans-serif);
+    }
+    #addModal .batch-summary-amount.expense {
+      color: #deb16a !important;
+    }
+    #addModal .batch-summary-amount.income {
+      color: #6ee7b7 !important;
+    }
+    #addModal .ai-batch-item-del {
+      background: none;
+      border: none;
+      color: #8c96b5 !important;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    #addModal .ai-batch-item-del:hover {
+      color: #f87171 !important;
+      background: rgba(239, 68, 68, 0.2) !important;
+    }
+
+    /* 摘要第 2 行: 类别胶囊 + 记账人 + 完整记账日期 + 修改按钮 */
+    #addModal .batch-summary-sub-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      font-size: 11.5px;
+    }
+    #addModal .batch-summary-tags {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-width: 0;
     }
     #addModal .batch-chip-tag {
       font-size: 11px;
@@ -1969,47 +2082,255 @@
       color: #6ee7b7 !important;
       border: 1px solid #225a3f !important;
     }
-    #addModal .ai-batch-item-date {
+    #addModal .batch-member-tag {
+      font-size: 10.5px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #2c364f !important;
+      color: #cbd5e1 !important;
+      border: 1px solid #4a5578 !important;
+      white-space: nowrap;
+    }
+    #addModal .batch-summary-date {
       color: #8c96b5 !important;
       font-size: 11px;
       white-space: nowrap;
+      font-family: monospace;
     }
-    #addModal .ai-batch-item-name {
-      color: #f3e7d3 !important;
-      font-weight: 500;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    #addModal .ai-batch-item-expand-hint {
+      font-size: 11px;
+      color: #deb16a !important;
+      background: rgba(222, 177, 106, 0.12);
+      border: 1px solid rgba(222, 177, 106, 0.3);
+      border-radius: 5px;
+      padding: 2px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
       white-space: nowrap;
+      transition: all 0.15s;
     }
-    #addModal .ai-batch-item-right {
+    #addModal .ai-batch-item-summary:hover .ai-batch-item-expand-hint {
+      background: #deb16a;
+      color: #1a1e2d !important;
+      border-color: #deb16a;
+    }
+
+    /* 展开的就地编辑面板 (方案A) */
+    #addModal .ai-batch-item-editor {
+      background: #161b29 !important;
+      border-top: 1px solid #3d4663 !important;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      animation: batchEditorFadeIn 0.18s ease-out;
+    }
+    @keyframes batchEditorFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #addModal .editor-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    #addModal .editor-seg-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-left: 8px;
+      gap: 6px;
     }
-    #addModal .ai-batch-item-amount {
-      font-weight: 700;
-      font-size: 14px;
-      white-space: nowrap;
-      color: #deb16a !important;
+    #addModal .editor-seg-group {
+      display: flex;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #4a5578;
     }
-    #addModal .ai-batch-item-del {
-      background: none;
+    #addModal .editor-seg-btn {
+      background: #272d42;
       border: none;
-      color: #8c96b5 !important;
-      font-size: 16px;
-      line-height: 1;
+      color: #c8b9cb;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
       cursor: pointer;
-      padding: 2px 5px;
-      border-radius: 4px;
+      transition: all 0.15s;
     }
-    #addModal .ai-batch-item-del:hover {
-      color: #f87171 !important;
-      background: rgba(239, 68, 68, 0.2) !important;
+    #addModal .editor-seg-btn.active {
+      background: #deb16a;
+      color: #1a1e2d;
     }
+    #addModal .editor-seg-btn.income-active {
+      background: #10b981;
+      color: #ffffff;
+    }
+
+    /* 快捷分类标签面板 (紧凑网格包装，不切断，不挤出视口) */
+    #addModal .editor-categories-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      width: 100%;
+    }
+    #addModal .editor-cat-capsule {
+      background: #272d42;
+      border: 1px solid #4a5578;
+      color: #f3e7d3;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    #addModal .editor-cat-capsule:hover {
+      border-color: #deb16a;
+      color: #deb16a;
+    }
+    #addModal .editor-cat-capsule.active {
+      background: #deb16a !important;
+      border-color: #f3cb87 !important;
+      color: #1a1e2d !important;
+      font-weight: 700;
+      box-shadow: 0 0 6px rgba(222, 177, 106, 0.4);
+    }
+
+    /* 输入字段行 (商户全宽，金额与日期分两列) */
+    #addModal .editor-fields-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    #addModal .editor-two-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+    }
+    #addModal .editor-input-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    #addModal .editor-input-label {
+      font-size: 10.5px;
+      color: #8c96b5;
+    }
+    #addModal .editor-input {
+      background: #1e2333 !important;
+      border: 1.2px solid #4a5578 !important;
+      color: #f3e7d3 !important;
+      border-radius: 6px !important;
+      padding: 6px 9px !important;
+      font-size: 12.5px !important;
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #addModal .editor-input:focus {
+      border-color: #deb16a !important;
+      box-shadow: 0 0 0 2px rgba(222, 177, 106, 0.2) !important;
+    }
+    #addModal .editor-footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    }
+    #addModal .btn-editor-done {
+      background: linear-gradient(135deg, #deb16a 0%, #c4975d 100%);
+      border: 1px solid #b8860b;
+      color: #1a1e2d;
+      border-radius: 6px;
+      padding: 5px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: auto;
+      transition: all 0.15s;
+      box-shadow: 0 2px 6px rgba(222, 177, 106, 0.3);
+    }
+    #addModal .btn-editor-done:hover {
+      background: linear-gradient(135deg, #e8be77 0%, #cfa166 100%);
+      transform: translateY(-1px);
+    }
+    /* AI 智能对话微调输入区域 (保留输入框与调整按钮，去除预设词) */
+    #addModal .ai-batch-refine-box {
+      background: #1c2234 !important;
+      border: 1.2px dashed #4a5578 !important;
+      border-radius: 9px !important;
+      padding: 8px 10px !important;
+      margin-top: 4px;
+      margin-bottom: 10px !important;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    #addModal .ai-batch-refine-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #addModal .ai-batch-refine-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #deb16a !important;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    #addModal .ai-batch-refine-input-row {
+      display: flex;
+      gap: 6px;
+    }
+    #addModal .ai-batch-refine-input {
+      flex: 1;
+      background: #151a28 !important;
+      border: 1px solid #4a5578 !important;
+      color: #f3e7d3 !important;
+      border-radius: 6px !important;
+      padding: 6px 10px !important;
+      font-size: 12px !important;
+      outline: none;
+    }
+    #addModal .ai-batch-refine-input:focus {
+      border-color: #deb16a !important;
+      box-shadow: 0 0 0 2px rgba(222, 177, 106, 0.2) !important;
+    }
+    #addModal .btn-batch-refine {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #deb16a !important;
+      color: #1a1e2d !important;
+      border: 1px solid #e7c588 !important;
+      border-radius: 6px !important;
+      padding: 0 12px !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    #addModal .btn-batch-refine:hover:not(:disabled) {
+      background: #e6bd73 !important;
+      transform: translateY(-1px);
+    }
+    #addModal .btn-batch-refine:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     #addModal .ai-batch-actions {
       display: flex;
       gap: 10px;
+      margin-top: 6px;
     }
     #addModal .btn-batch-save-all {
       flex: 2;
@@ -3679,10 +4000,25 @@
           <!-- 批量识别预览展示区 (>=2条时自动弹出，文本识别与图片识别通用) -->
           <div id="aiBatchPreviewSection" class="ai-batch-preview-box" style="display: none;">
             <div class="ai-batch-preview-header">
-              <span class="ai-batch-preview-title" id="aiBatchCountTitle">📋 识别出多笔账单</span>
+              <span class="ai-batch-preview-title" id="aiBatchCountTitle">📋 识别出多笔账单 (点击单项可就地修改)</span>
               <button type="button" class="btn-cancel-batch" onclick="cancelBatchPreview()" title="取消批量">✕ 取消</button>
             </div>
             <div id="aiBatchList" class="ai-batch-list"></div>
+
+            <!-- AI 智能对话微调输入框 (仅保留输入框与调整按钮，去除预设词) -->
+            <div class="ai-batch-refine-box" id="aiBatchRefineBox">
+              <div class="ai-batch-refine-header">
+                <span class="ai-batch-refine-title">✨ 对话微调 / 批量修改</span>
+              </div>
+              <div class="ai-batch-refine-input-row">
+                <input type="text" id="aiBatchRefineInput" class="ai-batch-refine-input" placeholder="输入口令，如：第1条改成咖啡18元、全算猫大王付..." onkeydown="if(event.key==='Enter'){event.preventDefault();handleAiBatchRefine();}">
+                <button type="button" class="btn-batch-refine" id="btnBatchRefine" onclick="handleAiBatchRefine()">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+                  <span>AI 调整</span>
+                </button>
+              </div>
+            </div>
+
             <div class="ai-batch-actions">
               <button type="button" class="btn-batch-save-all" id="btnSaveBatchAll" onclick="saveAllBatchExpenses()">
                 ⚡ 一键全部入库保存
@@ -7100,48 +7436,363 @@
       }
     }
 
+    let expandedBatchIndex = -1;
+
     function renderBatchPreview(items) {
       currentBatchAiItems = items;
       const previewSection = document.getElementById('aiBatchPreviewSection');
       const titleEl = document.getElementById('aiBatchCountTitle');
       const listContainer = document.getElementById('aiBatchList');
       const btnSaveAll = document.getElementById('btnSaveBatchAll');
+      const modal = document.getElementById('addModal');
 
       if (!previewSection || !listContainer) return;
 
-      if (titleEl) titleEl.innerText = `📋 识别出 ${items.length} 笔账单 (可核对并一键批量入库)`;
+      if (modal) modal.classList.add('has-batch-preview');
+
+      if (titleEl) titleEl.innerText = `📋 识别出 ${items.length} 笔账单 (点击单项可就地修改)`;
       if (btnSaveAll) btnSaveAll.innerText = `⚡ 一键全部入库保存 (${items.length}笔)`;
       listContainer.innerHTML = '';
 
-      items.forEach((item, index) => {
-        const isIncome = (item.flowType === 'income') ||
-          (item.type1 && (INCOME_TYPES.includes(item.type1) || item.type1.includes('收入')));
+      // 获取当前弹窗默认选择的成员
+      const defaultModalMember = document.getElementById('modalMember') ? document.getElementById('modalMember').value : (currentUser ? currentUser.getUsername() : '肉大王');
 
-        const div = document.createElement('div');
-        div.className = 'ai-batch-item-row';
-        div.innerHTML = `
-          <div class="ai-batch-item-left">
-            <span class="batch-chip-tag ${isIncome ? 'income' : 'expense'}">${isIncome ? '收入' : '支出'} · ${escapeHtml(item.type1 || (isIncome ? '其他' : '其他'))}</span>
-            <span class="ai-batch-item-date">${escapeHtml(item.date || '')}</span>
-            <span class="ai-batch-item-name" title="${escapeHtml(item.type2 || '')}">${escapeHtml(item.type2 || '日常账单')}</span>
+      items.forEach((item, index) => {
+        if (!item.member) {
+          item.member = defaultModalMember || '肉大王';
+        }
+
+        const isIncome = (item.flowType === 'income') ||
+          (item.type1 && (INCOME_TYPES.includes(item.type1) || String(item.type1).includes('收入')));
+
+        const isExpanded = (expandedBatchIndex === index);
+
+        const card = document.createElement('div');
+        card.className = `ai-batch-item-card ${isExpanded ? 'is-expanded' : ''}`;
+        card.setAttribute('data-batch-idx', index);
+
+        // 1. 两行卡片摘要 (方案A: 序号+商户+金额在上，分类+成员+完整日期+修改在下)
+        const summary = document.createElement('div');
+        summary.className = 'ai-batch-item-summary';
+        summary.onclick = () => toggleExpandBatchItem(index);
+
+        const titleText = item.type2 || (isIncome ? '收入明细' : (item.type1 ? `${item.type1}消费` : '日常账单'));
+        const dateText = item.date || '';
+
+        summary.innerHTML = `
+          <div class="batch-summary-main-row">
+            <div class="batch-summary-left">
+              <span class="batch-index-badge">#${index + 1}</span>
+              <span class="batch-summary-title" title="${escapeHtml(titleText)}">${escapeHtml(titleText)}</span>
+            </div>
+            <div class="batch-summary-right">
+              <span class="batch-summary-amount ${isIncome ? 'income' : 'expense'}">
+                ${isIncome ? '+' : '-'}¥${formatMoney(parseFloat(item.amount) || 0)}
+              </span>
+              <button type="button" class="ai-batch-item-del" onclick="event.stopPropagation(); deleteBatchAiItem(${index})" title="移除此项">&times;</button>
+            </div>
           </div>
-          <div class="ai-batch-item-right">
-            <span class="ai-batch-item-amount amount-font" style="color: ${isIncome ? '#15803d' : '#0f172a'};">
-              ${isIncome ? '+' : '-'}¥${formatMoney(parseFloat(item.amount) || 0)}
-            </span>
-            <button type="button" class="ai-batch-item-del" onclick="deleteBatchAiItem(${index})" title="移除此项">&times;</button>
+          <div class="batch-summary-sub-row">
+            <div class="batch-summary-tags">
+              <span class="batch-chip-tag ${isIncome ? 'income' : 'expense'}">${isIncome ? '收入' : '支出'} · ${escapeHtml(item.type1 || (isIncome ? '其他收入' : '其他'))}</span>
+              <span class="batch-member-tag">${escapeHtml(item.member === '猫大王' ? '🐱 猫大王' : (item.member === '肉大王' ? '🐰 肉大王' : item.member))}</span>
+              <span class="batch-summary-date">${escapeHtml(dateText)}</span>
+            </div>
+            <span class="ai-batch-item-expand-hint">${isExpanded ? '▲ 收起' : '✏️ 修改'}</span>
           </div>
         `;
-        listContainer.appendChild(div);
+        card.appendChild(summary);
+
+        // 2. 展开的就地编辑面板 (方案A)
+        if (isExpanded) {
+          const editor = document.createElement('div');
+          editor.className = 'ai-batch-item-editor';
+          editor.onclick = (e) => e.stopPropagation();
+
+          // 可选分类集合
+          const categories = isIncome
+            ? PIXEL_INCOME_CATEGORIES.map(c => c.name)
+            : EXPENSE_TYPES;
+
+          const catCapsulesHtml = categories.map(cat => {
+            const isSelected = (item.type1 === cat);
+            return `<button type="button" class="editor-cat-capsule ${isSelected ? 'active' : ''}" onclick="updateBatchItemField(${index}, 'type1', '${cat}')">${cat}</button>`;
+          }).join('');
+
+          editor.innerHTML = `
+            <!-- 行 1: 收支切换与归属人 -->
+            <div class="editor-meta-row">
+              <div class="editor-seg-item">
+                <span class="editor-input-label">收支:</span>
+                <div class="editor-seg-group">
+                  <button type="button" class="editor-seg-btn ${!isIncome ? 'active' : ''}" onclick="updateBatchItemFlowType(${index}, 'expense')">支出</button>
+                  <button type="button" class="editor-seg-btn ${isIncome ? 'income-active' : ''}" onclick="updateBatchItemFlowType(${index}, 'income')">收入</button>
+                </div>
+              </div>
+
+              <div class="editor-seg-item">
+                <span class="editor-input-label">记账人:</span>
+                <div class="editor-seg-group">
+                  <button type="button" class="editor-seg-btn ${item.member === '肉大王' ? 'active' : ''}" onclick="updateBatchItemField(${index}, 'member', '肉大王')">🐰 肉大王</button>
+                  <button type="button" class="editor-seg-btn ${item.member === '猫大王' ? 'active' : ''}" onclick="updateBatchItemField(${index}, 'member', '猫大王')">🐱 猫大王</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 行 2: 快捷分类标签选择 (网格包装，不切断) -->
+            <div class="editor-input-wrap">
+              <span class="editor-input-label">选个分类 (点击秒切):</span>
+              <div class="editor-categories-wrap">
+                ${catCapsulesHtml}
+              </div>
+            </div>
+
+            <!-- 行 3: 商户/内容 与 金额、日期分行排版 -->
+            <div class="editor-fields-block">
+              <div class="editor-input-wrap">
+                <span class="editor-input-label">账单商户 / 消费内容:</span>
+                <input type="text" class="editor-input" value="${escapeHtml(item.type2 || '')}" oninput="updateBatchItemFieldSilent(${index}, 'type2', this.value)" onchange="renderBatchPreview(currentBatchAiItems)" placeholder="如：美团外卖、生椰拿铁" />
+              </div>
+              <div class="editor-two-cols">
+                <div class="editor-input-wrap">
+                  <span class="editor-input-label">金额 (¥):</span>
+                  <input type="number" step="0.01" class="editor-input" value="${item.amount || ''}" oninput="updateBatchItemFieldSilent(${index}, 'amount', parseFloat(this.value) || 0)" onchange="renderBatchPreview(currentBatchAiItems)" placeholder="0.00" />
+                </div>
+                <div class="editor-input-wrap">
+                  <span class="editor-input-label">记账日期:</span>
+                  <input type="date" class="editor-input" value="${item.date || ''}" onchange="updateBatchItemField(${index}, 'date', this.value)" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 底部完成按钮 -->
+            <div class="editor-footer-row">
+              <span style="font-size: 11px; color: #8c96b5;">💡 修改立即生效并同步入库</span>
+              <button type="button" class="btn-editor-done" onclick="toggleExpandBatchItem(-1)">✓ 完成修改</button>
+            </div>
+          `;
+          card.appendChild(editor);
+        }
+
+        listContainer.appendChild(card);
       });
 
       previewSection.style.display = 'block';
       useFirstBatchExpense(false);
     }
 
+    function toggleExpandBatchItem(index) {
+      expandedBatchIndex = (expandedBatchIndex === index) ? -1 : index;
+      renderBatchPreview(currentBatchAiItems);
+      if (expandedBatchIndex !== -1) {
+        setTimeout(() => {
+          const card = document.querySelector(`.ai-batch-item-card[data-batch-idx="${index}"]`);
+          if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 50);
+      }
+    }
+
+    function updateBatchItemField(index, field, value) {
+      if (!currentBatchAiItems || !currentBatchAiItems[index]) return;
+      currentBatchAiItems[index][field] = value;
+      renderBatchPreview(currentBatchAiItems);
+    }
+
+    function updateBatchItemFieldSilent(index, field, value) {
+      if (!currentBatchAiItems || !currentBatchAiItems[index]) return;
+      currentBatchAiItems[index][field] = value;
+    }
+
+    function updateBatchItemFlowType(index, flowType) {
+      if (!currentBatchAiItems || !currentBatchAiItems[index]) return;
+      currentBatchAiItems[index].flowType = flowType;
+      if (flowType === 'income') {
+        currentBatchAiItems[index].type1 = '工资';
+      } else {
+        currentBatchAiItems[index].type1 = '吃';
+      }
+      renderBatchPreview(currentBatchAiItems);
+    }
+
+    // --- AI 对话微调批量账单 ---
+    async function handleAiBatchRefine() {
+      const inputEl = document.getElementById('aiBatchRefineInput');
+      if (!inputEl) return;
+      const instruction = inputEl.value.trim();
+      if (!instruction) {
+        showModalToast('请先输入调整口令，如：第1条改成咖啡18元');
+        inputEl.focus();
+        return;
+      }
+
+      if (!currentBatchAiItems || currentBatchAiItems.length === 0) {
+        showModalToast('当前暂无待调整的识别账单');
+        return;
+      }
+
+      const activeConfig = getActiveAiConfig();
+      if (!activeConfig || !activeConfig.apiKey) {
+        alert('请先点击右上角的“设置”，配置并激活大模型 API Key 后重试');
+        return;
+      }
+
+      let apiEndpoint = activeConfig.endpoint || 'https://openrouter.ai/api/v1/chat/completions';
+      if (apiEndpoint && !apiEndpoint.endsWith('/chat/completions') && !apiEndpoint.endsWith('/completions')) {
+        apiEndpoint = apiEndpoint.replace(/\/$/, '') + '/chat/completions';
+      }
+      const apiModel = activeConfig.model;
+
+      const btn = document.getElementById('btnBatchRefine');
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="btn-spinner"></span> 调整中...';
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const expenseTypesStr = EXPENSE_TYPES.join('、');
+      const incomeTypesStr = PIXEL_INCOME_CATEGORIES.map(c => c.name).join('、');
+
+      // 为 AI 准备带 index 的简要账单数据
+      const currentListForAi = currentBatchAiItems.map((item, idx) => ({
+        index: idx + 1,
+        flowType: item.flowType || 'expense',
+        type1: item.type1 || '吃',
+        type2: item.type2 || '',
+        amount: item.amount,
+        date: item.date || todayStr,
+        member: item.member || '肉大王'
+      }));
+
+      const systemPrompt = `你是一个专业的家庭账单数据智能微调助手。
+今天是 ${todayStr}。
+可选支出分类: [${expenseTypesStr}]
+可选收入分类: [${incomeTypesStr}]
+可选家庭成员: ["肉大王", "猫大王"]
+
+当前待确认的账单列表如下 (JSON 数组，index 为从 1 开始的条目序号)：
+${JSON.stringify(currentListForAi)}
+
+用户的修改要求：
+"${instruction}"
+
+任务说明：
+1. 仔细分析用户的指令意图：
+   - 序号指代（如“第2条改成...”、“把第1条和第3条...”）：精准对指定序号的数据做对应修改；
+   - 关键词指代（如“美团那笔改成...”、“10元那笔删掉”）：匹配对应条目；
+   - 全局/批量调整（如“全部由猫大王付”、“日期全改成昨天”、“所有餐饮归为吃”）：批量修改全部或符合条件的项；
+   - 删除指令（如“删掉第2条”）：在输出数组中移除该项。
+2. 数据字段规范：
+   - "flowType": "expense" 或 "income"
+   - "type1": 分类名，严格从上述支出/收入分类中匹配
+   - "type2": 商户或消费项目名称
+   - "amount": 正浮点数字（最多2位小数）
+   - "date": 格式 YYYY-MM-DD
+   - "member": "肉大王" 或 "猫大王"
+3. 严格规则：未被用户要求修改的条目与字段，必须 100% 原样保留！
+4. 严格只输出合法的 JSON 数组，严禁任何 markdown 代码块包裹、严禁附加任何说明文本。
+示例输出：[{"flowType":"expense","type1":"喝","type2":"生椰拿铁","amount":18,"date":"${todayStr}","member":"肉大王"}]`;
+
+      try {
+        const response = await fetch(apiEndpoint, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${activeConfig.apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": window.location.href,
+            "X-Title": "Family Expense Tracker"
+          },
+          body: JSON.stringify({
+            model: apiModel,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: `请根据要求完成调整并输出最新 JSON 数组。指令：${instruction}` }
+            ]
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API 报错 (${response.status}): ${errText}`);
+        }
+
+        const result = await response.json();
+        const rawContent = result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content;
+        if (!rawContent) throw new Error('AI 未返回调整内容');
+
+        let cleaned = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
+        const firstBracket = cleaned.indexOf('[');
+        const lastBracket = cleaned.lastIndexOf(']');
+        if (firstBracket !== -1 && lastBracket !== -1) {
+          cleaned = cleaned.substring(firstBracket, lastBracket + 1);
+        }
+
+        const parsed = JSON.parse(cleaned);
+        const updatedItems = Array.isArray(parsed) ? parsed : [parsed];
+
+        const validUpdated = [];
+        for (const item of updatedItems) {
+          if (!item || typeof item !== 'object') continue;
+          const cleanAmt = Math.round((parseFloat(item.amount) || 0) * 100) / 100;
+          if (cleanAmt <= 0) continue;
+
+          const isIncome = (item.flowType === 'income') ||
+            (item.type1 && (INCOME_TYPES.includes(item.type1) || String(item.type1).includes('收入')));
+
+          let targetCat = item.type1;
+          if (isIncome) {
+            if (!targetCat || targetCat === '其他收入') targetCat = '其他';
+          } else {
+            if (!targetCat || !EXPENSE_TYPES.includes(targetCat)) targetCat = '其他';
+          }
+
+          let dateVal = item.date;
+          if (!dateVal || !/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
+            dateVal = todayStr;
+          }
+
+          let memberVal = item.member;
+          if (memberVal !== '肉大王' && memberVal !== '猫大王') {
+            memberVal = (memberVal === 'hundun') ? '猫大王' : '肉大王';
+          }
+
+          validUpdated.push({
+            flowType: isIncome ? 'income' : 'expense',
+            amount: cleanAmt,
+            type1: targetCat,
+            type2: (item.type2 || (isIncome ? '收入明细' : '日常支出')).trim(),
+            date: dateVal,
+            member: memberVal
+          });
+        }
+
+        if (validUpdated.length === 0) {
+          throw new Error('调整后的账单列表为空');
+        }
+
+        currentBatchAiItems = validUpdated;
+        inputEl.value = '';
+        expandedBatchIndex = -1; // 重置展开项
+        renderBatchPreview(currentBatchAiItems);
+        showModalToast('✨ AI 调整已完成！已自动更新账单明细 ♡');
+
+      } catch (err) {
+        console.error('AI 微调失败:', err);
+        alert('❌ AI 微调失败: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
+    }
+
     function deleteBatchAiItem(index) {
       if (!currentBatchAiItems || !currentBatchAiItems[index]) return;
       currentBatchAiItems.splice(index, 1);
+      expandedBatchIndex = -1;
       if (currentBatchAiItems.length === 0) {
         cancelBatchPreview();
       } else {
@@ -7151,8 +7802,11 @@
 
     function cancelBatchPreview() {
       currentBatchAiItems = [];
+      expandedBatchIndex = -1;
       const previewSection = document.getElementById('aiBatchPreviewSection');
       if (previewSection) previewSection.style.display = 'none';
+      const modal = document.getElementById('addModal');
+      if (modal) modal.classList.remove('has-batch-preview');
     }
 
     function useFirstBatchExpense(shouldSwitchTab = true) {
@@ -7193,10 +7847,10 @@
       }
 
       try {
-        const memberName = document.getElementById('modalMember') ? document.getElementById('modalMember').value : '';
+        const defaultMemberName = document.getElementById('modalMember') ? document.getElementById('modalMember').value : '';
         let defaultOwnerId = currentUser.id;
-        if (memberName) {
-          defaultOwnerId = NAME_TO_OWNER_ID[memberName] || (memberName === '肉大王' ? '69324098171b217b0ee0bebb' : (memberName === '猫大王' ? '69295c3705564e312860bc51' : ('user_' + memberName)));
+        if (defaultMemberName) {
+          defaultOwnerId = NAME_TO_OWNER_ID[defaultMemberName] || (defaultMemberName === '肉大王' ? '69324098171b217b0ee0bebb' : (defaultMemberName === '猫大王' ? '69295c3705564e312860bc51' : ('user_' + defaultMemberName)));
         }
 
         const rowsToInsert = [];
@@ -7214,6 +7868,13 @@
             chosenCat = '其他收入';
           }
 
+          // 优先使用该条目单独指定的 member，若无则回退到 defaultMemberName
+          const itemMember = item.member || defaultMemberName;
+          let rowOwnerId = defaultOwnerId;
+          if (itemMember) {
+            rowOwnerId = NAME_TO_OWNER_ID[itemMember] || (itemMember === '肉大王' ? '69324098171b217b0ee0bebb' : (itemMember === '猫大王' ? '69295c3705564e312860bc51' : ('user_' + itemMember)));
+          }
+
           const tempId = 'ai_' + Date.now() + Math.random().toString(36).substring(2, 7);
           const dateStr = item.date || new Date().toISOString().substring(0, 10);
           const titleStr = item.type2 || (isIncome ? '收入明细' : '日常支出');
@@ -7225,7 +7886,7 @@
             type1: chosenCat,
             type2: titleStr,
             amount: cleanAmount,
-            owner_id: defaultOwnerId,
+            owner_id: rowOwnerId,
             family_id: MY_FAMILY_ID,
             created_at: createdTime,
             updated_at: createdTime
@@ -7243,7 +7904,7 @@
             type2: titleStr,
             amount: cleanAmount,
             statMonth: computeStatMonth(dateStr),
-            username: OWNER_ID_MAP[defaultOwnerId] || (currentUser ? currentUser.getUsername() : '其他'),
+            username: OWNER_ID_MAP[rowOwnerId] || (currentUser ? currentUser.getUsername() : '其他'),
             createdAt: createdTime,
             category: isIncome ? 'income' : 'expense',
             wasteAmount: 0,
@@ -8380,6 +9041,7 @@
     }
 
     function closeAddModal() {
+      cancelBatchPreview();
       document.getElementById('addModal').classList.remove('active');
       const toast = document.getElementById('modalToast');
       if (toast) toast.style.display = 'none';
