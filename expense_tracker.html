@@ -1882,6 +1882,173 @@
       color: #deb16a !important;
     }
 
+    /* 记账弹窗内批量识别预览卡片 (支持文本与图片识别暗色像素主题) */
+    #addModal .ai-batch-preview-box {
+      background: #272d42 !important;
+      border: 1.5px solid #4a5578 !important;
+      border-radius: 12px !important;
+      padding: 12px !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+      margin-top: 8px !important;
+      margin-bottom: 12px !important;
+    }
+    #addModal .ai-batch-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    #addModal .ai-batch-preview-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: #6ee7b7 !important;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #addModal .btn-cancel-batch {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      color: #cbd5e1 !important;
+      font-size: 11.5px !important;
+      border-radius: 6px !important;
+      padding: 3px 8px !important;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    #addModal .btn-cancel-batch:hover {
+      color: #f87171 !important;
+      background: rgba(239, 68, 68, 0.2) !important;
+      border-color: #f87171 !important;
+    }
+    #addModal .ai-batch-list {
+      max-height: 220px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-right: 2px;
+    }
+    #addModal .ai-batch-item-row {
+      background: #1b2030 !important;
+      border: 1.2px solid #3d4663 !important;
+      border-radius: 9px !important;
+      padding: 8px 12px !important;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      transition: all 0.15s ease;
+    }
+    #addModal .ai-batch-item-row:hover {
+      border-color: #deb16a !important;
+      background: #232a3f !important;
+    }
+    #addModal .ai-batch-item-left {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex: 1;
+      overflow: hidden;
+    }
+    #addModal .batch-chip-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+    #addModal .batch-chip-tag.expense {
+      background: #353c54 !important;
+      color: #f3e7d3 !important;
+      border: 1px solid #586386 !important;
+    }
+    #addModal .batch-chip-tag.income {
+      background: #143828 !important;
+      color: #6ee7b7 !important;
+      border: 1px solid #225a3f !important;
+    }
+    #addModal .ai-batch-item-date {
+      color: #8c96b5 !important;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    #addModal .ai-batch-item-name {
+      color: #f3e7d3 !important;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #addModal .ai-batch-item-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 8px;
+    }
+    #addModal .ai-batch-item-amount {
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+      color: #deb16a !important;
+    }
+    #addModal .ai-batch-item-del {
+      background: none;
+      border: none;
+      color: #8c96b5 !important;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    #addModal .ai-batch-item-del:hover {
+      color: #f87171 !important;
+      background: rgba(239, 68, 68, 0.2) !important;
+    }
+    #addModal .ai-batch-actions {
+      display: flex;
+      gap: 10px;
+    }
+    #addModal .btn-batch-save-all {
+      flex: 2;
+      height: 38px;
+      background: linear-gradient(135deg, #deb16a 0%, #c4975d 100%) !important;
+      color: #1a1e2d !important;
+      border: 1.5px solid #e7c588 !important;
+      border-radius: 8px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 #1b2437 !important;
+      transition: all 0.15s;
+    }
+    #addModal .btn-batch-save-all:hover:not(:disabled) {
+      background: linear-gradient(135deg, #e6bd73 0%, #c4975d 100%) !important;
+      transform: translateY(-1px);
+    }
+    #addModal .btn-batch-save-all:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+    #addModal .btn-batch-use-first {
+      flex: 1;
+      height: 38px;
+      background: #353c54 !important;
+      border: 1.5px solid #586386 !important;
+      color: #f3e7d3 !important;
+      border-radius: 8px !important;
+      font-size: 12.5px !important;
+      font-weight: 600 !important;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 #1b2437 !important;
+      transition: all 0.15s;
+    }
+    #addModal .btn-batch-use-first:hover {
+      background: #3d4663 !important;
+    }
+
     /* --- 2. 📸 月度复盘生活拍立得卡片 (.polaroid-card) 极致暮色像素化 --- */
     .polaroid-card {
       background: #32394f !important;
@@ -2831,8 +2998,8 @@
         <div style="margin-bottom: 20px; text-align: center;">
           <label style="display:block; margin-bottom: 12px; color: var(--text-sub); font-size: 0.95rem; font-weight: 500;">选择记账人：</label>
           <div style="display:flex; gap:12px; justify-content:center;">
-            <button type="button" class="action-btn-large" style="background:#fce4ec; color:#c2185b; border:1px solid #f8bbd0; flex:1; font-weight:bold; cursor:pointer;" onclick="quickLogin('hundun')">🐱 hundun</button>
-            <button type="button" class="action-btn-large" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; flex:1; font-weight:bold; cursor:pointer;" onclick="quickLogin('rourou622')">🐰 rourou622</button>
+            <button type="button" class="action-btn-large" style="background:#373552; color:#c8b9cb; border:1.5px solid #5a577d; border-radius:8px; flex:1; font-weight:bold; cursor:pointer; padding: 12px 10px;" onclick="quickLogin('猫大王')">🐱 猫大王 (hundun)</button>
+            <button type="button" class="action-btn-large" style="background:#4a3f32; color:#e6bd73; border:1.5px solid #6e5c45; border-radius:8px; flex:1; font-weight:bold; cursor:pointer; padding: 12px 10px;" onclick="quickLogin('肉大王')">🐰 肉大王 (rourou622)</button>
           </div>
         </div>
 
@@ -3481,23 +3648,6 @@
                 </button>
               </div>
             </div>
-
-            <!-- 批量识别预览展示区 (>=2条时自动弹出) -->
-            <div id="aiBatchPreviewSection" class="ai-batch-preview-box" style="display: none;">
-              <div class="ai-batch-preview-header">
-                <span class="ai-batch-preview-title" id="aiBatchCountTitle">📋 识别出多笔账单</span>
-                <button type="button" class="btn-cancel-batch" onclick="cancelBatchPreview()" title="取消批量">✕ 取消</button>
-              </div>
-              <div id="aiBatchList" class="ai-batch-list"></div>
-              <div class="ai-batch-actions">
-                <button type="button" class="btn-batch-save-all" id="btnSaveBatchAll" onclick="saveAllBatchExpenses()">
-                  ⚡ 一键全部入库保存
-                </button>
-                <button type="button" class="btn-batch-use-first" onclick="useFirstBatchExpense()">
-                  仅填第1条
-                </button>
-              </div>
-            </div>
           </div>
 
           <!-- 图片识别专属区 (tab === 'image' 时展开) -->
@@ -3509,7 +3659,7 @@
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.65"><path d="M8 5 9 2h6l1 3h5v16H3V5Zm9 8a5 5 0 1 1-10 0 5 5 0 0 1 10 0Z"/></svg>
               </span>
               <strong>点击上传账单截图 或 直接按 Ctrl+V 粘贴</strong>
-              <small>支持外卖单、超市小票、微信/支付宝支付截图</small>
+              <small>支持外卖单、超市小票、微信/支付宝支付明细截图（支持自动识别单笔或多笔账单）</small>
             </div>
 
             <div id="imagePreviewCard" class="image-preview-card" style="display:none;">
@@ -3524,6 +3674,23 @@
             <button type="button" class="image-demo-link" onclick="tryDemoReceiptRecognition()">
               ✨ 试试一张示例外卖小票
             </button>
+          </div>
+
+          <!-- 批量识别预览展示区 (>=2条时自动弹出，文本识别与图片识别通用) -->
+          <div id="aiBatchPreviewSection" class="ai-batch-preview-box" style="display: none;">
+            <div class="ai-batch-preview-header">
+              <span class="ai-batch-preview-title" id="aiBatchCountTitle">📋 识别出多笔账单</span>
+              <button type="button" class="btn-cancel-batch" onclick="cancelBatchPreview()" title="取消批量">✕ 取消</button>
+            </div>
+            <div id="aiBatchList" class="ai-batch-list"></div>
+            <div class="ai-batch-actions">
+              <button type="button" class="btn-batch-save-all" id="btnSaveBatchAll" onclick="saveAllBatchExpenses()">
+                ⚡ 一键全部入库保存
+              </button>
+              <button type="button" class="btn-batch-use-first" onclick="useFirstBatchExpense()">
+                仅填第1条
+              </button>
+            </div>
           </div>
 
           <!-- 支出类型: 支出 & 收入 -->
@@ -4078,6 +4245,9 @@
       if (!e.statMonth && e.date) {
         e.statMonth = computeStatMonth(e.date);
       }
+      // 统一将历史账号名归一化为亲切昵称
+      if (e.username === 'rourou622') e.username = '肉大王';
+      if (e.username === 'hundun') e.username = '猫大王';
       return e;
     }
 
@@ -4086,21 +4256,25 @@
       '#e6bd73', '#d19a9b', '#a5d6a7', '#b4a0c5', '#f0cf92', '#7986cb'
     ];
     const USER_COLOR_MAP = {
-      "hundun": { bg: '#4d3a4b', text: '#f3b8d0', border: '1px solid #75526d' },
-      "rourou622": { bg: '#2b423b', text: '#a8d8c8', border: '1px solid #486b62' },
       "肉大王": { bg: '#4a3f32', text: '#e6bd73', border: '1px solid #6e5c45' },
       "猫大王": { bg: '#373552', text: '#c8b9cb', border: '1px solid #5a577d' },
+      "rourou622": { bg: '#4a3f32', text: '#e6bd73', border: '1px solid #6e5c45' },
+      "hundun": { bg: '#373552', text: '#c8b9cb', border: '1px solid #5a577d' },
       "其它": { bg: '#2d3348', text: '#b8adc3', border: '1px solid #4f5878' }
     };
+    // 数据库所有者真实 ID 映射（已纠正 2860bc51 笔误）
     const OWNER_ID_MAP = {
-      "69295c3705564e312660bc51": "hundun",
-      "69324098171b217b0ee0bebb": "rourou622"
+      "69295c3705564e312860bc51": "猫大王",
+      "69324098171b217b0ee0bebb": "肉大王",
+      "69295c3705564e312660bc51": "猫大王",
+      // 向后兼容旧错位 ID
+      "69295c3705564e312860bc51": "猫大王"
     };
     const NAME_TO_OWNER_ID = {
-      "hundun": "69295c3705564e312660bc51",
-      "rourou622": "69324098171b217b0ee0bebb",
       "肉大王": "69324098171b217b0ee0bebb",
-      "猫大王": "69295c3705564e312660bc51"
+      "猫大王": "69295c3705564e312860bc51",
+      "rourou622": "69324098171b217b0ee0bebb",
+      "hundun": "69295c3705564e312860bc51"
     };
 
     // === 暮色像素分类定义与 SVG 图标集 (对齐汪汪记账) ===
@@ -4295,9 +4469,12 @@
       const savedUser = localStorage.getItem('sb_current_user');
       document.getElementById('loadingSection').style.display = 'none';
       if (savedUser) {
+        let displayUser = savedUser;
+        if (displayUser === 'rourou622') displayUser = '肉大王';
+        if (displayUser === 'hundun') displayUser = '猫大王';
         currentUser = {
-          getUsername: () => savedUser,
-          id: NAME_TO_OWNER_ID[savedUser] || ('user_' + savedUser)
+          getUsername: () => displayUser,
+          id: NAME_TO_OWNER_ID[displayUser] || NAME_TO_OWNER_ID[savedUser] || ('user_' + savedUser)
         };
         enterApp();
       } else {
@@ -4641,7 +4818,10 @@
       document.getElementById('loadingSection').style.display = 'none';
     }
     function quickLogin(username) {
-      localStorage.setItem('sb_current_user', username);
+      let mapped = username;
+      if (mapped === 'rourou622') mapped = '肉大王';
+      if (mapped === 'hundun') mapped = '猫大王';
+      localStorage.setItem('sb_current_user', mapped);
       checkLoginStatus();
     }
     function handleAuthAction() {
@@ -7016,7 +7196,7 @@
         const memberName = document.getElementById('modalMember') ? document.getElementById('modalMember').value : '';
         let defaultOwnerId = currentUser.id;
         if (memberName) {
-          defaultOwnerId = NAME_TO_OWNER_ID[memberName] || (memberName === '肉大王' ? '69324098171b217b0ee0bebb' : (memberName === '猫大王' ? '69295c3705564e312660bc51' : ('user_' + memberName)));
+          defaultOwnerId = NAME_TO_OWNER_ID[memberName] || (memberName === '肉大王' ? '69324098171b217b0ee0bebb' : (memberName === '猫大王' ? '69295c3705564e312860bc51' : ('user_' + memberName)));
         }
 
         const rowsToInsert = [];
@@ -7462,6 +7642,11 @@
       if (textSec) textSec.style.display = (tab === 'text') ? 'flex' : 'none';
       if (imageSec) imageSec.style.display = (tab === 'image') ? 'flex' : 'none';
 
+      // 切换到手动记账模式时清空批量预览
+      if (tab === 'manual') {
+        cancelBatchPreview();
+      }
+
       if (tab === 'text') {
         setTimeout(() => {
           const aiInput = document.getElementById('aiInput');
@@ -7510,9 +7695,10 @@
       if (preview) preview.style.display = 'none';
       const uploadZone = document.getElementById('imageUploadZone');
       if (uploadZone) uploadZone.style.display = 'flex';
+      cancelBatchPreview();
     }
 
-    // --- 真实接入 AI 大模型多模态视觉小票识别 ---
+    // --- 真实接入 AI 大模型多模态视觉小票与账单识别 (支持单条与多条连续批量) ---
     async function callRealAiReceiptRecognition(dataUrl, fileName) {
       const statusEl = document.getElementById('imagePreviewStatus');
       const activeConfig = getActiveAiConfig();
@@ -7535,24 +7721,46 @@
       }
 
       const todayStr = new Date().toISOString().split('T')[0];
+      const currentYear = todayStr.split('-')[0];
       const expenseTypesStr = EXPENSE_TYPES.join('、');
       const incomeTypesStr = PIXEL_INCOME_CATEGORIES.map(c => c.name).join('、');
 
-      const systemPrompt = `你是一个专业的发票、外卖小票和支付截图识别助手。
-当前日期为 ${todayStr}。
+      const systemPrompt = `你是一个专业的发票、外卖小票、账单流水列表和支付截图识别专家。
+今天是 ${todayStr}。
 系统可选支出分类 (type1): [${expenseTypesStr}]
 系统可选收入分类 (type1): [${incomeTypesStr}]
 
-请仔细分析用户上传的这张账单、小票、订单或支付记录图片：
-1. 判断这笔账单是支出(flowType: "expense")还是收入(flowType: "income")。
-2. 提取最终实际支付或收到的金额 (amount，正数浮点数，如 25.50)。
-3. 提取商户名或消费/收入名称 (type2，简要概括，如：瑞幸咖啡、永辉超市、打车、工资等)。
-4. 从上述分类中匹配最合适的一个分类名称作为 type1。
-5. 提取消费日期 (date，格式 YYYY-MM-DD，若图片无具体日期则用 "${todayStr}")。
+任务说明：
+请仔细观察并分析用户上传的图片，精准提取出图片中的【所有账单与收支记录】：
+1. 识别场景与多条处理：
+   - 【场景A：账单列表 / 流水明细截图】（如微信支付账单明细、支付宝明细、银行流水等出现多条收支记录）：
+     必须将画面中的【每一笔独立交易】全部提取出来！
+   - 【场景B：包含多件明细的外卖订单 / 超市小票 / 购物清单】：
+     * 若小票/订单中列出了各项具体商品、菜品或服务的单项金额明细，请将各条目分别提取为独立记录（type2 提取具体商品名，金额为该商品实付金额）；
+     * 若无法拆分商品单项或仅展示整单实付，则提取为 1 笔总消费。
+   - 【场景C：单笔支付凭据 / 支付成功截图 / 单张发票】：
+     提取该 1 笔交易的详细信息。
 
-输出必须严格为合法 JSON 对象，严禁包含 markdown 代码块包裹、严禁附加任何说明文本。
-示例输出:
-{"flowType":"expense","amount":25.5,"type2":"瑞幸咖啡","type1":"喝","date":"${todayStr}"}`;
+2. 输出格式规范：
+   - 无论提取出 1 笔还是多笔，一律输出合法的 JSON 数组格式：[{...}, {...}]。即使只有 1 笔也必须为数组格式。
+   - 严禁包含 markdown 代码块包裹（如严禁 \`\`\`json ）、严禁附加任何说明文本或前缀后缀。
+
+3. 每个账单对象的字段规范：
+   - "flowType": 判断是支出 ("expense") 还是收入 ("income")。
+     * 转账收款、收到红包、退款到账、工资、补贴为 "income"；
+     * 扫码付款、转账付款、商户消费、扣款均为 "expense"。
+   - "amount": 数字格式（正浮点数，如 30.62，严禁带有货币符号 ¥ 或负号 -）。
+   - "type2": 具体的商户名、商品名或收支名称（简明扼要，如：美团外卖、瑞幸咖啡、永辉超市、打车、工资等）。
+   - "type1": 自动归类。
+     * 若为支出，从 [${expenseTypesStr}] 中选择最贴切的一项（如：餐饮/外卖选"吃"，奶茶咖啡选"喝"，超市购物选"购物"，打车地铁选"交通"，猫粮宠物用品选"宠物"，话费充值选"话费"等）；
+     * 若为收入，从 [${incomeTypesStr}] 中选择最贴切的一项。
+   - "date": 日期格式 YYYY-MM-DD。若图片中有具体日期/时间，请准确换算；若无年份则补全今年(${currentYear})；若无具体日期则填 "${todayStr}"。
+
+示例输出：
+[
+  {"flowType":"expense","date":"${todayStr}","amount":30.62,"type2":"美团外卖","type1":"吃"},
+  {"flowType":"expense","date":"${todayStr}","amount":18.00,"type2":"瑞幸咖啡","type1":"喝"}
+]`;
 
       try {
         const response = await fetch(apiEndpoint, {
@@ -7601,38 +7809,118 @@
         if (!rawContent) throw new Error('AI 未返回有效内容');
 
         let cleaned = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
-        const match = cleaned.match(/\{[\s\S]*\}/);
-        if (match) cleaned = match[0];
-        const parsed = JSON.parse(cleaned);
+        let items = [];
 
-        const flowType = (parsed.flowType === 'income') ? 'income' : 'expense';
-        switchEntryFlowType(flowType);
-
-        if (parsed.amount) {
-          const amountInput = document.getElementById('modalAmount');
-          if (amountInput) amountInput.value = parseFloat(parsed.amount).toFixed(2);
-        }
-
-        if (parsed.type2) {
-          const type2Input = document.getElementById('modalType2');
-          if (type2Input) type2Input.value = parsed.type2;
-        }
-
-        if (parsed.type1) {
-          selectModalCategory(parsed.type1);
-        }
-
-        if (parsed.date) {
-          const dateInput = document.getElementById('modalDate');
-          if (dateInput && /^\d{4}-\d{2}-\d{2}$/.test(parsed.date)) {
-            dateInput.value = parsed.date;
+        // 尝试直接解析
+        try {
+          const direct = JSON.parse(cleaned);
+          if (Array.isArray(direct)) {
+            items = direct;
+          } else if (direct && typeof direct === 'object') {
+            if (Array.isArray(direct.items)) items = direct.items;
+            else if (Array.isArray(direct.bills)) items = direct.bills;
+            else if (Array.isArray(direct.records)) items = direct.records;
+            else if (Array.isArray(direct.data)) items = direct.data;
+            else items = [direct];
+          }
+        } catch (e) {
+          // 若直接解析失败，使用正则匹配首尾括号提取
+          const firstBracket = cleaned.indexOf('[');
+          const firstBrace = cleaned.indexOf('{');
+          if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+            const lastBracket = cleaned.lastIndexOf(']');
+            if (lastBracket !== -1) {
+              const sub = cleaned.substring(firstBracket, lastBracket + 1);
+              const p = JSON.parse(sub);
+              items = Array.isArray(p) ? p : [p];
+            }
+          } else if (firstBrace !== -1) {
+            const lastBrace = cleaned.lastIndexOf('}');
+            if (lastBrace !== -1) {
+              const sub = cleaned.substring(firstBrace, lastBrace + 1);
+              const p = JSON.parse(sub);
+              if (Array.isArray(p.items)) items = p.items;
+              else if (Array.isArray(p.bills)) items = p.bills;
+              else if (Array.isArray(p.records)) items = p.records;
+              else if (Array.isArray(p.data)) items = p.data;
+              else items = [p];
+            }
           }
         }
 
-        if (statusEl) {
-          statusEl.innerHTML = `<span style="color:#16a34a;">✨ AI 真实识别成功！已自动填入下方表单，请核对。</span>`;
+        // 规范化与清洗数据
+        const validItems = [];
+        for (const rawItem of (Array.isArray(items) ? items : [items])) {
+          if (!rawItem || typeof rawItem !== 'object') continue;
+          const cleanAmt = Math.round((parseFloat(rawItem.amount) || 0) * 100) / 100;
+          if (cleanAmt <= 0) continue;
+
+          const isIncome = (rawItem.flowType === 'income') ||
+            (rawItem.type1 && (INCOME_TYPES.includes(rawItem.type1) || String(rawItem.type1).includes('收入')));
+
+          let targetCat = rawItem.type1;
+          if (isIncome) {
+            if (!targetCat || targetCat === '其他收入') targetCat = '其他';
+          } else {
+            if (!targetCat || !EXPENSE_TYPES.includes(targetCat)) targetCat = '其他';
+          }
+
+          let dateVal = rawItem.date;
+          if (!dateVal || !/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
+            dateVal = todayStr;
+          }
+
+          validItems.push({
+            flowType: isIncome ? 'income' : 'expense',
+            amount: cleanAmt,
+            type1: targetCat,
+            type2: (rawItem.type2 || (isIncome ? '收入明细' : '日常支出')).trim(),
+            date: dateVal
+          });
         }
-        showModalToast('✨ AI 识图填单成功！');
+
+        console.log('AI 图片识别拆解结果:', validItems);
+
+        if (validItems.length === 0) {
+          throw new Error('未识别到有效的账单项目或金额，请换张清晰图片试试');
+        }
+
+        if (validItems.length === 1) {
+          // 单笔记录：直接填入下方手动表单
+          const single = validItems[0];
+          switchEntryFlowType(single.flowType);
+
+          const amountInput = document.getElementById('modalAmount');
+          if (amountInput) amountInput.value = single.amount.toFixed(2);
+
+          const type2Input = document.getElementById('modalType2');
+          if (type2Input) type2Input.value = single.type2;
+
+          selectModalCategory(single.type1);
+
+          const dateInput = document.getElementById('modalDate');
+          if (dateInput) dateInput.value = single.date;
+
+          cancelBatchPreview();
+          if (statusEl) {
+            statusEl.innerHTML = `<span style="color:#16a34a;">✨ AI 真实识别成功！已自动填入下方表单，请核对入账。</span>`;
+          }
+          showModalToast('✨ AI 识图填单成功！');
+        } else {
+          // 多笔记录：展示批量预览卡片，支持一键全部入库
+          renderBatchPreview(validItems);
+          if (statusEl) {
+            statusEl.innerHTML = `<span style="color:#16a34a;">✨ 识别成功！提取出 <strong>${validItems.length}</strong> 笔账单，可在下方核对并一键批量入库。</span>`;
+          }
+          showModalToast(`✨ 成功识别出 ${validItems.length} 笔账单，可一键批量入库！`);
+
+          const batchEl = document.getElementById('aiBatchPreviewSection');
+          if (batchEl) {
+            setTimeout(() => {
+              batchEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+          }
+        }
 
       } catch (err) {
         console.error('AI 识别小票失败:', err);
@@ -7661,17 +7949,17 @@
       const dataUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgReceipt);
       displayReceiptImage(dataUrl, '【示例小票】汪汪咖啡外卖单.png');
 
-      switchEntryFlowType('expense');
-      selectModalCategory('喝');
-      const amountInput = document.getElementById('modalAmount');
-      const type2Input = document.getElementById('modalType2');
-      if (amountInput) amountInput.value = '50.50';
-      if (type2Input) type2Input.value = '汪汪咖啡店 · 生椰拿铁+芝士蛋糕';
+      const todayStr = new Date().toISOString().split('T')[0];
+      const demoItems = [
+        { flowType: 'expense', amount: 28.50, type1: '喝', type2: '汪汪咖啡店 · 生椰拿铁', date: todayStr },
+        { flowType: 'expense', amount: 22.00, type1: '吃', type2: '汪汪咖啡店 · 海盐芝士蛋糕', date: todayStr }
+      ];
+      renderBatchPreview(demoItems);
       const statusEl = document.getElementById('imagePreviewStatus');
       if (statusEl) {
-        statusEl.innerHTML = '<span style="color:#16a34a;">✨ 示例小票填入成功！(如果上传您自己的图片，会调用真实 AI 大模型分析)</span>';
+        statusEl.innerHTML = '<span style="color:#16a34a;">✨ 示例小票识别成功！已拆解出 2 笔明细（上传真实图片将自动调用 AI 多模态识别多条）</span>';
       }
-      showModalToast('✨ 示例小票填入成功！');
+      showModalToast('✨ 示例识别成功，提取出 2 笔账单！');
     }
 
     function showModalToast(msg) {
@@ -8150,7 +8438,7 @@
       const memberName = document.getElementById('modalMember') ? document.getElementById('modalMember').value : '';
       let ownerId = currentUser.id;
       if (memberName) {
-        ownerId = NAME_TO_OWNER_ID[memberName] || (memberName === '肉大王' ? '69324098171b217b0ee0bebb' : (memberName === '猫大王' ? '69295c3705564e312660bc51' : ('user_' + memberName)));
+        ownerId = NAME_TO_OWNER_ID[memberName] || (memberName === '肉大王' ? '69324098171b217b0ee0bebb' : (memberName === '猫大王' ? '69295c3705564e312860bc51' : ('user_' + memberName)));
       }
 
       const isWaste = document.getElementById('modalWaste') ? document.getElementById('modalWaste').checked : false;
