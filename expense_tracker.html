@@ -3733,6 +3733,9 @@
           <div class="ai-preset-box">
             <div class="ai-preset-label">快捷一键填入模板：</div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="ai-preset-btn" onclick="applyDeepSeekOfficialPreset()">
+                🤖 DeepSeek 官方
+              </button>
               <button type="button" class="ai-preset-btn" onclick="applyTeamoRouterPreset()">
                 ⚡ TeamoRouter (DeepSeek Flash)
               </button>
@@ -7364,7 +7367,18 @@
 
         if (!response.ok) {
           const errText = await response.text();
-          throw new Error(`API 报错 (${response.status}): ${errText}`);
+          let parsedMsg = errText;
+          try {
+            const j = JSON.parse(errText);
+            if (j.error && j.error.message) parsedMsg = j.error.message;
+          } catch (e) {}
+
+          if (response.status === 401) {
+            throw new Error(`身份验证失败 (401 鉴权错误):\n${parsedMsg}\n\n💡【排查排检建议】：\n1. 检查是否“串平台”：如果是 DeepSeek 官方 API，接口地址必须为 https://api.deepseek.com/chat/completions（请勿使用 TeamoRouter 或 OpenRouter 的接口地址）；\n2. 检查 Key 是否完整复制，核对尾号是否与官方后台一致；\n3. 检查该 Key 是否已被删除或已停用。`);
+          } else if (response.status === 402) {
+            throw new Error(`账户余额不足 (402 错误):\n${parsedMsg}\n\n请前往 API 平台充值后再试。`);
+          }
+          throw new Error(`API 报错 (${response.status}): ${parsedMsg}`);
         }
 
         const result = await response.json();
@@ -8868,6 +8882,15 @@ ${JSON.stringify(currentListForAi)}
       document.getElementById('settingsAiId').value = '';
     }
 
+    function applyDeepSeekOfficialPreset() {
+      document.getElementById('settingsAiConfigName').value = 'DeepSeek 官方 (Chat)';
+      document.getElementById('settingsAiModel').value = 'deepseek-chat';
+      document.getElementById('settingsAiEndpoint').value = 'https://api.deepseek.com/chat/completions';
+      const keyInput = document.getElementById('settingsAiKey');
+      keyInput.placeholder = '请输入以 sk- 开头的 DeepSeek 官方 API Key';
+      keyInput.focus();
+    }
+
     function applyTeamoRouterPreset() {
       document.getElementById('settingsAiConfigName').value = 'TeamoRouter (DeepSeek Flash)';
       document.getElementById('settingsAiModel').value = 'deepseek-flash-1017';
@@ -8946,7 +8969,7 @@ ${JSON.stringify(currentListForAi)}
       e.preventDefault();
       const id = document.getElementById('settingsAiId').value;
       const name = document.getElementById('settingsAiConfigName').value.trim();
-      const apiKey = document.getElementById('settingsAiKey').value.trim();
+      const apiKey = document.getElementById('settingsAiKey').value.replace(/\s+/g, '');
       const model = document.getElementById('settingsAiModel').value.trim();
       const endpoint = document.getElementById('settingsAiEndpoint').value.trim();
 
