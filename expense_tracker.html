@@ -4613,6 +4613,15 @@
       "hundun": "69295c3705564e312860bc51"
     };
 
+    // 获取当前登录用户的规范昵称 (如 猫大王 / 肉大王)，未登录默认兜底肉大王
+    function getCurrentLoggedInMemberName() {
+      if (!currentUser) return '肉大王';
+      const curU = (typeof currentUser.getUsername === 'function') ? currentUser.getUsername() : '';
+      if (curU === 'rourou622') return '肉大王';
+      if (curU === 'hundun') return '猫大王';
+      return curU || '肉大王';
+    }
+
     // === 暮色像素分类定义与 SVG 图标集 (对齐汪汪记账) ===
     const PIXEL_PATHS = {
       meal: 'M4 3v6a3 3 0 0 0 6 0V3M7 3v18m13 0V3c-5 3-5 10 0 10',
@@ -7413,6 +7422,17 @@
           }
           selectModalCategory(targetCategory);
 
+          // 文本识别单条：默认同步为当前登录人，如果文本内明确指定了成员则优先使用识别结果
+          const memberSelect = document.getElementById('modalMember');
+          if (memberSelect) {
+            const curMember = getCurrentLoggedInMemberName();
+            if (single.member && Array.from(memberSelect.options).some(o => o.value === single.member)) {
+              memberSelect.value = single.member;
+            } else {
+              memberSelect.value = curMember;
+            }
+          }
+
           cancelBatchPreview();
           switchEntryTab('manual');
           showModalToast('✨ 智能识别成功，已填入表单，请核对入账 ♡');
@@ -7454,12 +7474,13 @@
       if (btnSaveAll) btnSaveAll.innerText = `⚡ 一键全部入库保存 (${items.length}笔)`;
       listContainer.innerHTML = '';
 
-      // 获取当前弹窗默认选择的成员
-      const defaultModalMember = document.getElementById('modalMember') ? document.getElementById('modalMember').value : (currentUser ? currentUser.getUsername() : '肉大王');
+      // 获取当前弹窗默认选择的成员 (优先当前登录人)
+      const curMember = getCurrentLoggedInMemberName();
+      const defaultModalMember = document.getElementById('modalMember') ? (document.getElementById('modalMember').value || curMember) : curMember;
 
       items.forEach((item, index) => {
         if (!item.member) {
-          item.member = defaultModalMember || '肉大王';
+          item.member = defaultModalMember || curMember;
         }
 
         const isIncome = (item.flowType === 'income') ||
@@ -7827,6 +7848,12 @@ ${JSON.stringify(currentListForAi)}
           if (!targetCat || !EXPENSE_TYPES.includes(targetCat)) targetCat = '其他';
         }
         selectModalCategory(targetCat);
+
+        const memberSelect = document.getElementById('modalMember');
+        if (memberSelect) {
+          const curMember = getCurrentLoggedInMemberName();
+          memberSelect.value = (single.member && Array.from(memberSelect.options).some(o => o.value === single.member)) ? single.member : curMember;
+        }
       }
       if (shouldSwitchTab) {
         cancelBatchPreview();
@@ -8562,6 +8589,17 @@ ${JSON.stringify(currentListForAi)}
           const dateInput = document.getElementById('modalDate');
           if (dateInput) dateInput.value = single.date;
 
+          // 图片识别单条：默认同步为当前登录人，如果识别到了特定成员则优先使用
+          const memberSelect = document.getElementById('modalMember');
+          if (memberSelect) {
+            const curMember = getCurrentLoggedInMemberName();
+            if (single.member && Array.from(memberSelect.options).some(o => o.value === single.member)) {
+              memberSelect.value = single.member;
+            } else {
+              memberSelect.value = curMember;
+            }
+          }
+
           cancelBatchPreview();
           if (statusEl) {
             statusEl.innerHTML = `<span style="color:#16a34a;">✨ AI 真实识别成功！已自动填入下方表单，请核对入账。</span>`;
@@ -8669,24 +8707,22 @@ ${JSON.stringify(currentListForAi)}
     function populateModalMemberOptions(selectedVal) {
       const sel = document.getElementById('modalMember');
       if (!sel) return;
+      const curMember = getCurrentLoggedInMemberName();
       const existingMembers = [...new Set(allExpenses.map(e => {
         if (e.username === 'rourou622') return '肉大王';
         if (e.username === 'hundun') return '猫大王';
         return e.username;
       }))].filter(u => u && u !== '未知');
 
-      const defaults = ['肉大王', '猫大王'];
+      // 将当前登录用户置于默认列表首位，保证当前登录人优先
+      const defaults = [curMember, '猫大王', '肉大王'];
       const memberList = Array.from(new Set([...defaults, ...existingMembers]));
       sel.innerHTML = memberList.map(m => `<option value="${m}">${m}</option>`).join('');
 
       if (selectedVal && memberList.includes(selectedVal)) {
         sel.value = selectedVal;
-      } else if (currentUser) {
-        const curU = currentUser.getUsername();
-        const mapped = (curU === 'rourou622') ? '肉大王' : (curU === 'hundun' ? '猫大王' : curU);
-        sel.value = memberList.includes(mapped) ? mapped : memberList[0];
       } else {
-        sel.value = '肉大王';
+        sel.value = curMember;
       }
     }
 
@@ -9017,7 +9053,8 @@ ${JSON.stringify(currentListForAi)}
       if (document.getElementById('modalNote')) document.getElementById('modalNote').value = '';
       if (document.getElementById('modalWaste')) document.getElementById('modalWaste').checked = false;
 
-      populateModalMemberOptions('肉大王');
+      // 打开记账弹窗默认自动选中当前登录人 (如 猫大王 / 肉大王)
+      populateModalMemberOptions();
 
       const titleEl = document.getElementById('modalTitle');
       if (titleEl) {
@@ -9211,7 +9248,11 @@ ${JSON.stringify(currentListForAi)}
         showGlobalToast(id ? '✨ 修改已保存' : '♡ 已成功记下一笔小日常');
 
       } catch (err) {
-        showError('保存失败: ' + err.message);
+        let msg = err.message || String(err);
+        if (msg.includes('Invalid API key') || msg.includes('invalid api key')) {
+          msg = 'Supabase 数据库密钥 (Anon Key) 无效，请点击右上角「退出」并在登录页点击「重置 Supabase 配置」重新填入正确的数据库密钥。';
+        }
+        showError('保存失败: ' + msg);
       } finally {
         isSubmittingExpense = false;
         if (submitBtn) {
