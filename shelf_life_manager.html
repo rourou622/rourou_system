@@ -438,6 +438,16 @@
       box-shadow: none;
     }
 
+    .user-pill.connecting .dot {
+      background: #c58c38;
+      box-shadow: none;
+    }
+
+    .user-pill.error .dot {
+      background: #c25555;
+      box-shadow: none;
+    }
+
     .user-pill-sep {
       opacity: 0.45;
     }
@@ -1176,20 +1186,6 @@
       vertical-align: middle;
     }
 
-    .badge-mock {
-      display: inline-flex;
-      align-items: center;
-      font-size: 10px;
-      font-weight: 400;
-      color: #566e88;
-      background: #eef3f9;
-      border: 1px solid #d6e2ef;
-      padding: 0 6px;
-      border-radius: 5px;
-      margin-left: 5px;
-      vertical-align: middle;
-    }
-
     /* ========================================================
        页面头 (用品库存 & 功劳复盘)
        ======================================================== */
@@ -1443,16 +1439,16 @@
     .filter-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
-      flex: 1;
-      min-width: 240px;
+      flex: 1 1 auto;
+      min-width: 0;
     }
 
     .toolbar-panel .search-box {
-      min-width: 220px;
-      max-width: 340px;
-      flex: 1;
+      min-width: 180px;
+      max-width: 300px;
+      flex: 1 1 200px;
     }
 
     .select-wrap {
@@ -1856,13 +1852,38 @@
     }
 
     .empty-state {
+      width: 100%;
+      grid-column: 1 / -1;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      padding: 46px 20px;
+      padding: 52px 24px;
       color: var(--muted);
       background: var(--card-bg);
-      border: 1.5px dashed rgba(102, 134, 169, 0.44);
-      border-radius: 16px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 14px;
       box-shadow: var(--shadow);
+    }
+
+    .empty-state-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--blue-soft);
+      border: 1px solid rgba(114, 148, 185, 0.25);
+      color: var(--blue);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .empty-state-icon .icon {
+      width: 24px;
+      height: 24px;
     }
 
     /* ========================================================
@@ -2087,12 +2108,17 @@
       box-shadow: 0 24px 64px rgba(22, 47, 86, 0.24);
       border-radius: 16px;
       width: 600px;
+      transition: width 0.2s ease;
       max-width: 100%;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       animation: modalSlide 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal.has-batch-preview {
+      width: 690px;
     }
 
     @keyframes modalSlide {
@@ -2356,6 +2382,297 @@
       0% { width: 12%; opacity: 0.45; }
       50% { width: 92%; opacity: 1; }
       100% { width: 12%; opacity: 0.45; }
+    }
+
+    /* 批量多商品识别预览、就地修改与 AI 纠错 */
+    .ai-batch-preview-box {
+      background: #ffffff;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    .ai-batch-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .ai-batch-preview-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--navy);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-batch-head-btns {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-batch-list {
+      max-height: 295px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-right: 2px;
+    }
+
+    .ai-batch-item-card {
+      background: #f8fafd;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .ai-batch-item-card:hover {
+      border-color: #9cb9d9;
+    }
+
+    .ai-batch-item-card.is-expanded {
+      background: #ffffff;
+      border-color: var(--blue);
+      box-shadow: 0 3px 12px rgba(28, 53, 82, 0.08);
+    }
+
+    .ai-batch-item-summary {
+      padding: 9px 11px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .batch-summary-main-row,
+    .batch-summary-sub-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .batch-summary-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .batch-index-badge {
+      font-size: 11px;
+      color: var(--blue-dark);
+      background: var(--blue-soft);
+      border-radius: 5px;
+      padding: 1px 6px;
+      flex: none;
+    }
+
+    .batch-summary-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--navy);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .batch-summary-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: none;
+    }
+
+    .batch-summary-days {
+      font-size: 12px;
+      color: var(--blue-dark);
+      white-space: nowrap;
+    }
+
+    .ai-batch-item-del {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1;
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .ai-batch-item-del:hover {
+      color: var(--expired);
+      background: var(--expired-bg);
+    }
+
+    .batch-summary-tags {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .batch-chip-tag {
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 5px;
+      background: #eef3f9;
+      color: var(--ink);
+      border: 1px solid #d6e2ef;
+      white-space: nowrap;
+    }
+
+    .batch-summary-date {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .ai-batch-item-expand-hint {
+      font-size: 11px;
+      color: var(--blue);
+      white-space: nowrap;
+      flex: none;
+    }
+
+    .ai-batch-item-editor {
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--line);
+      background: #fafcff;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .editor-input-label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .editor-categories-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .editor-cat-capsule {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .editor-cat-capsule:hover {
+      border-color: #9cb9d9;
+      color: var(--navy);
+    }
+
+    .editor-cat-capsule.active {
+      background: var(--blue-soft);
+      border-color: #9cb9d9;
+      color: var(--blue-dark);
+      font-weight: 500;
+    }
+
+    .editor-two-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .editor-three-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .editor-input {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      color: var(--ink);
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+
+    .editor-input:focus {
+      border-color: var(--blue);
+      outline: none;
+    }
+
+    .editor-footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .ai-batch-refine-box {
+      background: #f4f8fc;
+      border: 1px solid #d5e2f0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+
+    .ai-batch-refine-title {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .ai-batch-refine-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .ai-batch-refine-input {
+      flex: 1;
+      min-width: 0;
+      height: 34px;
+      background: #ffffff;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      padding: 0 10px;
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .ai-batch-refine-input:focus {
+      border-color: var(--blue);
+      outline: none;
+    }
+
+    .ai-batch-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     /* 保鲜大厨声波与食谱卡片 */
@@ -2744,6 +3061,17 @@
       <path d="M12 8.5c-3-3-8-1-8 4 0 4 3 8 6 8l2-.6 2 .6c3 0 6-4 6-8 0-5-5-7-8-4Z" fill="currentColor" fill-opacity="0.24"/>
       <path d="M12 8.5c0-2.8 1.2-4 4-4.5m-4 4.5C9.5 7 7.5 5 7.5 3.5c2.8 0 4.5 1.2 4.5 5"/>
     </symbol>
+    <symbol id="cat-kitchen" viewBox="0 0 24 24">
+      <path d="M5 10h14v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-7Z" fill="currentColor" fill-opacity="0.24"/>
+      <path d="M4 10h16M8.5 7h7M12 4.5V7M3.5 12.5H5M19 12.5h1.5"/>
+    </symbol>
+    <symbol id="cat-pet" viewBox="0 0 24 24">
+      <path d="M12 12.5c-2.6 0-4.8 2.2-4.8 4.4 0 1.4 1.1 2.4 2.5 2.4 1 0 1.6-.4 2.3-.4s1.3.4 2.3.4c1.4 0 2.5-1 2.5-2.4 0-2.2-2.2-4.4-4.8-4.4Z" fill="currentColor" fill-opacity="0.24"/>
+      <circle cx="7" cy="9.5" r="1.5" fill="currentColor" fill-opacity="0.24"/>
+      <circle cx="10.3" cy="6.8" r="1.5" fill="currentColor" fill-opacity="0.24"/>
+      <circle cx="13.7" cy="6.8" r="1.5" fill="currentColor" fill-opacity="0.24"/>
+      <circle cx="17" cy="9.5" r="1.5" fill="currentColor" fill-opacity="0.24"/>
+    </symbol>
     <symbol id="cat-other" viewBox="0 0 24 24">
       <rect x="4" y="7" width="16" height="13" rx="3" fill="currentColor" fill-opacity="0.22"/>
       <path d="M9 12h6M12 9v6"/>
@@ -3063,11 +3391,6 @@
                 <svg class="icon" aria-hidden="true"><use href="#icon-upload-cloud"/></svg>
                 <span>推送本地到云端</span>
               </button>
-              <div class="more-menu-sep" id="moreMenuMockSep" hidden></div>
-              <button type="button" class="more-menu-item" id="moreMenuClearMockBtn" hidden onclick="closeInventoryMoreMenu(); clearMockData()">
-                <svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>
-                <span>清空演示数据</span>
-              </button>
             </div>
           </div>
         </div>
@@ -3143,6 +3466,12 @@
         </button>
         <button type="button" class="category-chip icon-only" data-cat="宠物生鲜" data-tip="生鲜冷冻" title="生鲜冷冻" aria-label="生鲜冷冻" onclick="setCategoryFilter('宠物生鲜')">
           <svg class="icon" aria-hidden="true"><use href="#cat-fresh"/></svg>
+        </button>
+        <button type="button" class="category-chip icon-only" data-cat="厨房用品" data-tip="厨房用品" title="厨房用品" aria-label="厨房用品" onclick="setCategoryFilter('厨房用品')">
+          <svg class="icon" aria-hidden="true"><use href="#cat-kitchen"/></svg>
+        </button>
+        <button type="button" class="category-chip icon-only" data-cat="宠物区域" data-tip="宠物区域" title="宠物区域" aria-label="宠物区域" onclick="setCategoryFilter('宠物区域')">
+          <svg class="icon" aria-hidden="true"><use href="#cat-pet"/></svg>
         </button>
         <button type="button" class="category-chip icon-only" data-cat="其他" data-tip="其他物品" title="其他物品" aria-label="其他物品" onclick="setCategoryFilter('其他')">
           <svg class="icon" aria-hidden="true"><use href="#cat-other"/></svg>
@@ -3351,18 +3680,19 @@
         <!-- 1. 文本智能识别专区 -->
         <div id="tabTextPanel" class="text-ai-section" style="display:none;">
           <div class="text-ai-header">
-            <span>文本智能识别（输入一句话快速提取商品与保质期）</span>
+            <span>文本智能识别（支持单件或多件商品一次拆解）</span>
             <button type="button" class="btn secondary btn-sm" onclick="clearTextAiInput()">清空</button>
           </div>
-          <textarea id="textAiInput" class="text-ai-textarea" rows="3" placeholder="输入任意自然语言描述，例如：&#10;昨天超市买了蒙牛纯牛奶，生产日期2026年10月1日，保质期180天，冷藏室保存&#10;或者：全麦吐司面包，11月8日生产，保质期7天，放零食柜&#10;（支持按 Ctrl + Enter 快速拆解）" onkeydown="if(event.ctrlKey && event.key==='Enter') handleSmartTextIdentify()"></textarea>
+          <textarea id="textAiInput" class="text-ai-textarea" rows="3" placeholder="支持一次输入多个商品，例如：&#10;26年11月14日购买当天生产的冷吃兔、冷吃牛肉、麻辣兔头，保质期7-10天，需要冷藏&#10;或者：昨天买的纯牛奶（保质180天冷藏）、猫粮（365天放宠物区）&#10;（支持按 Ctrl + Enter 快速拆解）" onkeydown="if(event.ctrlKey && event.key==='Enter') handleSmartTextIdentify()"></textarea>
+          <div id="textRecognizingTip" style="font-size:12px; color:var(--blue); margin-top:6px; display:none;"></div>
 
           <div class="text-ai-footer">
             <div class="text-ai-samples">
-              <span style="font-size:11px; color:var(--muted); font-weight:400;">快捷示例：</span>
+              <span style="font-size:11px; color:var(--muted); font-weight:400;">快捷模板：</span>
+              <button type="button" class="shelf-preset-btn" onclick="fillSampleText('batch')">多件冷吃零食</button>
               <button type="button" class="shelf-preset-btn" onclick="fillSampleText('milk')">纯牛奶(180天)</button>
-              <button type="button" class="shelf-preset-btn" onclick="fillSampleText('bread')">吐司面包(7天)</button>
+              <button type="button" class="shelf-preset-btn" onclick="fillSampleText('pet')">猫粮+洗洁精</button>
               <button type="button" class="shelf-preset-btn" onclick="fillSampleText('medicine')">感冒灵胶囊(2年)</button>
-              <button type="button" class="shelf-preset-btn" onclick="fillSampleText('fresh')">鲜牛肉(3天冷藏)</button>
             </div>
             <button type="button" class="btn primary btn-sm" id="btnSmartIdentify" onclick="handleSmartTextIdentify()">
               <svg class="icon" style="width:14px; height:14px;" aria-hidden="true"><use href="#icon-magic"/></svg><span>智能分析拆解</span>
@@ -3390,13 +3720,35 @@
             </div>
             <div style="font-weight:500; color:var(--navy); margin-bottom:4px;">点击上传食品包装 / 标签喷码 / 购物小票</div>
             <div style="font-size:11px; color:var(--muted);">支持拍照、JPG/PNG、或在窗口直接按 Ctrl+V 粘贴截图</div>
-            <div style="margin-top:12px;">
-              <button type="button" class="btn secondary btn-sm" onclick="event.stopPropagation(); tryDemoVisionRecognition()">
-                试试一张示例小票 / 标签识别
+          </div>
+          <input type="file" id="imageFileInput" accept="image/*" style="display:none;" onchange="handleImageFileSelected(this)">
+        </div>
+
+        <!-- 多商品识别预览、修改与 AI 纠错区 (>=2件时自动展开，文本与图片通用) -->
+        <div id="aiBatchPreviewSection" class="ai-batch-preview-box" style="display:none;">
+          <div class="ai-batch-preview-header">
+            <span class="ai-batch-preview-title" id="aiBatchCountTitle">识别出多件商品（点击单项可展开修改）</span>
+            <div class="ai-batch-head-btns">
+              <button type="button" class="btn secondary btn-sm" onclick="addEmptyBatchItem()">+ 补加一项</button>
+              <button type="button" class="btn secondary btn-sm" onclick="cancelBatchPreview()">取消批量</button>
+            </div>
+          </div>
+          <div id="aiBatchList" class="ai-batch-list"></div>
+
+          <div class="ai-batch-refine-box">
+            <span class="ai-batch-refine-title">AI 对话纠错 / 批量修改</span>
+            <div class="ai-batch-refine-input-row">
+              <input type="text" id="aiBatchRefineInput" class="ai-batch-refine-input" placeholder="输入纠错指令，如：保质期全改10天、第2条改成冷吃牛肉干、麻辣兔头删掉、全放冷冻室..." onkeydown="if(event.key==='Enter'){event.preventDefault();handleAiBatchRefine();}">
+              <button type="button" class="btn secondary btn-sm" id="btnBatchRefine" onclick="handleAiBatchRefine()">
+                <svg class="icon" style="width:13px; height:13px;" aria-hidden="true"><use href="#icon-magic"/></svg><span>AI 纠错调整</span>
               </button>
             </div>
           </div>
-          <input type="file" id="imageFileInput" accept="image/*" style="display:none;" onchange="handleImageFileSelected(this)">
+
+          <div class="ai-batch-actions">
+            <button type="button" class="btn primary" id="btnSaveBatchAll" style="flex:2;" onclick="saveAllBatchProducts()">一键全部入库</button>
+            <button type="button" class="btn secondary" style="flex:1;" onclick="useFirstBatchProduct()">仅填第 1 条到表单</button>
+          </div>
         </div>
 
         <!-- 表单区域 -->
@@ -3417,6 +3769,8 @@
                 <option value="药品">家庭常备药</option>
                 <option value="美妆护肤">美妆个护</option>
                 <option value="宠物生鲜">生鲜冷冻</option>
+                <option value="厨房用品">厨房用品</option>
+                <option value="宠物区域">宠物区域</option>
                 <option value="其他">其他物品</option>
               </select>
             </div>
@@ -3502,6 +3856,8 @@
                 <option value="药箱">
                 <option value="洗手台">
                 <option value="阴凉干燥处">
+                <option value="厨房">
+                <option value="宠物区">
               </datalist>
             </div>
             <div class="form-group">
@@ -3597,9 +3953,7 @@
         </div>
 
         <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="btn secondary btn-sm" style="flex:1;" onclick="clearMockData()">一键清除示例</button>
-          <button type="button" class="btn secondary btn-sm" style="flex:1;" onclick="loadMockData()">载入示例商品</button>
-          <button type="button" class="btn danger btn-sm" style="flex:1;" onclick="clearAllData()">清空所有物品</button>
+          <button type="button" class="btn danger btn-sm" style="flex:1;" onclick="clearAllData()">清空本地缓存</button>
         </div>
       </div>
       <div class="modal-footer">
@@ -3689,6 +4043,8 @@
       '药品': { label: '家庭常备药', icon: 'cat-medicine', tone: 'tone-total' },
       '美妆护肤': { label: '美妆个护', icon: 'cat-beauty', tone: 'tone-total' },
       '宠物生鲜': { label: '生鲜冷冻', icon: 'cat-fresh', tone: 'tone-total' },
+      '厨房用品': { label: '厨房用品', icon: 'cat-kitchen', tone: 'tone-total' },
+      '宠物区域': { label: '宠物区域', icon: 'cat-pet', tone: 'tone-total' },
       '其他': { label: '其他物品', icon: 'cat-other', tone: 'tone-total' }
     };
 
@@ -3707,7 +4063,10 @@
       reviewPeriod: 'all',     // 'all' | 'month' | 'year'
       reviewMonth: '',
       reviewYear: '',
-      isSupabaseConnected: false
+      isSupabaseConnected: false,
+      isSupabaseConnecting: false,
+      supabaseStatusReason: '尚未连接云端数据集',
+      pendingSyncPromise: null
     };
 
     function svgIcon(id, cls = '') {
@@ -3743,7 +4102,7 @@
       setupPasteListener();
       updateLivePreview();
       syncPageFromHash();
-      syncWithSupabase(false);
+      state.pendingSyncPromise = syncWithSupabase(false);
     });
 
     window.addEventListener('hashchange', syncPageFromHash);
@@ -3890,27 +4249,63 @@
     }
 
     // ==========================================
-    // 3. Supabase 连接与同步层
+    // 3. Supabase 连接与同步层 (真实校验 + 云端优先)
     // ==========================================
+    function formatSupabaseErrorReason(err, tableName) {
+      const msg = (err && (err.message || err.error_description || String(err))) || '未知错误';
+      const lower = msg.toLowerCase();
+      if (
+        (lower.includes('relation') && lower.includes('does not exist')) ||
+        (lower.includes('could not find the table') && lower.includes('schema cache')) ||
+        lower.includes('42p01')
+      ) {
+        return `数据表【${tableName}】尚未创建，请打开设置复制 SQL 到 Supabase 执行建表`;
+      }
+      if (lower.includes('invalid api key') || lower.includes('jwt') || lower.includes('401') || lower.includes('apikey')) {
+        return 'Supabase Anon Key 无效或已过期';
+      }
+      if (lower.includes('permission denied') || lower.includes('row-level security') || lower.includes('42501')) {
+        return `数据表【${tableName}】权限被 RLS 策略拒绝，请检查表策略`;
+      }
+      if (lower.includes('failed to fetch') || lower.includes('networkerror') || lower.includes('load failed')) {
+        return '无法访问 Supabase 网络服务，请检查网络/代理连接';
+      }
+      return msg;
+    }
+
     function initSupabaseConnection() {
       const url = localStorage.getItem(SB_URL_KEY) || DEFAULT_SB_URL;
       const key = localStorage.getItem(SB_KEY_KEY) || '';
 
-      if (window.supabase && url && key) {
-        try {
-          sbClient = window.supabase.createClient(url, key);
-          state.isSupabaseConnected = true;
-          updateHeaderSyncStatus(true);
-        } catch (e) {
-          console.error('Supabase 初始化失败:', e);
-          updateHeaderSyncStatus(false);
-        }
-      } else {
-        updateHeaderSyncStatus(false);
+      sbClient = null;
+      state.isSupabaseConnected = false;
+
+      if (!window.supabase) {
+        state.supabaseStatusReason = 'Supabase SDK 未加载，请检查网络后刷新重试';
+        updateHeaderSyncStatus('error', state.supabaseStatusReason);
+        return false;
+      }
+
+      if (!url || !key) {
+        state.supabaseStatusReason = !key ? '尚未填写 Supabase Anon Key' : '尚未填写 Supabase Project URL';
+        updateHeaderSyncStatus('offline', state.supabaseStatusReason);
+        return false;
+      }
+
+      try {
+        sbClient = window.supabase.createClient(url, key);
+        state.supabaseStatusReason = '正在校验云端数据集连接...';
+        updateHeaderSyncStatus('connecting', state.supabaseStatusReason);
+        return true;
+      } catch (e) {
+        console.error('Supabase 初始化失败:', e);
+        state.supabaseStatusReason = 'Supabase 初始化失败：' + (e.message || e);
+        updateHeaderSyncStatus('error', state.supabaseStatusReason);
+        return false;
       }
     }
 
-    function updateHeaderSyncStatus(connected) {
+    function updateHeaderSyncStatus(status, detailMsg = '') {
       const pill = document.getElementById('syncStatusPill');
       const modeLabel = document.getElementById('storageModeLabel');
       const familyLabel = document.getElementById('currentFamilyLabel');
@@ -3919,42 +4314,98 @@
 
       if (familyLabel) familyLabel.textContent = family;
       if (heroFamilyTag) heroFamilyTag.textContent = `${family} · 家庭鲜度管家`;
+      if (!pill || !modeLabel) return;
 
-      if (connected) {
-        pill.classList.remove('offline');
+      pill.classList.remove('offline', 'connecting', 'error');
+      if (status === 'connected' || status === true) {
         modeLabel.textContent = 'Supabase 云同步';
+        pill.title = detailMsg || '云端数据集已连接并完成同步（点击管理设置）';
+      } else if (status === 'connecting') {
+        pill.classList.add('connecting');
+        modeLabel.textContent = '连接云端中...';
+        pill.title = detailMsg || '正在校验 Supabase 数据集连接...';
+      } else if (status === 'error') {
+        pill.classList.add('error');
+        modeLabel.textContent = '数据集未连接';
+        pill.title = (detailMsg || state.supabaseStatusReason || '云端连接异常') + '（点击打开设置）';
       } else {
         pill.classList.add('offline');
-        modeLabel.textContent = '本地离线模式';
+        modeLabel.textContent = '数据集未连接';
+        pill.title = (detailMsg || state.supabaseStatusReason || '尚未配置 Supabase 密钥') + '（点击打开设置）';
       }
     }
 
+    async function ensureDatasetConnectedForWrite(actionLabel = '添加商品信息') {
+      if (state.pendingSyncPromise && state.isSupabaseConnecting) {
+        try {
+          await state.pendingSyncPromise;
+        } catch (e) { }
+      }
+      if (state.isSupabaseConnected && sbClient) {
+        return true;
+      }
+      if (sbClient && !state.isSupabaseConnecting) {
+        const ok = await syncWithSupabase(false);
+        if (ok) return true;
+      }
+      const reason = state.supabaseStatusReason || '尚未连接 Supabase 云端数据集';
+      const openSettings = confirm(
+        `数据集未连接，无法${actionLabel}！\n\n原因：${reason}\n\n请先点击「确定」打开设置连接 Supabase 云端数据集。`
+      );
+      if (openSettings) {
+        openSettingsModal();
+      } else {
+        notify(`数据集未连接，无法${actionLabel}`);
+      }
+      return false;
+    }
+
     async function syncWithSupabase(showNotify = true) {
-      if (!sbClient) {
-        if (showNotify) notify('当前运行在本地模式。点击顶部状态胶囊填入 Supabase Key 即可连接云端。');
-        return;
+      if (!sbClient && !initSupabaseConnection()) {
+        if (showNotify) {
+          alert(`数据集未连接：\n${state.supabaseStatusReason}\n\n请点击右上角「设置」填写 Supabase URL 与 Anon Key 后保存。`);
+        }
+        renderApp();
+        return false;
       }
 
       const tableName = localStorage.getItem(SB_SHELF_TABLE_KEY) || DEFAULT_SB_TABLE;
+      state.isSupabaseConnecting = true;
+      updateHeaderSyncStatus('connecting', `正在连接数据表【${tableName}】...`);
+
       try {
-        const { data, error } = await sbClient
+        let { data, error } = await sbClient
           .from(tableName)
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) {
-          if (error.message && (error.message.includes('relation') || error.message.includes('does not exist'))) {
-            if (showNotify) alert(`Supabase 数据表【${tableName}】尚未创建！\n请点击右上角「设置」并点击「复制建表 SQL」，在 Supabase SQL Editor 中执行即可。`);
-          } else {
-            console.warn('Supabase 查询失败:', error.message);
-          }
-          return;
+        if (error && error.message && error.message.toLowerCase().includes('created_at') && error.message.toLowerCase().includes('does not exist')) {
+          const fallbackRes = await sbClient.from(tableName).select('*');
+          data = fallbackRes.data;
+          error = fallbackRes.error;
         }
+
+        if (error) {
+          state.isSupabaseConnected = false;
+          state.supabaseStatusReason = formatSupabaseErrorReason(error, tableName);
+          updateHeaderSyncStatus('error', state.supabaseStatusReason);
+          console.warn('Supabase 查询失败:', error.message);
+          renderApp();
+          if (showNotify) {
+            alert(`数据集未连接：\n${state.supabaseStatusReason}`);
+          }
+          return false;
+        }
+
+        state.isSupabaseConnected = true;
+        state.supabaseStatusReason = '已连接';
+        updateHeaderSyncStatus('connected', `已连接数据表【${tableName}】`);
 
         if (data && Array.isArray(data)) {
           if (data.length === 0 && state.products.length > 0) {
-            if (showNotify) notify('Supabase 表暂无数据，已保留本地物品。可在用品库存页点击「推送云端」！');
-            return;
+            renderApp();
+            if (showNotify) notify(`已连接云端表【${tableName}】（当前为空，本地保留 ${state.products.length} 条记录，如需上云可点「推送本地到云端」）`);
+            return true;
           }
           state.products = data.map(row => ({
             id: row.id,
@@ -3975,15 +4426,27 @@
           saveProductsLocalCache();
           renderApp();
           if (showNotify) notify(`成功从 Supabase 同步了 ${data.length} 条数据！`);
+          return true;
         }
+        return true;
       } catch (err) {
         console.error('Sync Error:', err);
+        state.isSupabaseConnected = false;
+        state.supabaseStatusReason = formatSupabaseErrorReason(err, tableName);
+        updateHeaderSyncStatus('error', state.supabaseStatusReason);
+        renderApp();
+        if (showNotify) {
+          alert(`数据集未连接：\n${state.supabaseStatusReason}`);
+        }
+        return false;
+      } finally {
+        state.isSupabaseConnecting = false;
       }
     }
 
     async function uploadLocalDataToSupabase() {
-      if (!sbClient) {
-        notify('请先在设置中配置并连接 Supabase！');
+      if (!sbClient && !initSupabaseConnection()) {
+        alert(`数据集未连接：${state.supabaseStatusReason}\n请先在右上角「设置」完成配置！`);
         return;
       }
       if (state.products.length === 0) {
@@ -4028,17 +4491,30 @@
           res = await sbClient.from(tableName).upsert(cleanRows);
         }
         if (res.error) throw res.error;
+        state.isSupabaseConnected = true;
+        state.supabaseStatusReason = '已连接';
+        updateHeaderSyncStatus('connected', `已连接数据表【${tableName}】`);
+        renderApp();
         notify(`成功推送 ${rows.length} 件物品至 Supabase 云端！`);
       } catch (e) {
         console.error('Upload Error:', e);
-        notify('推送失败: ' + (e.message || e));
+        const reason = formatSupabaseErrorReason(e, tableName);
+        state.isSupabaseConnected = false;
+        state.supabaseStatusReason = reason;
+        updateHeaderSyncStatus('error', reason);
+        renderApp();
+        alert('推送至云端失败：\n' + reason);
       }
     }
 
     async function consumeProduct(id, skipConfirm = false) {
       const item = state.products.find(p => p.id === id);
       if (!item) return;
+      if (!(await ensureDatasetConnectedForWrite('同步消耗记录到云端'))) return;
       if (!skipConfirm && !confirm(`确认物品「${item.name}」已经食用或消耗完毕吗？\n将自动计入【功劳复盘】！`)) return;
+
+      const remoteOk = await removeProductRemote(id);
+      if (!remoteOk) return;
 
       const stat = calculateStatus(item.produceDate, item.shelfLife, item.purchaseDate, {
         isOpened: item.isOpened,
@@ -4050,7 +4526,6 @@
       state.products = state.products.filter(p => p.id !== id);
       saveProductsLocalCache();
       renderApp();
-      await removeProductRemote(id);
 
       const stats = getHallOfFameStats();
       notify(`「${item.name}」已用完！当前家庭保鲜率 ${stats.rate}%`);
@@ -4059,17 +4534,88 @@
     async function wasteProduct(id) {
       const item = state.products.find(p => p.id === id);
       if (!item) return;
+      if (!(await ensureDatasetConnectedForWrite('同步报废记录到云端'))) return;
       if (!confirm(`确认将「${item.name}」标记为【过期报废】并记入功劳复盘吗？`)) return;
+
+      const remoteOk = await removeProductRemote(id);
+      if (!remoteOk) return;
 
       recordHistory(item, 'wasted', 'expired');
       state.products = state.products.filter(p => p.id !== id);
       saveProductsLocalCache();
       renderApp();
-      await removeProductRemote(id);
       notify(`已将「${item.name}」记录为报废损耗`);
     }
 
+    function buildSupabaseRowPayload(itemData) {
+      const familyName = localStorage.getItem(FAMILY_NAME_KEY) || '肉肉温馨小窝';
+      return {
+        id: itemData.id,
+        code: itemData.code,
+        name: itemData.name,
+        type1: itemData.type1,
+        produce_date: itemData.produceDate,
+        shelf_life: itemData.shelfLife,
+        purchase_date: itemData.purchaseDate,
+        expire_date: itemData.expireDate,
+        storage_location: itemData.storageLocation,
+        recorder: itemData.recorder,
+        family_name: familyName,
+        note: itemData.note,
+        is_opened: !!itemData.isOpened,
+        opened_date: itemData.openedDate || '',
+        opened_shelf_life: parseInt(itemData.openedShelfLife, 10) || 0,
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    function isMissingOptionalColumnError(error) {
+      const msg = (error && error.message) ? error.message.toLowerCase() : '';
+      return msg.includes('column') && (msg.includes('not exist') || msg.includes('schema cache'));
+    }
+
     async function persistProduct(itemData, isNew = false) {
+      if (!(await ensureDatasetConnectedForWrite(isNew ? '添加商品信息' : '保存商品修改'))) {
+        return false;
+      }
+
+      const tableName = localStorage.getItem(SB_SHELF_TABLE_KEY) || DEFAULT_SB_TABLE;
+      const payload = buildSupabaseRowPayload(itemData);
+
+      try {
+        let result;
+        if (isNew) {
+          result = await sbClient.from(tableName).insert([payload]);
+        } else {
+          result = await sbClient.from(tableName).update(payload).eq('id', itemData.id);
+        }
+        if (result.error && isMissingOptionalColumnError(result.error)) {
+          delete payload.is_opened;
+          delete payload.opened_date;
+          delete payload.opened_shelf_life;
+          if (isNew) result = await sbClient.from(tableName).insert([payload]);
+          else result = await sbClient.from(tableName).update(payload).eq('id', itemData.id);
+        }
+        if (result.error) {
+          const reason = formatSupabaseErrorReason(result.error, tableName);
+          state.isSupabaseConnected = false;
+          state.supabaseStatusReason = reason;
+          updateHeaderSyncStatus('error', reason);
+          renderApp();
+          alert(`保存至云端数据集失败：\n${reason}\n\n为确保云端与本地一致，本次未写入本地。`);
+          return false;
+        }
+      } catch (e) {
+        console.warn('Supabase 网络或保存失败:', e);
+        const reason = formatSupabaseErrorReason(e, tableName);
+        state.isSupabaseConnected = false;
+        state.supabaseStatusReason = reason;
+        updateHeaderSyncStatus('error', reason);
+        renderApp();
+        alert(`保存至云端数据集失败：\n${reason}\n\n为确保云端与本地一致，本次未写入本地。`);
+        return false;
+      }
+
       if (isNew) {
         state.products.unshift(itemData);
       } else {
@@ -4078,84 +4624,44 @@
       }
       saveProductsLocalCache();
       renderApp();
-
-      if (sbClient) {
-        const tableName = localStorage.getItem(SB_SHELF_TABLE_KEY) || DEFAULT_SB_TABLE;
-        const familyName = localStorage.getItem(FAMILY_NAME_KEY) || '肉肉温馨小窝';
-        const payload = {
-          id: itemData.id,
-          code: itemData.code,
-          name: itemData.name,
-          type1: itemData.type1,
-          produce_date: itemData.produceDate,
-          shelf_life: itemData.shelfLife,
-          purchase_date: itemData.purchaseDate,
-          expire_date: itemData.expireDate,
-          storage_location: itemData.storageLocation,
-          recorder: itemData.recorder,
-          family_name: familyName,
-          note: itemData.note,
-          is_opened: !!itemData.isOpened,
-          opened_date: itemData.openedDate || '',
-          opened_shelf_life: parseInt(itemData.openedShelfLife, 10) || 0,
-          updated_at: new Date().toISOString()
-        };
-
-        try {
-          let result;
-          if (isNew) {
-            result = await sbClient.from(tableName).insert([payload]);
-          } else {
-            result = await sbClient.from(tableName).update(payload).eq('id', itemData.id);
-          }
-          if (result.error) {
-            if (result.error.message && result.error.message.includes('column') && result.error.message.includes('not exist')) {
-              delete payload.is_opened;
-              delete payload.opened_date;
-              delete payload.opened_shelf_life;
-              if (isNew) await sbClient.from(tableName).insert([payload]);
-              else await sbClient.from(tableName).update(payload).eq('id', itemData.id);
-            } else {
-              console.warn('Supabase 保存返回错误:', result.error.message);
-            }
-          }
-        } catch (e) {
-          console.warn('Supabase 网络或保存失败:', e);
-        }
-      }
+      return true;
     }
 
     async function removeProductRemote(id) {
-      if (sbClient) {
-        const tableName = localStorage.getItem(SB_SHELF_TABLE_KEY) || DEFAULT_SB_TABLE;
-        try {
-          await sbClient.from(tableName).delete().eq('id', id);
-        } catch (e) {
-          console.warn(e);
+      if (!sbClient || !state.isSupabaseConnected) {
+        notify('数据集未连接，无法删除云端记录');
+        return false;
+      }
+      const tableName = localStorage.getItem(SB_SHELF_TABLE_KEY) || DEFAULT_SB_TABLE;
+      try {
+        const { error } = await sbClient.from(tableName).delete().eq('id', id);
+        if (error) {
+          const reason = formatSupabaseErrorReason(error, tableName);
+          state.isSupabaseConnected = false;
+          state.supabaseStatusReason = reason;
+          updateHeaderSyncStatus('error', reason);
+          renderApp();
+          alert(`云端删除失败：\n${reason}`);
+          return false;
         }
-      }
-    }
-
-    function isMockItem(p) {
-      if (!p) return false;
-      if (p.isMock === true) return true;
-      if (typeof p.id === 'string' && (p.id.startsWith('mock-') || ['item-1', 'item-2', 'item-3', 'item-4', 'item-5', 'item-6'].includes(p.id))) return true;
-      if (p.code && ['1001', '1002', '1003', '1004', '1005', '1006'].includes(p.code) &&
-          ['特仑苏有机纯牛奶 (箱装)', '全麦切片吐司面包', '巴氏杀菌高钙鲜牛奶', '草莓生乳卷 (冷藏小蛋糕)', '布洛芬缓释胶囊 0.3g*20粒', '谷言谷物即食麦片'].includes(p.name)) {
         return true;
+      } catch (e) {
+        console.warn(e);
+        const reason = formatSupabaseErrorReason(e, tableName);
+        state.isSupabaseConnected = false;
+        state.supabaseStatusReason = reason;
+        updateHeaderSyncStatus('error', reason);
+        renderApp();
+        alert(`云端删除失败：\n${reason}`);
+        return false;
       }
-      return false;
     }
 
     function loadProductsLocalCache() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY_PRODUCTS);
-        const hasClearedMock = localStorage.getItem('user_cleared_mock') === 'true';
         if (raw) {
           state.products = JSON.parse(raw);
-        } else if (!hasClearedMock) {
-          loadMockData(false);
-          return;
         } else {
           state.products = [];
         }
@@ -4171,155 +4677,12 @@
       } catch (e) { }
     }
 
-    function loadMockData(showToast = true) {
-      const today = new Date();
-      const pad = n => String(n).padStart(2, '0');
-      const makeDate = offsetDays => {
-        const d = new Date(today.getTime() + offsetDays * 86400000);
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-      };
-
-      const sampleItems = [
-        {
-          id: 'mock-1',
-          code: '1001',
-          name: '特仑苏有机纯牛奶 (箱装)',
-          type1: '饮料',
-          produceDate: makeDate(-10),
-          shelfLife: 180,
-          purchaseDate: makeDate(-5),
-          storageLocation: '阴凉干燥处',
-          recorder: '肉大王',
-          note: '营养早餐常备，开封后需冷藏',
-          isMock: true
-        },
-        {
-          id: 'mock-2',
-          code: '1002',
-          name: '全麦切片吐司面包',
-          type1: '食品',
-          produceDate: makeDate(-3),
-          shelfLife: 7,
-          purchaseDate: makeDate(-2),
-          storageLocation: '零食柜',
-          recorder: '肉肉',
-          note: '建议涂果酱烘烤后食用',
-          isMock: true
-        },
-        {
-          id: 'mock-3',
-          code: '1003',
-          name: '巴氏杀菌高钙鲜牛奶',
-          type1: '饮料',
-          produceDate: makeDate(-10),
-          shelfLife: 15,
-          purchaseDate: makeDate(-8),
-          isOpened: true,
-          openedDate: makeDate(-2),
-          openedShelfLife: 3,
-          storageLocation: '冷藏室',
-          recorder: '肉大王',
-          note: '开封后需3天内饮用，还剩最后1天啦！',
-          isMock: true
-        },
-        {
-          id: 'mock-4',
-          code: '1004',
-          name: '草莓生乳卷 (冷藏小蛋糕)',
-          type1: '食品',
-          produceDate: makeDate(-6),
-          shelfLife: 4,
-          purchaseDate: makeDate(-5),
-          storageLocation: '冷藏室',
-          recorder: '肉大王',
-          note: '已过期2天，请直接清理，勿食用',
-          isMock: true
-        },
-        {
-          id: 'mock-5',
-          code: '1005',
-          name: '布洛芬缓释胶囊 0.3g*20粒',
-          type1: '药品',
-          produceDate: makeDate(-120),
-          shelfLife: 1095,
-          purchaseDate: makeDate(-60),
-          storageLocation: '药箱',
-          recorder: '肉肉',
-          note: '对症缓解退烧头痛，避光防潮',
-          isMock: true
-        },
-        {
-          id: 'mock-6',
-          code: '1006',
-          name: '谷言谷物即食麦片',
-          type1: '食品',
-          produceDate: makeDate(-180),
-          shelfLife: 360,
-          purchaseDate: makeDate(-150),
-          storageLocation: '零食柜',
-          recorder: '肉大王',
-          note: '冲泡牛奶饮用',
-          isMock: true
-        }
-      ];
-
-      const realItems = state.products.filter(p => !isMockItem(p));
-      if (realItems.length > 0 && showToast) {
-        const choice = confirm(`您当前已有 ${realItems.length} 件真实商品。\n\n是否将 6 件演示示例商品【追加】到列表中供体验？\n（不会覆盖您的任何真实数据，可随时一键清除）`);
-        if (!choice) return;
-      }
-
-      const realIds = new Set(realItems.map(p => p.id));
-      const freshMocks = sampleItems.filter(m => !realIds.has(m.id));
-      state.products = [...realItems, ...freshMocks];
-      localStorage.removeItem('user_cleared_mock');
-
-      if (loadHistory().length === 0) {
-        saveHistory([
-          { id: 'h-1', name: '草莓生巧大福', type1: '食品', action: 'consumed', date: makeDate(-1), recorder: '肉大王', statusKey: 'fresh', note: '新鲜消灭，超级美味' },
-          { id: 'h-2', name: '海盐苏打饼干', type1: '食品', action: 'consumed', date: makeDate(-3), recorder: '肉肉', statusKey: 'aging', note: '下午茶搭配红茶吃完' }
-        ]);
-      }
-
-      saveProductsLocalCache();
-      renderApp();
-      if (showToast) notify('已为您载入 6 件演示示例商品！');
-    }
-
-    async function clearMockData() {
-      const mockItems = state.products.filter(isMockItem);
-      if (mockItems.length === 0) return notify('当前列表中没有示例商品');
-
-      const mockCount = mockItems.length;
-      if (!confirm(`确定清除列表中的 ${mockCount} 件演示示例商品吗？\n\n（您的自建真实商品将完好保留）`)) {
-        return;
-      }
-
-      const mockIds = mockItems.map(p => p.id);
-      state.products = state.products.filter(p => !isMockItem(p));
-      localStorage.setItem('user_cleared_mock', 'true');
-      saveProductsLocalCache();
-      renderApp();
-
-      if (sbClient) {
-        try {
-          const tableName = localStorage.getItem(SB_SHELF_TABLE_KEY) || DEFAULT_SB_TABLE;
-          await sbClient.from(tableName).delete().in('id', mockIds);
-        } catch (e) {
-          console.warn('清理云端示例商品异常:', e);
-        }
-      }
-
-      notify(`已清除 ${mockCount} 件演示示例商品！`);
-    }
-
     function clearAllData() {
-      if (!confirm('确定清空所有本地商品数据吗？\n\n（提示：若只想删除演示商品，请使用「一键清除示例」功能）')) return;
+      if (!confirm('确定清空本地缓存中的所有商品记录吗？（不会删除云端数据，重新拉取即可恢复）')) return;
       state.products = [];
-      localStorage.setItem('user_cleared_mock', 'true');
       saveProductsLocalCache();
       renderApp();
-      notify('所有本地商品已清空');
+      notify('本地缓存已清空');
     }
 
     // ==========================================
@@ -4430,7 +4793,10 @@
       const tableBox = document.getElementById('overviewTableContainer');
       if (tableBox) {
         if (visible.length === 0) {
-          tableBox.innerHTML = `<div style="padding:36px 18px; text-align:center; color:var(--muted); font-size:13px;">暂无匹配的物品</div>`;
+          const ovMsg = list.length === 0
+            ? (state.isSupabaseConnected ? '库存暂空，点击上方「+ 添加物品」开始记录' : '数据集未连接，请点击顶部状态栏连接云端数据集')
+            : '暂无匹配的物品';
+          tableBox.innerHTML = `<div style="padding:44px 18px; text-align:center; color:var(--muted); font-size:13px;">${ovMsg}</div>`;
         } else {
           tableBox.innerHTML = `
             <div class="table-wrap">
@@ -4513,7 +4879,10 @@
       const attBox = document.getElementById('attentionListContainer');
       if (attBox) {
         if (attentionItems.length === 0) {
-          attBox.innerHTML = `<div style="padding:32px 16px; text-align:center; color:var(--muted); font-size:13px;">当前没有待处理物品，全部新鲜在线！</div>`;
+          const attMsg = list.length === 0
+            ? '目前还没有在库商品，录入后会自动汇总临期提醒'
+            : '当前没有待处理物品，全部新鲜在线！';
+          attBox.innerHTML = `<div style="padding:40px 16px; text-align:center; color:var(--muted); font-size:13px;">${attMsg}</div>`;
         } else {
           attBox.innerHTML = `
             <ul class="attention-list">
@@ -4562,11 +4931,6 @@
       const keyword = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
       const sortType = document.getElementById('sortSelect')?.value || state.sortBy;
       const locFilter = document.getElementById('locationFilter')?.value || '';
-      const mockCount = state.products.filter(isMockItem).length;
-      const moreSep = document.getElementById('moreMenuMockSep');
-      const moreClearBtn = document.getElementById('moreMenuClearMockBtn');
-      if (moreSep) moreSep.hidden = mockCount === 0;
-      if (moreClearBtn) moreClearBtn.hidden = mockCount === 0;
 
       const alertBox = document.getElementById('expiryAlertContainer');
       if (alertBox) {
@@ -4626,14 +4990,23 @@
 
       const container = document.getElementById('mainContainer');
       if (filtered.length === 0) {
+        const isCloudDisconnected = !state.isSupabaseConnected;
+        const emptyTitle = isCloudDisconnected && state.products.length === 0
+          ? '数据集未连接'
+          : '没有找到符合条件的物品';
+        const emptySub = isCloudDisconnected && state.products.length === 0
+          ? escapeHtml(state.supabaseStatusReason || '请点击右上角「设置」连接 Supabase 云端数据集后添加商品')
+          : '可以点击右上角「添加物品」或重置筛选条件';
         container.innerHTML = `
           <div class="empty-state">
-            <div style="margin-bottom:10px; color:var(--blue);">${svgIcon('icon-box')}</div>
-            <div style="font-weight:500; font-size:16px; color:var(--navy);">没有找到符合条件的物品</div>
-            <div style="font-size:12px; margin-top:6px;">可以点击右上角「添加物品」或重置筛选条件</div>
+            <div class="empty-state-icon">${svgIcon('icon-box')}</div>
+            <div style="font-weight:500; font-size:16px; color:var(--navy);">${emptyTitle}</div>
+            <div style="font-size:12px; margin-top:6px; max-width:440px; line-height:1.6;">${emptySub}</div>
             <div style="margin-top:16px; display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="btn secondary" onclick="resetInventoryFilters()">重置筛选</button>
-              <button type="button" class="btn primary" onclick="openAddModal()">+ 立即添加物品</button>
+              ${isCloudDisconnected
+                ? `<button type="button" class="btn primary" onclick="openSettingsModal()">连接云端数据集</button>`
+                : `<button type="button" class="btn secondary" onclick="resetInventoryFilters()">重置筛选</button><button type="button" class="btn primary" onclick="openAddModal()">+ 立即添加物品</button>`
+              }
             </div>
           </div>
         `;
@@ -4927,7 +5300,9 @@
     // ==========================================
     // 5. 增删改查表单处理
     // ==========================================
-    function openAddModal() {
+    async function openAddModal() {
+      if (!(await ensureDatasetConnectedForWrite('添加商品信息'))) return;
+
       document.getElementById('productForm').reset();
       document.getElementById('form-id').value = '';
       document.getElementById('modalTitle').innerHTML = `${svgIcon('icon-plus')}<span>登记新商品保质期</span>`;
@@ -4944,6 +5319,9 @@
       document.getElementById('form-openedShelfLife').value = '3';
       toggleOpenedSection(false);
 
+      cancelBatchPreview();
+      const textTip = document.getElementById('textRecognizingTip');
+      if (textTip) { textTip.style.display = 'none'; textTip.innerHTML = ''; }
       calculateExpireDateFromShelfLife();
       switchEntryTab('manual');
       updateLivePreview();
@@ -4973,6 +5351,7 @@
       document.getElementById('form-openedShelfLife').value = item.openedShelfLife || '';
       toggleOpenedSection(!!item.isOpened);
 
+      cancelBatchPreview();
       if (!item.expireDate) calculateExpireDateFromShelfLife();
       switchEntryTab('manual');
       updateLivePreview();
@@ -4980,6 +5359,7 @@
     }
 
     function closeEntryModal() {
+      cancelBatchPreview();
       document.getElementById('entryModal').classList.remove('active');
     }
 
@@ -4987,6 +5367,9 @@
       e.preventDefault();
 
       const id = document.getElementById('form-id').value.trim();
+      const isNew = !id;
+      if (!(await ensureDatasetConnectedForWrite(isNew ? '添加商品信息' : '保存商品修改'))) return;
+
       const name = document.getElementById('form-name').value.trim();
       const type1 = document.getElementById('form-type1').value;
       const produceDate = document.getElementById('form-produceDate').value;
@@ -5005,7 +5388,6 @@
       if (!produceDate) return notify('请选择生产日期');
       if (isNaN(shelfLife) || shelfLife <= 0) return notify('请输入合法的保质期天数');
 
-      const isNew = !id;
       const itemData = {
         id: id || ('item-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)),
         name,
@@ -5023,14 +5405,16 @@
         recorder: localStorage.getItem('user_nickname') || '肉大王'
       };
 
-      await persistProduct(itemData, isNew);
+      const ok = await persistProduct(itemData, isNew);
+      if (!ok) return;
       closeEntryModal();
-      notify(isNew ? `成功收纳新物品「${name}」！` : `已更新商品「${name}」！`);
+      notify(isNew ? `成功收纳新物品「${name}」并同步至云端！` : `已更新商品「${name}」并同步至云端！`);
     }
 
     async function deleteProduct(id) {
       const item = state.products.find(p => p.id === id);
       if (!item) return;
+      if (!(await ensureDatasetConnectedForWrite('从云端删除物品'))) return;
 
       const stat = calculateStatus(item.produceDate, item.shelfLife, item.purchaseDate, {
         isOpened: item.isOpened,
@@ -5046,18 +5430,22 @@
         if (!confirm(`确定要移除物品「${item.name}」吗？`)) return;
       }
 
+      const remoteOk = await removeProductRemote(id);
+      if (!remoteOk) return;
+
       if (isWaste) recordHistory(item, 'wasted', 'expired');
 
       state.products = state.products.filter(p => p.id !== id);
       saveProductsLocalCache();
       renderApp();
-      await removeProductRemote(id);
       notify(isWaste ? `已将「${item.name}」作为报废清理记录` : '物品已从收纳清单中删除');
     }
 
-    function quickOpenProduct(id) {
+    async function quickOpenProduct(id) {
       const item = state.products.find(p => p.id === id);
       if (!item) return;
+      if (!(await ensureDatasetConnectedForWrite('同步开封状态到云端'))) return;
+
       const defaultDays = item.openedShelfLife || (item.type1 === '饮料' ? 3 : (item.type1 === '食品' ? 7 : 30));
       const input = prompt(`将「${item.name}」标记为今天开封？\n请输入开封后有效保质天数（例如鲜奶3天，面包7天，调味酱30天）：`, defaultDays);
       if (input === null) return;
@@ -5066,10 +5454,14 @@
         notify('请输入合法的开封天数');
         return;
       }
-      item.isOpened = true;
-      item.openedDate = getTodayString();
-      item.openedShelfLife = days;
-      persistProduct(item, false);
+      const updated = {
+        ...item,
+        isOpened: true,
+        openedDate: getTodayString(),
+        openedShelfLife: days
+      };
+      const ok = await persistProduct(updated, false);
+      if (!ok) return;
       notify(`「${item.name}」已标记为今天开封，开封有效保质期 ${days} 天！`);
     }
 
@@ -5157,28 +5549,148 @@
     }
 
     // ==========================================
-    // 7. 文本智能识别系统
+    // 7. 文本 & 多商品智能识别、预览修改与 AI 纠错系统
     // ==========================================
+    let currentBatchAiItems = [];
+    let expandedBatchIndex = -1;
+
+    const VALID_CATEGORY_KEYS = ['食品', '饮料', '日用品', '药品', '美妆护肤', '宠物生鲜', '厨房用品', '宠物区域', '其他'];
+
+    function normalizeCategoryKey(rawType) {
+      const s = String(rawType || '').trim();
+      if (VALID_CATEGORY_KEYS.includes(s)) return s;
+      if (s.includes('厨房') || s.includes('厨具') || s.includes('调料') || s.includes('调味') || s.includes('锅')) return '厨房用品';
+      if (s.includes('宠物')) return '宠物区域';
+      if (s.includes('生鲜') || s.includes('冷冻')) return '宠物生鲜';
+      if (s.includes('饮') || s.includes('奶') || s.includes('茶') || s.includes('咖啡')) return '饮料';
+      if (s.includes('药')) return '药品';
+      if (s.includes('美妆') || s.includes('护肤') || s.includes('个护')) return '美妆护肤';
+      if (s.includes('日用') || s.includes('洗护') || s.includes('日化') || s.includes('纸')) return '日用品';
+      if (s.includes('食') || s.includes('零') || s.includes('肉') || s.includes('菜')) return '食品';
+      return '食品';
+    }
+
+    function computeExpireDateStr(produceDate, shelfLife) {
+      if (!produceDate || !/^\d{4}-\d{2}-\d{2}$/.test(produceDate)) return '';
+      const days = parseInt(shelfLife, 10);
+      if (isNaN(days) || days <= 0) return '';
+      const pDate = new Date(produceDate + 'T00:00:00');
+      if (isNaN(pDate.getTime())) return '';
+      const eDate = new Date(pDate.getTime() + days * 86400000);
+      const pad = n => String(n).padStart(2, '0');
+      return `${eDate.getFullYear()}-${pad(eDate.getMonth() + 1)}-${pad(eDate.getDate())}`;
+    }
+
+    function normalizeRecognizedItem(raw, fallbackDate) {
+      const todayStr = fallbackDate || getTodayString();
+      const name = String(raw.name || raw.title || '').trim();
+      if (!name) return null;
+
+      let produceDate = String(raw.produceDate || '').trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(produceDate)) produceDate = todayStr;
+
+      let purchaseDate = String(raw.purchaseDate || '').trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(purchaseDate)) purchaseDate = todayStr;
+
+      let shelfLife = 0;
+      if (typeof raw.shelfLife === 'number' && isFinite(raw.shelfLife)) {
+        shelfLife = Math.round(raw.shelfLife);
+      } else if (raw.shelfLife) {
+        const m = String(raw.shelfLife).match(/(\d+)/);
+        if (m) shelfLife = parseInt(m[1], 10);
+      }
+
+      let expireDate = String(raw.expireDate || '').trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(expireDate)) expireDate = '';
+
+      if ((!shelfLife || shelfLife <= 0) && expireDate) {
+        const diff = Math.round((new Date(expireDate + 'T00:00:00') - new Date(produceDate + 'T00:00:00')) / 86400000);
+        if (diff > 0) shelfLife = diff;
+      }
+      if (!shelfLife || shelfLife <= 0) shelfLife = 30;
+      if (!expireDate) expireDate = computeExpireDateStr(produceDate, shelfLife);
+
+      const type1 = normalizeCategoryKey(raw.type1);
+      const isOpened = !!raw.isOpened;
+      let openedDate = String(raw.openedDate || '').trim();
+      if (isOpened && !/^\d{4}-\d{2}-\d{2}$/.test(openedDate)) openedDate = todayStr;
+      let openedShelfLife = parseInt(raw.openedShelfLife, 10) || 0;
+      if (isOpened && openedShelfLife <= 0) {
+        openedShelfLife = type1 === '饮料' ? 3 : (type1 === '食品' ? 7 : 30);
+      }
+
+      return {
+        name,
+        type1,
+        produceDate,
+        shelfLife,
+        purchaseDate,
+        expireDate,
+        storageLocation: String(raw.storageLocation || '').trim(),
+        note: String(raw.note || '').trim(),
+        isOpened,
+        openedDate: isOpened ? openedDate : '',
+        openedShelfLife: isOpened ? openedShelfLife : 0
+      };
+    }
+
+    function parseItemsArraySafely(str) {
+      if (!str) return [];
+      const cleaned = String(str).replace(/```json/gi, '').replace(/```/g, '').trim();
+      const unwrap = parsed => {
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && typeof parsed === 'object') {
+          if (Array.isArray(parsed.items)) return parsed.items;
+          if (Array.isArray(parsed.products)) return parsed.products;
+          if (Array.isArray(parsed.records)) return parsed.records;
+          if (Array.isArray(parsed.data)) return parsed.data;
+          return [parsed];
+        }
+        return [];
+      };
+      try {
+        return unwrap(JSON.parse(cleaned));
+      } catch (e) {
+        const firstBracket = cleaned.indexOf('[');
+        const firstBrace = cleaned.indexOf('{');
+        if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+          const lastBracket = cleaned.lastIndexOf(']');
+          if (lastBracket !== -1) {
+            try { return unwrap(JSON.parse(cleaned.substring(firstBracket, lastBracket + 1))); } catch (err) { }
+          }
+        }
+        if (firstBrace !== -1) {
+          const lastBrace = cleaned.lastIndexOf('}');
+          if (lastBrace !== -1) {
+            try { return unwrap(JSON.parse(cleaned.substring(firstBrace, lastBrace + 1))); } catch (err) { }
+          }
+        }
+      }
+      return [];
+    }
+
     function clearTextAiInput() {
       const input = document.getElementById('textAiInput');
       if (input) {
         input.value = '';
         input.focus();
       }
+      const tip = document.getElementById('textRecognizingTip');
+      if (tip) { tip.style.display = 'none'; tip.innerHTML = ''; }
     }
 
     function fillSampleText(type) {
       const input = document.getElementById('textAiInput');
       if (!input) return;
 
-      if (type === 'milk') {
+      if (type === 'batch') {
+        input.value = '26年11月14日购买当天生产的冷吃兔、冷吃牛肉、麻辣兔头、麻辣兔腿，保质期7-10天，需要冷藏';
+      } else if (type === 'milk') {
         input.value = '昨天超市买了蒙牛纯牛奶一箱，生产日期2026年10月1日，保质期180天，放在冰箱冷藏室';
-      } else if (type === 'bread') {
-        input.value = '全麦吐司面包，11月8日生产，保质期7天，放零食柜，开封后尽快食用';
+      } else if (type === 'pet') {
+        input.value = '今天买了冻干猫粮（保质期365天，放宠物区）和厨房洗洁精（保质期3年，放厨房）';
       } else if (type === 'medicine') {
         input.value = '999感冒灵颗粒，2026年3月15日生产，保质期24个月，常温阴凉处放药箱';
-      } else if (type === 'fresh') {
-        input.value = '山姆澳洲鲜牛肉，今天买的，保质期3天，放在冰箱冷冻室';
       }
       input.focus();
     }
@@ -5188,23 +5700,34 @@
       if (!text) return notify('请先在文本框中输入或粘贴商品描述文字');
 
       const btn = document.getElementById('btnSmartIdentify');
+      const tip = document.getElementById('textRecognizingTip');
       const originalText = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = '智能分析拆解中...';
 
       const activeConfig = getActiveAiConfig();
       if (activeConfig && activeConfig.apiKey) {
+        if (tip) {
+          tip.style.display = 'block';
+          tip.textContent = `正在调用模型【${activeConfig.name || activeConfig.model}】分析文本...`;
+        }
         try {
-          await callAiTextExtract(text, activeConfig);
+          const items = await callAiTextExtract(text, activeConfig);
+          handleRecognizedItems(items, 'AI 文本识别', tip);
           btn.disabled = false;
           btn.innerHTML = originalText;
           return;
         } catch (e) {
           console.warn('AI 接口调用失败，自动启用离线启发式规则解析:', e);
+          if (tip) {
+            tip.style.display = 'block';
+            tip.innerHTML = `<span style="color:var(--soon);">AI 接口异常（${escapeHtml(e.message)}），已自动使用本地规则拆解。</span>`;
+          }
         }
       }
 
-      localRuleExtract(text);
+      const localItems = localRuleExtract(text);
+      handleRecognizedItems(localItems, '本地智能拆解', tip);
       btn.disabled = false;
       btn.innerHTML = originalText;
     }
@@ -5216,19 +5739,27 @@
       }
       const apiModel = activeConfig.model || 'z-ai/glm-4.5-air:free';
       const todayStr = getTodayString();
+      const catListStr = VALID_CATEGORY_KEYS.join('、');
 
-      const systemPrompt = `你是一个智能商品保质期信息提取专家。
-今天是 ${todayStr}。请从用户输入的自然语言描述中，精准提取结构化商品信息：
-1. "name": 物品名称（如：蒙牛纯牛奶、全麦面包）
-2. "type1": 物品类型（仅限从 [食品、饮料、日用品、药品、美妆护肤、宠物生鲜、其他] 中选最匹配的一项）
-3. "produceDate": 生产日期 YYYY-MM-DD（根据今天推算"昨天"、"前天"或具体日期）
-4. "shelfLife": 保质时长（天数，整数。如6个月为180，1年为365）
-5. "purchaseDate": 购买日期 YYYY-MM-DD
-6. "expireDate": 过期时间 YYYY-MM-DD
-7. "storageLocation": 存放位置（如：冷藏室、冷冻室、零食柜、药箱等）
-8. "note": 备注或注意事项
+      const systemPrompt = `你是一个智能家庭物品与保质期信息提取专家，支持从一句话中拆解出一个或多个商品。
+今天是 ${todayStr}（年份前缀如 "26年" 请换算为 "2026年"）。
+请从用户输入中识别并拆解每一个独立商品，严格输出合法 JSON 数组（即使只有 1 件也请输出数组 [ {...} ]）：
 
-严格只输出合法的 JSON 对象，禁止使用 markdown 代码块包裹，禁止附加任何额外文字。`;
+每个对象字段：
+1. "name": 物品名称（如：冷吃兔、冷吃牛肉、蒙牛纯牛奶）
+2. "type1": 物品类型，仅限从 [${catListStr}] 中选最匹配的一项（调味品/厨具/洗洁精选"厨房用品"，猫粮/狗粮/猫砂/宠物零食选"宠物区域"，生鲜肉菜冷冻品选"宠物生鲜"）
+3. "produceDate": 生产日期 YYYY-MM-DD（如“当天生产”与购买日期一致；若写“昨天”“前天”请按 ${todayStr} 推算）
+4. "shelfLife": 保质时长（正整数天数。若写范围如“7-10天”请保守取下限 7 并写入 note；6个月为180，1年为365）
+5. "purchaseDate": 购买日期 YYYY-MM-DD（未提及时填 "${todayStr}"）
+6. "expireDate": 过期时间 YYYY-MM-DD（produceDate + shelfLife 天数）
+7. "storageLocation": 存放位置（如：冷藏室、冷冻室、零食柜、药箱、厨房、宠物区、阴凉干燥处等）
+8. "isOpened": 布尔值，是否已开封
+9. "openedDate": 若已开封则为 YYYY-MM-DD
+10. "openedShelfLife": 若已开封则为开封后有效天数（整数）
+11. "note": 备注或注意事项（如原始保质期范围“保质期7-10天”等）
+
+注意：如果句子中多个商品共享同一组日期、保质期或存放方式，请把这些共享属性逐条填入每个拆解出来的商品对象中。
+严格只输出合法 JSON 数组，禁止使用 markdown 代码块包裹，禁止附加任何额外文字。`;
 
       const response = await fetch(apiEndpoint, {
         method: 'POST',
@@ -5250,85 +5781,604 @@
       if (!response.ok) throw new Error('API 响应失败: ' + response.status);
       const resData = await response.json();
       const content = resData.choices?.[0]?.message?.content || '';
-      const parsed = parseJsonSafely(content);
+      const rawItems = parseItemsArraySafely(content);
+      const validItems = rawItems.map(item => normalizeRecognizedItem(item, todayStr)).filter(Boolean);
 
-      if (parsed && parsed.name) {
-        applyParsedDataToForm(parsed);
-        notify('AI 文本智能解析完成，已回填至表单！');
-      } else {
-        throw new Error('未提取到有效商品信息');
-      }
+      if (validItems.length === 0) throw new Error('未提取到有效商品信息');
+      return validItems;
+    }
+
+    function inferCategoryFromName(name) {
+      const t = String(name || '');
+      if (/(猫粮|狗粮|猫砂|猫条|罐头|宠物|冻干|驱虫|尿垫|狗咬胶)/.test(t)) return '宠物区域';
+      if (/(洗洁精|酱油|生抽|老抽|醋|蚝油|料酒|调味|鸡精|盐|锅|铲|菜板|保鲜膜|保鲜袋|洗碗|厨房|抹布)/.test(t)) return '厨房用品';
+      if (/(奶|茶|水|饮|可乐|果汁|咖啡|拿铁|豆浆|酸奶)/.test(t)) return '饮料';
+      if (/(药|胶囊|颗粒|口服液|片|贴|碘伏|创可贴|布洛芬)/.test(t)) return '药品';
+      if (/(纸|皂|牙膏|洗衣液|洗发|沐浴|湿巾|垃圾袋)/.test(t)) return '日用品';
+      if (/(霜|面膜|精华|口红|防晒|水乳|卸妆|护手|化妆)/.test(t)) return '美妆护肤';
+      if (/(鲜肉|生肉|牛肉卷|猪肉|排骨|鱼|虾|速冻|水饺|汤圆)/.test(t)) return '宠物生鲜';
+      return '食品';
     }
 
     function localRuleExtract(text) {
       const today = new Date();
+      const todayStr = getTodayString();
       const pad = n => String(n).padStart(2, '0');
+      const normYear = y => {
+        const num = parseInt(y, 10);
+        return num < 100 ? String(2000 + num) : String(num);
+      };
 
-      let name = '';
-      let produceDate = getTodayString();
-      let shelfLife = 180;
-      let purchaseDate = getTodayString();
-      let location = '';
-      let type1 = '食品';
+      const fullDates = [];
+      const fullDateRegex = /(\d{2,4})\s*[年\/.-]\s*(\d{1,2})\s*[月\/.-]\s*(\d{1,2})\s*[日号]?/g;
+      let dm;
+      while ((dm = fullDateRegex.exec(text)) !== null) {
+        fullDates.push(`${normYear(dm[1])}-${pad(dm[2])}-${pad(dm[3])}`);
+      }
+      const shortDateMatch = fullDates.length === 0 ? text.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]?/) : null;
 
-      const dateMatch = text.match(/(\d{4})[年\/-](\d{1,2})[月\/-](\d{1,2})[日号]?/);
-      const shortDateMatch = !dateMatch ? text.match(/(\d{1,2})月(\d{1,2})[日号]?/) : null;
-      if (dateMatch) {
-        produceDate = `${dateMatch[1]}-${pad(dateMatch[2])}-${pad(dateMatch[3])}`;
-      } else if (shortDateMatch) {
-        produceDate = `${today.getFullYear()}-${pad(shortDateMatch[1])}-${pad(shortDateMatch[2])}`;
-      } else if (text.includes('前天')) {
+      let baseDate = todayStr;
+      if (fullDates.length > 0) baseDate = fullDates[0];
+      else if (shortDateMatch) baseDate = `${today.getFullYear()}-${pad(shortDateMatch[1])}-${pad(shortDateMatch[2])}`;
+      else if (text.includes('前天')) {
         const d = new Date(today.getTime() - 2 * 86400000);
-        produceDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        baseDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
       } else if (text.includes('昨天')) {
         const d = new Date(today.getTime() - 1 * 86400000);
-        produceDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        baseDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
       }
 
-      const daysMatch = text.match(/保质期?([0-9]+)\s*天/);
-      const monthsMatch = text.match(/保质期?([0-9]+)\s*个?月/);
-      const yearsMatch = text.match(/保质期?([0-9]+)\s*年/);
+      const produceDate = baseDate;
+      const purchaseDate = baseDate;
 
-      if (daysMatch) shelfLife = parseInt(daysMatch[1], 10);
-      else if (monthsMatch) shelfLife = parseInt(monthsMatch[1], 10) * 30;
-      else if (yearsMatch) shelfLife = parseInt(yearsMatch[1], 10) * 365;
+      let shelfLife = 180;
+      let rangeNote = '';
+      const rangeDaysMatch = text.match(/保质[期时长]*[约大概为：:]*\s*(\d+)\s*[-~至到]\s*(\d+)\s*天/);
+      const daysMatch = text.match(/保质[期时长]*[约大概为：:]*\s*(\d+)\s*天/);
+      const monthsMatch = text.match(/保质[期时长]*[约大概为：:]*\s*(\d+)\s*个?月/);
+      const yearsMatch = text.match(/保质[期时长]*[约大概为：:]*\s*(\d+)\s*年/);
 
+      if (rangeDaysMatch) {
+        shelfLife = parseInt(rangeDaysMatch[1], 10);
+        rangeNote = `保质期 ${rangeDaysMatch[1]}-${rangeDaysMatch[2]} 天（按保守下限计算）`;
+      } else if (daysMatch) {
+        shelfLife = parseInt(daysMatch[1], 10);
+      } else if (monthsMatch) {
+        shelfLife = parseInt(monthsMatch[1], 10) * 30;
+      } else if (yearsMatch) {
+        shelfLife = parseInt(yearsMatch[1], 10) * 365;
+      }
+
+      let location = '';
       if (text.includes('冷藏')) location = '冷藏室';
       else if (text.includes('冷冻')) location = '冷冻室';
+      else if (text.includes('宠物区')) location = '宠物区';
+      else if (text.includes('厨房')) location = '厨房';
       else if (text.includes('药箱')) location = '药箱';
-      else if (text.includes('零食')) location = '零食柜';
+      else if (text.includes('零食柜')) location = '零食柜';
       else if (text.includes('洗手台') || text.includes('卫生间')) location = '洗手台';
-
-      if (text.includes('奶') || text.includes('水') || text.includes('茶') || text.includes('饮')) type1 = '饮料';
-      else if (text.includes('药') || text.includes('胶囊') || text.includes('颗粒')) type1 = '药品';
-      else if (text.includes('纸') || text.includes('皂') || text.includes('牙膏')) type1 = '日用品';
-      else if (text.includes('霜') || text.includes('面膜') || text.includes('乳')) type1 = '美妆护肤';
-      else if (text.includes('肉') || text.includes('鱼') || text.includes('虾')) type1 = '宠物生鲜';
+      else if (text.includes('阴凉')) location = '阴凉干燥处';
 
       let isOpened = false;
-      let openedDate = getTodayString();
+      const openedDate = todayStr;
       let openedShelfLife = 0;
-      if (text.includes('开封') || text.includes('拆封') || text.includes('已开')) {
+      if (text.includes('已开封') || text.includes('拆封') || text.includes('已开')) {
         isOpened = true;
-        const openMatch = text.match(/开封后?([0-9]+)\s*天/);
-        openedShelfLife = openMatch ? parseInt(openMatch[1], 10) : (type1 === '饮料' ? 3 : (type1 === '食品' ? 7 : 30));
+        const openMatch = text.match(/开封后?[限有效期]*\s*(\d+)\s*天/);
+        if (openMatch) openedShelfLife = parseInt(openMatch[1], 10);
       }
 
-      let cleaned = text.replace(/生产日期.*?(天|月|年|$)/g, '')
-        .replace(/保质期.*?(天|月|年|$)/g, '')
-        .replace(/放在.*?(室|柜|箱|$)/g, '')
-        .replace(/开封.*?(天|$)/g, '')
-        .replace(/[，,。！!]/g, ' ')
-        .trim();
-      const parts = cleaned.split(/\s+/).filter(Boolean);
-      name = parts[0] || '录入商品';
+      // 提取一个或多个商品名称（去除日期、保质期、存放要求、动作修饰后按分隔符拆解）
+      let cleaned = text
+        .replace(/\d{2,4}\s*[年\/.-]\s*\d{1,2}\s*[月\/.-]\s*\d{1,2}\s*[日号]?/g, ' ')
+        .replace(/\d{1,2}\s*月\s*\d{1,2}\s*[日号]?/g, ' ')
+        .replace(/保质[期时长]*[约大概为：:]*\s*\d+(?:\s*[-~至到]\s*\d+)?\s*(天|个月|月|年)/g, ' ')
+        .replace(/(?:需要|需|要|应该|建议)?\s*(?:放[在到入]?|存[放于在]?|置于)\s*(?:冰箱)?(?:冷藏室?|冷冻室?|药箱|零食柜|洗手台|卫生间|厨房|宠物区|阴凉干燥处|常温)(?:保存|存放|放置)?/g, ' ')
+        .replace(/(?:需要|需|应该|建议)\s*(?:冰箱)?(?:冷藏|冷冻|常温)(?:保存|存放|放置)?/g, ' ')
+        .replace(/(已开封|拆封|已开)(后[限有效期]*\s*\d+\s*天)?/g, ' ')
+        .replace(/(?:今天|昨天|前天|超市|网上|购买|买了|买|购入|下单|当天|同天|现做|生产的|生产日期|生产|出厂的|出厂|一箱|一袋|一盒|一瓶)/g, ' ')
+        .replace(/[（）()【】\[\]]/g, ' ')
+        .replace(/[，,、；;\n]+/g, '|')
+        .replace(/\s*(?:和|以及|还有)\s*/g, '|');
 
-      applyParsedDataToForm({
-        name, type1, produceDate, shelfLife, purchaseDate,
-        storageLocation: location, isOpened, openedDate, openedShelfLife,
-        note: '来自文本智能分析'
+      const rawNames = cleaned
+        .split('|')
+        .map(s => s.replace(/^[的之\s]+|[的之\s]+$/g, '').trim())
+        .filter(s => s.length >= 1 && !/^(需要|保存|放|存)$/.test(s));
+
+      const names = rawNames.length > 0 ? rawNames : ['录入商品'];
+      return names.map(name => {
+        const type1 = inferCategoryFromName(name);
+        const effOpenedLife = isOpened
+          ? (openedShelfLife > 0 ? openedShelfLife : (type1 === '饮料' ? 3 : (type1 === '食品' ? 7 : 30)))
+          : 0;
+        return normalizeRecognizedItem({
+          name,
+          type1,
+          produceDate,
+          shelfLife,
+          purchaseDate,
+          storageLocation: location,
+          isOpened,
+          openedDate: isOpened ? openedDate : '',
+          openedShelfLife: effOpenedLife,
+          note: rangeNote || '来自文本智能分析'
+        }, todayStr);
+      }).filter(Boolean);
+    }
+
+    function handleRecognizedItems(validItems, sourceLabel, statusTipEl) {
+      if (!validItems || validItems.length === 0) {
+        notify('未能识别出有效商品信息');
+        return;
+      }
+
+      if (validItems.length === 1) {
+        cancelBatchPreview();
+        applyParsedDataToForm(validItems[0]);
+        if (statusTipEl) {
+          statusTipEl.style.display = 'block';
+          statusTipEl.innerHTML = `<span style="color:var(--fresh);">已通过${escapeHtml(sourceLabel)}提取 1 件商品，已回填至下方表单核对。</span>`;
+        }
+        notify(`${sourceLabel}完成，已回填表单！`);
+      } else {
+        expandedBatchIndex = -1;
+        renderBatchPreview(validItems);
+        if (statusTipEl) {
+          statusTipEl.style.display = 'block';
+          statusTipEl.innerHTML = `<span style="color:var(--fresh);">已拆解出 <strong>${validItems.length}</strong> 件商品，请在下方核对修改或使用 AI 纠错后一键入库。</span>`;
+        }
+        notify(`成功识别出 ${validItems.length} 件商品！`);
+        const batchEl = document.getElementById('aiBatchPreviewSection');
+        if (batchEl) {
+          setTimeout(() => batchEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+        }
+      }
+    }
+
+    function renderBatchPreview(items) {
+      currentBatchAiItems = items;
+      const previewSection = document.getElementById('aiBatchPreviewSection');
+      const listContainer = document.getElementById('aiBatchList');
+      const titleEl = document.getElementById('aiBatchCountTitle');
+      const btnSaveAll = document.getElementById('btnSaveBatchAll');
+      const formEl = document.getElementById('productForm');
+      const modalCard = document.querySelector('#entryModal .modal');
+
+      if (!previewSection || !listContainer) return;
+
+      if (modalCard) modalCard.classList.add('has-batch-preview');
+      if (formEl) formEl.style.display = 'none';
+      if (titleEl) titleEl.textContent = `识别出 ${items.length} 件商品（点击单项可展开修改）`;
+      if (btnSaveAll) btnSaveAll.textContent = `一键全部入库 (${items.length} 件)`;
+
+      listContainer.innerHTML = '';
+
+      items.forEach((item, index) => {
+        const isExpanded = (expandedBatchIndex === index);
+        const meta = getCategoryMeta(item.type1);
+        const expireStr = item.expireDate || computeExpireDateStr(item.produceDate, item.shelfLife);
+
+        const card = document.createElement('div');
+        card.className = `ai-batch-item-card ${isExpanded ? 'is-expanded' : ''}`;
+        card.setAttribute('data-batch-idx', index);
+
+        const summary = document.createElement('div');
+        summary.className = 'ai-batch-item-summary';
+        summary.onclick = () => toggleExpandBatchItem(index);
+
+        summary.innerHTML = `
+          <div class="batch-summary-main-row">
+            <div class="batch-summary-left">
+              <span class="batch-index-badge">#${index + 1}</span>
+              <span class="batch-summary-title" title="${escapeHtml(item.name)}">${escapeHtml(item.name || '未命名商品')}</span>
+            </div>
+            <div class="batch-summary-right">
+              <span class="batch-summary-days">保质 ${item.shelfLife} 天</span>
+              <button type="button" class="ai-batch-item-del" onclick="event.stopPropagation(); deleteBatchAiItem(${index})" title="移除这一条">&times;</button>
+            </div>
+          </div>
+          <div class="batch-summary-sub-row">
+            <div class="batch-summary-tags">
+              <span class="batch-chip-tag">${escapeHtml(meta.label)}</span>
+              ${item.storageLocation ? `<span class="batch-chip-tag">${escapeHtml(item.storageLocation)}</span>` : ''}
+              ${item.isOpened ? `<span class="batch-chip-tag">已开封·限${item.openedShelfLife || 3}天</span>` : ''}
+              <span class="batch-summary-date">${escapeHtml(item.produceDate)} 生产 → ${escapeHtml(expireStr)} 到期</span>
+            </div>
+            <span class="ai-batch-item-expand-hint">${isExpanded ? '▲ 收起' : '修改'}</span>
+          </div>
+        `;
+        card.appendChild(summary);
+
+        if (isExpanded) {
+          const editor = document.createElement('div');
+          editor.className = 'ai-batch-item-editor';
+          editor.onclick = e => e.stopPropagation();
+
+          const catCapsulesHtml = VALID_CATEGORY_KEYS.map(catKey => {
+            const label = getCategoryMeta(catKey).label;
+            const activeCls = item.type1 === catKey ? 'active' : '';
+            return `<button type="button" class="editor-cat-capsule ${activeCls}" onclick="updateBatchItemField(${index}, 'type1', '${catKey}')">${escapeHtml(label)}</button>`;
+          }).join('');
+
+          editor.innerHTML = `
+            <div>
+              <span class="editor-input-label">物品分类（点击切换）</span>
+              <div class="editor-categories-wrap">${catCapsulesHtml}</div>
+            </div>
+            <div class="editor-two-cols">
+              <div>
+                <span class="editor-input-label">物品名称</span>
+                <input type="text" class="editor-input" value="${escapeHtml(item.name || '')}" oninput="updateBatchItemFieldSilent(${index}, 'name', this.value)" onchange="renderBatchPreview(currentBatchAiItems)">
+              </div>
+              <div>
+                <span class="editor-input-label">存放位置</span>
+                <input type="text" class="editor-input" list="locationDatalist" value="${escapeHtml(item.storageLocation || '')}" placeholder="如：冷藏室、厨房、宠物区" oninput="updateBatchItemFieldSilent(${index}, 'storageLocation', this.value)" onchange="renderBatchPreview(currentBatchAiItems)">
+              </div>
+            </div>
+            <div class="editor-three-cols">
+              <div>
+                <span class="editor-input-label">生产日期</span>
+                <input type="date" class="editor-input" value="${escapeHtml(item.produceDate || '')}" onchange="updateBatchItemProduceDate(${index}, this.value)">
+              </div>
+              <div>
+                <span class="editor-input-label">保质时长 (天)</span>
+                <input type="number" class="editor-input" min="1" value="${item.shelfLife || 30}" onchange="updateBatchItemShelfLife(${index}, this.value)">
+              </div>
+              <div>
+                <span class="editor-input-label">过期日期</span>
+                <input type="date" class="editor-input" value="${escapeHtml(expireStr || '')}" onchange="updateBatchItemExpireDate(${index}, this.value)">
+              </div>
+            </div>
+            <div class="editor-two-cols">
+              <div>
+                <span class="editor-input-label">购买日期</span>
+                <input type="date" class="editor-input" value="${escapeHtml(item.purchaseDate || '')}" onchange="updateBatchItemField(${index}, 'purchaseDate', this.value)">
+              </div>
+              <div>
+                <span class="editor-input-label">备注说明</span>
+                <input type="text" class="editor-input" value="${escapeHtml(item.note || '')}" oninput="updateBatchItemFieldSilent(${index}, 'note', this.value)">
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px; color:var(--ink);">
+              <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; margin:0;">
+                <input type="checkbox" style="accent-color:var(--blue);" ${item.isOpened ? 'checked' : ''} onchange="toggleBatchItemOpened(${index}, this.checked)">
+                <span>已开封</span>
+              </label>
+              ${item.isOpened ? `
+                <input type="date" class="editor-input" style="width:132px;" value="${escapeHtml(item.openedDate || getTodayString())}" onchange="updateBatchItemField(${index}, 'openedDate', this.value)">
+                <span style="color:var(--muted);">开封有效</span>
+                <input type="number" class="editor-input" style="width:68px;" min="1" value="${item.openedShelfLife || 3}" onchange="updateBatchItemField(${index}, 'openedShelfLife', parseInt(this.value, 10) || 3)">
+                <span style="color:var(--muted);">天</span>
+              ` : ''}
+            </div>
+            <div class="editor-footer-row">
+              <span style="font-size:11px; color:var(--muted);">修改即时保留在待入库列表中</span>
+              <button type="button" class="btn secondary btn-sm" onclick="toggleExpandBatchItem(-1)">✓ 完成修改</button>
+            </div>
+          `;
+          card.appendChild(editor);
+        }
+
+        listContainer.appendChild(card);
       });
-      notify('已通过本地规则解析并填入表单！');
+
+      previewSection.style.display = 'block';
+    }
+
+    function toggleExpandBatchItem(index) {
+      expandedBatchIndex = (expandedBatchIndex === index) ? -1 : index;
+      renderBatchPreview(currentBatchAiItems);
+      if (expandedBatchIndex !== -1) {
+        setTimeout(() => {
+          const card = document.querySelector(`.ai-batch-item-card[data-batch-idx="${index}"]`);
+          if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 40);
+      }
+    }
+
+    function updateBatchItemField(index, field, value) {
+      if (!currentBatchAiItems[index]) return;
+      currentBatchAiItems[index][field] = value;
+      renderBatchPreview(currentBatchAiItems);
+    }
+
+    function updateBatchItemFieldSilent(index, field, value) {
+      if (!currentBatchAiItems[index]) return;
+      currentBatchAiItems[index][field] = value;
+    }
+
+    function updateBatchItemProduceDate(index, val) {
+      if (!currentBatchAiItems[index] || !val) return;
+      currentBatchAiItems[index].produceDate = val;
+      currentBatchAiItems[index].expireDate = computeExpireDateStr(val, currentBatchAiItems[index].shelfLife);
+      renderBatchPreview(currentBatchAiItems);
+    }
+
+    function updateBatchItemShelfLife(index, val) {
+      if (!currentBatchAiItems[index]) return;
+      const days = parseInt(val, 10);
+      if (isNaN(days) || days <= 0) return;
+      currentBatchAiItems[index].shelfLife = days;
+      currentBatchAiItems[index].expireDate = computeExpireDateStr(currentBatchAiItems[index].produceDate, days);
+      renderBatchPreview(currentBatchAiItems);
+    }
+
+    function updateBatchItemExpireDate(index, val) {
+      if (!currentBatchAiItems[index] || !val) return;
+      currentBatchAiItems[index].expireDate = val;
+      const diff = Math.round((new Date(val + 'T00:00:00') - new Date(currentBatchAiItems[index].produceDate + 'T00:00:00')) / 86400000);
+      if (diff > 0) currentBatchAiItems[index].shelfLife = diff;
+      renderBatchPreview(currentBatchAiItems);
+    }
+
+    function toggleBatchItemOpened(index, checked) {
+      if (!currentBatchAiItems[index]) return;
+      currentBatchAiItems[index].isOpened = !!checked;
+      if (checked) {
+        if (!currentBatchAiItems[index].openedDate) currentBatchAiItems[index].openedDate = getTodayString();
+        if (!currentBatchAiItems[index].openedShelfLife) {
+          const t = currentBatchAiItems[index].type1;
+          currentBatchAiItems[index].openedShelfLife = t === '饮料' ? 3 : (t === '食品' ? 7 : 30);
+        }
+      }
+      renderBatchPreview(currentBatchAiItems);
+    }
+
+    function addEmptyBatchItem() {
+      const todayStr = getTodayString();
+      const first = currentBatchAiItems[0] || {};
+      currentBatchAiItems.push({
+        name: '新物品',
+        type1: first.type1 || '食品',
+        produceDate: first.produceDate || todayStr,
+        shelfLife: first.shelfLife || 30,
+        purchaseDate: first.purchaseDate || todayStr,
+        expireDate: computeExpireDateStr(first.produceDate || todayStr, first.shelfLife || 30),
+        storageLocation: first.storageLocation || '',
+        note: '',
+        isOpened: false,
+        openedDate: '',
+        openedShelfLife: 0
+      });
+      expandedBatchIndex = currentBatchAiItems.length - 1;
+      renderBatchPreview(currentBatchAiItems);
+    }
+
+    function deleteBatchAiItem(index) {
+      if (!currentBatchAiItems[index]) return;
+      currentBatchAiItems.splice(index, 1);
+      expandedBatchIndex = -1;
+      if (currentBatchAiItems.length === 0) {
+        cancelBatchPreview();
+      } else {
+        renderBatchPreview(currentBatchAiItems);
+      }
+    }
+
+    function cancelBatchPreview() {
+      currentBatchAiItems = [];
+      expandedBatchIndex = -1;
+      const previewSection = document.getElementById('aiBatchPreviewSection');
+      if (previewSection) previewSection.style.display = 'none';
+      const formEl = document.getElementById('productForm');
+      if (formEl) formEl.style.display = 'block';
+      const modalCard = document.querySelector('#entryModal .modal');
+      if (modalCard) modalCard.classList.remove('has-batch-preview');
+    }
+
+    function useFirstBatchProduct() {
+      if (currentBatchAiItems.length > 0) {
+        const first = currentBatchAiItems[0];
+        cancelBatchPreview();
+        applyParsedDataToForm(first);
+        switchEntryTab('manual');
+        notify('已将第 1 条填入表单，可核对后单独保存');
+      } else {
+        cancelBatchPreview();
+      }
+    }
+
+    async function handleAiBatchRefine() {
+      const inputEl = document.getElementById('aiBatchRefineInput');
+      if (!inputEl) return;
+      const instruction = inputEl.value.trim();
+      if (!instruction) {
+        notify('请先输入纠错指令，例如：保质期全改10天、第2条删掉');
+        inputEl.focus();
+        return;
+      }
+      if (!currentBatchAiItems || currentBatchAiItems.length === 0) {
+        return notify('当前没有可调整的待入库商品');
+      }
+
+      const activeConfig = getActiveAiConfig();
+      if (!activeConfig || !activeConfig.apiKey) {
+        return notify('未配置大模型 API Key，请点击右上角设置配置后使用 AI 纠错（或点击上方卡片直接手动修改）');
+      }
+
+      let apiEndpoint = activeConfig.endpoint || 'https://openrouter.ai/api/v1/chat/completions';
+      if (!apiEndpoint.endsWith('/chat/completions') && !apiEndpoint.endsWith('/completions')) {
+        apiEndpoint = apiEndpoint.replace(/\/$/, '') + '/chat/completions';
+      }
+      const apiModel = activeConfig.model || 'z-ai/glm-4.5-air:free';
+
+      const btn = document.getElementById('btnBatchRefine');
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'AI 调整中...';
+      }
+
+      const todayStr = getTodayString();
+      const currentListForAi = currentBatchAiItems.map((item, idx) => ({
+        index: idx + 1,
+        name: item.name,
+        type1: item.type1,
+        produceDate: item.produceDate,
+        shelfLife: item.shelfLife,
+        purchaseDate: item.purchaseDate,
+        expireDate: item.expireDate,
+        storageLocation: item.storageLocation,
+        isOpened: !!item.isOpened,
+        openedDate: item.openedDate || '',
+        openedShelfLife: item.openedShelfLife || 0,
+        note: item.note || ''
+      }));
+
+      const systemPrompt = `你是一个专业的家庭保质期清单智能纠错与批量微调助手。
+今天是 ${todayStr}。
+可选分类: [${VALID_CATEGORY_KEYS.join('、')}]
+
+当前待确认的商品列表（index 为从 1 开始的条目序号）：
+${JSON.stringify(currentListForAi)}
+
+用户的纠错/修改要求：
+"${instruction}"
+
+规则说明：
+1. 序号指代（如“第2条改成...”）、名称匹配（如“麻辣兔头删掉”）、全量/条件修改（如“保质期全改10天”、“全放冷冻室”、“全部归为厨房用品”）：精准修改对应条目或从数组中增删条目。
+2. 当生产日期 produceDate 或保质天数 shelfLife 发生变化时，同步重新计算对应的过期日期 expireDate（YYYY-MM-DD）；若用户直接改过期日期，也同步修正 shelfLife 天数。
+3. 未被要求修改的条目与字段请保持原样。
+4. 严格只输出修改后的合法 JSON 数组（[ {...}, ... ]），不要输出 markdown 代码块或任何额外解释文字。`;
+
+      try {
+        const response = await fetch(apiEndpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${activeConfig.apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.href,
+            'X-Title': 'Shelf Life Manager'
+          },
+          body: JSON.stringify({
+            model: apiModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `请按指令更新清单并输出 JSON 数组：${instruction}` }
+            ]
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API 报错 (${response.status}): ${errText}`);
+        }
+
+        const resData = await response.json();
+        const rawContent = resData.choices?.[0]?.message?.content || '';
+        const parsedList = parseItemsArraySafely(rawContent);
+        const validUpdated = parsedList.map(item => normalizeRecognizedItem(item, todayStr)).filter(Boolean);
+
+        if (validUpdated.length === 0) throw new Error('调整后的商品列表为空');
+
+        expandedBatchIndex = -1;
+        inputEl.value = '';
+        renderBatchPreview(validUpdated);
+        notify(`AI 纠错已完成，已更新 ${validUpdated.length} 件商品！`);
+      } catch (err) {
+        console.error('AI 批量纠错失败:', err);
+        notify('AI 纠错失败: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
+    }
+
+    async function saveAllBatchProducts() {
+      if (!currentBatchAiItems || currentBatchAiItems.length === 0) return;
+      if (!(await ensureDatasetConnectedForWrite('批量添加商品'))) return;
+
+      const btn = document.getElementById('btnSaveBatchAll');
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '正在批量入库保存...';
+      }
+
+      const recorder = localStorage.getItem('user_nickname') || '肉大王';
+      const todayStr = getTodayString();
+      const newProducts = [];
+
+      try {
+        currentBatchAiItems.forEach((raw, idx) => {
+          const item = normalizeRecognizedItem(raw, todayStr);
+          if (!item) return;
+          const uid = 'item-' + Date.now() + '-' + idx + '-' + Math.random().toString(36).slice(2, 6);
+          const code = String(Math.floor(1000 + Math.random() * 9000));
+          newProducts.push({
+            id: uid,
+            code,
+            name: item.name,
+            type1: item.type1,
+            produceDate: item.produceDate,
+            shelfLife: item.shelfLife,
+            purchaseDate: item.purchaseDate,
+            expireDate: item.expireDate,
+            storageLocation: item.storageLocation,
+            note: item.note,
+            isOpened: !!item.isOpened,
+            openedDate: item.isOpened ? item.openedDate : '',
+            openedShelfLife: item.isOpened ? item.openedShelfLife : 0,
+            recorder
+          });
+        });
+
+        if (newProducts.length === 0) {
+          notify('没有有效的商品数据可保存');
+          return;
+        }
+
+        const tableName = localStorage.getItem(SB_SHELF_TABLE_KEY) || DEFAULT_SB_TABLE;
+        const payloads = newProducts.map(itemData => buildSupabaseRowPayload(itemData));
+
+        try {
+          let res = await sbClient.from(tableName).insert(payloads);
+          if (res.error && isMissingOptionalColumnError(res.error)) {
+            const fallbackPayloads = payloads.map(p => {
+              const copy = { ...p };
+              delete copy.is_opened;
+              delete copy.opened_date;
+              delete copy.opened_shelf_life;
+              return copy;
+            });
+            res = await sbClient.from(tableName).insert(fallbackPayloads);
+          }
+          if (res.error) {
+            const reason = formatSupabaseErrorReason(res.error, tableName);
+            state.isSupabaseConnected = false;
+            state.supabaseStatusReason = reason;
+            updateHeaderSyncStatus('error', reason);
+            renderApp();
+            alert(`批量写入云端数据集失败：\n${reason}\n\n为确保云端与本地一致，本次未写入本地。`);
+            return;
+          }
+        } catch (e) {
+          console.warn('Supabase 批量同步失败:', e);
+          const reason = formatSupabaseErrorReason(e, tableName);
+          state.isSupabaseConnected = false;
+          state.supabaseStatusReason = reason;
+          updateHeaderSyncStatus('error', reason);
+          renderApp();
+          alert(`批量写入云端数据集失败：\n${reason}\n\n为确保云端与本地一致，本次未写入本地。`);
+          return;
+        }
+
+        state.products.unshift(...newProducts);
+        saveProductsLocalCache();
+        renderApp();
+
+        const savedCount = newProducts.length;
+        closeEntryModal();
+        notify(`成功批量收纳 ${savedCount} 件商品并同步至云端！`);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
     }
 
     // ==========================================
@@ -5383,6 +6433,7 @@
     function clearUploadedImage() {
       document.getElementById('imagePreviewBox').style.display = 'none';
       document.getElementById('imageUploadDropzone').style.display = 'block';
+      cancelBatchPreview();
     }
 
     async function callRealAiVisionRecognition(dataUrl, fileName) {
@@ -5390,7 +6441,7 @@
       const activeConfig = getActiveAiConfig();
 
       if (!activeConfig || !activeConfig.apiKey) {
-        statusTip.innerHTML = `<span style="color:var(--expired)">未配置 API Key。请点击右上角「设置」配置，或点击下方试试示例识别。</span>`;
+        statusTip.innerHTML = `<span style="color:var(--expired)">未配置 API Key，请点击右上角「设置」配置视觉模型后使用。</span>`;
         return;
       }
 
@@ -5400,21 +6451,23 @@
       }
       const apiModel = activeConfig.model || 'z-ai/glm-4.5-air:free';
 
-      statusTip.innerHTML = `正在调用视觉大模型【${escapeHtml(activeConfig.name || apiModel)}】分析包装与喷码...`;
+      statusTip.innerHTML = `正在调用视觉大模型【${escapeHtml(activeConfig.name || apiModel)}】分析包装与小票...`;
 
       const todayStr = getTodayString();
-      const systemPrompt = `你是一个专业的食品药品外包装、生产喷码标签和购物小票保质期识别专家。
+      const catListStr = VALID_CATEGORY_KEYS.join('、');
+      const systemPrompt = `你是一个专业的食品药品外包装、生产喷码标签、购物小票和订单截图保质期识别专家。
 今天是 ${todayStr}。
-任务：请仔细观察图片中的包装信息，提取物品名称、生产日期、保质时长或过期时间：
+任务：请仔细识别图片中出现的**所有商品**（可能是单个包装，也可能是小票/订单截图里的多件商品），为每一件提取结构化信息并严格以 JSON 数组输出 [ {...}, ... ]：
 1. "name": 物品名称
-2. "type1": 物品分类，仅限从 [食品、饮料、日用品、药品、美妆护肤、宠物生鲜、其他] 中选最匹配的一项
-3. "produceDate": 生产日期 YYYY-MM-DD
-4. "shelfLife": 保质天数（整数。若写6个月填180，1年填365；若包装直接打印“保质期至：YYYY-MM-DD”，请换算与生产日期间隔天数）
-5. "purchaseDate": 购买日期（无明确说明则填 "${todayStr}"）
+2. "type1": 物品分类，仅限从 [${catListStr}] 中选最匹配的一项
+3. "produceDate": 生产日期 YYYY-MM-DD（若小票未印生产日期，可参考购买日期或今天）
+4. "shelfLife": 保质天数（整数。如6个月填180，1年填365；若直接印“保质期至：YYYY-MM-DD”，请换算间隔天数；若生鲜/烘焙未印保质期可给合理保守估算）
+5. "purchaseDate": 购买日期 YYYY-MM-DD（无明确说明则填 "${todayStr}"）
 6. "expireDate": 过期时间 YYYY-MM-DD
-7. "storageLocation": 推荐存放位置（如：冷藏室、冷冻室、常温阴凉处、药箱等）
+7. "storageLocation": 推荐存放位置（如：冷藏室、冷冻室、零食柜、药箱、厨房、宠物区、阴凉干燥处等）
+8. "note": 备注（如规格、注意事项等）
 
-严格只输出合法的 JSON 对象，禁止 markdown 包裹，禁止附加任何额外文字。`;
+严格只输出合法 JSON 数组，禁止 markdown 代码块包裹，禁止附加任何额外文字。`;
 
       try {
         const response = await fetch(apiEndpoint, {
@@ -5439,54 +6492,43 @@
           })
         });
 
-        if (!response.ok) throw new Error('API 返回错误: ' + response.status);
+        if (!response.ok) {
+          const errText = await response.text();
+          let parsedErr = errText;
+          try {
+            const j = JSON.parse(errText);
+            parsedErr = (j.error && j.error.message) ? j.error.message : errText;
+          } catch (e) {}
+          if (/image|vision|support|multimodal/i.test(parsedErr) || response.status === 400) {
+            throw new Error(`当前模型【${apiModel}】可能不支持图片识别（${response.status}），请在设置中切换支持 Vision 的多模态模型（如 gemini-2.0-flash、gpt-4o、qwen-vl 等）。`);
+          }
+          throw new Error('API 返回错误: ' + response.status + ' ' + parsedErr);
+        }
 
         const resData = await response.json();
         const content = resData.choices?.[0]?.message?.content || '';
-        const parsed = parseJsonSafely(content);
+        const rawItems = parseItemsArraySafely(content);
+        const validItems = rawItems.map(item => normalizeRecognizedItem(item, todayStr)).filter(Boolean);
 
-        if (parsed && parsed.name) {
-          applyParsedDataToForm(parsed);
-          statusTip.innerHTML = `<span style="color:var(--fresh); font-weight:400;">AI 视觉识别完成！已自动回填至下方表单。</span>`;
+        if (validItems.length > 0) {
+          handleRecognizedItems(validItems, 'AI 视觉识别', statusTip);
         } else {
           throw new Error('未能从模型返回中提取有效商品信息');
         }
       } catch (err) {
         console.error('Vision Recognition Error:', err);
-        statusTip.innerHTML = `<span style="color:var(--expired);">识别失败: ${err.message}，可对照图片手动核对。</span>`;
+        statusTip.innerHTML = `<span style="color:var(--expired);">识别失败: ${escapeHtml(err.message)}</span>`;
       }
-    }
-
-    function tryDemoVisionRecognition() {
-      const demoSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="240" viewBox="0 0 200 240"><rect width="200" height="240" rx="16" fill="%23eef5fc" stroke="%2394b4d8" stroke-width="4"/><text x="20" y="42" font-family="sans-serif" font-size="16" font-weight="normal" fill="%23193557">汪汪牧场纯牛奶</text><text x="20" y="75" font-family="sans-serif" font-size="12" fill="%234d6582">生产日期: 2026/10/20</text><text x="20" y="100" font-family="sans-serif" font-size="12" fill="%234d6582">保质期: 180天</text><text x="20" y="125" font-family="sans-serif" font-size="12" fill="%234d6582">贮存条件: 冷藏阴凉保存</text><rect x="20" y="154" width="160" height="42" rx="10" fill="%23f7dc92" stroke="%23c79e47" stroke-width="2"/><text x="35" y="180" font-family="sans-serif" font-size="14" font-weight="normal" fill="%23684a16">优质高钙 · 纯牛乳</text></svg>`;
-
-      displayImagePreview(demoSvg, '示例包装_汪汪牧场纯牛奶.svg');
-      const statusTip = document.getElementById('imageRecognizingTip');
-      statusTip.innerHTML = `正在模拟 AI 分析包装喷码与标签信息...`;
-
-      setTimeout(() => {
-        applyParsedDataToForm({
-          name: '汪汪牧场纯牛奶 (优质高钙)',
-          type1: '饮料',
-          produceDate: '2026-10-20',
-          shelfLife: 180,
-          purchaseDate: getTodayString(),
-          storageLocation: '冰箱冷藏室',
-          note: '示例识别数据：生鲜乳制造，高钙浓郁'
-        });
-        statusTip.innerHTML = `<span style="color:var(--fresh); font-weight:400;">示例识别成功！已自动填入商品属性与保质期。</span>`;
-        notify('示例小票识别成功！');
-      }, 950);
     }
 
     function applyParsedDataToForm(data) {
       if (data.name) document.getElementById('form-name').value = data.name;
-      if (data.type1) document.getElementById('form-type1').value = data.type1;
+      if (data.type1) document.getElementById('form-type1').value = normalizeCategoryKey(data.type1);
       if (data.produceDate) document.getElementById('form-produceDate').value = data.produceDate;
       if (data.shelfLife) document.getElementById('form-shelfLife').value = data.shelfLife;
       if (data.purchaseDate) document.getElementById('form-purchaseDate').value = data.purchaseDate;
-      if (data.storageLocation) document.getElementById('form-storageLocation').value = data.storageLocation;
-      if (data.note) document.getElementById('form-note').value = data.note;
+      if (data.storageLocation !== undefined) document.getElementById('form-storageLocation').value = data.storageLocation;
+      if (data.note !== undefined) document.getElementById('form-note').value = data.note;
 
       if (data.isOpened !== undefined) {
         document.getElementById('form-isOpened').checked = !!data.isOpened;
@@ -5500,17 +6542,8 @@
     }
 
     function parseJsonSafely(str) {
-      try {
-        let cleaned = str.replace(/```json/g, '').replace(/```/g, '').trim();
-        const firstBrace = cleaned.indexOf('{');
-        const lastBrace = cleaned.lastIndexOf('}');
-        if (firstBrace !== -1 && lastBrace !== -1) {
-          cleaned = cleaned.substring(firstBrace, lastBrace + 1);
-        }
-        return JSON.parse(cleaned);
-      } catch (e) {
-        return null;
-      }
+      const items = parseItemsArraySafely(str);
+      return items[0] || null;
     }
 
     // ==========================================
@@ -5587,7 +6620,7 @@
       initSupabaseConnection();
       closeSettingsModal();
       notify('设置已保存！正在连接 Supabase...');
-      syncWithSupabase(true);
+      state.pendingSyncPromise = syncWithSupabase(true);
     }
 
     function openSettingsModal() {
@@ -5646,6 +6679,9 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
       });
       document.getElementById('tabTextPanel').style.display = tabName === 'text' ? 'block' : 'none';
       document.getElementById('tabImagePanel').style.display = tabName === 'image' ? 'block' : 'none';
+      if (tabName === 'manual' && currentBatchAiItems.length > 0) {
+        cancelBatchPreview();
+      }
     }
 
     function setStatFilter(statusKey) {
@@ -5734,9 +6770,13 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
       notify('成功导出 CSV 报表！');
     }
 
-    function handleCSVImport(input) {
+    async function handleCSVImport(input) {
       const file = input.files?.[0];
       if (!file) return;
+      if (!(await ensureDatasetConnectedForWrite('导入商品到云端'))) {
+        input.value = '';
+        return;
+      }
 
       const reader = new FileReader();
       reader.onload = async e => {
@@ -5813,10 +6853,11 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
               note: (idxNote !== -1 ? cols[idxNote] : (cols.length >= 14 ? cols[13] : cols[11])) || ''
             };
 
-            await persistProduct(item, true);
+            const ok = await persistProduct(item, true);
+            if (!ok) break;
             count++;
           }
-          notify(`成功导入了 ${count} 件商品！`);
+          if (count > 0) notify(`成功导入并同步了 ${count} 件商品！`);
         } catch (err) {
           console.error(err);
           notify('导入解析失败: ' + err.message);
@@ -6075,6 +7116,7 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
       const list = loadHistory();
       const target = list.find(h => h.id === historyId);
       if (!target) return;
+      if (!(await ensureDatasetConnectedForWrite('撤回商品至云端'))) return;
 
       const restoredItem = {
         id: target.productId || ('item-' + Date.now()),
@@ -6093,9 +7135,10 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
         recorder: target.recorder || '肉大王'
       };
 
+      const ok = await persistProduct(restoredItem, true);
+      if (!ok) return;
       saveHistory(list.filter(h => h.id !== historyId));
-      await persistProduct(restoredItem, true);
-      notify(`已将「${target.name}」撤回至库存！`);
+      notify(`已将「${target.name}」撤回至云端库存！`);
     }
 
     function clearHistoryRecords() {
