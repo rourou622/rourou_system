@@ -2118,7 +2118,8 @@
     }
 
     .modal.has-batch-preview {
-      width: 690px;
+      width: 740px;
+      max-width: 100%;
     }
 
     @keyframes modalSlide {
@@ -2127,6 +2128,7 @@
     }
 
     .modal-header {
+      flex: none;
       padding: 15px 20px;
       border-bottom: 1px solid rgba(114, 148, 185, 0.28);
       display: flex;
@@ -2145,13 +2147,17 @@
     }
 
     .modal-body {
+      flex: 1 1 auto;
+      min-height: 0;
       padding: 18px 20px;
       overflow-y: auto;
+      overscroll-behavior: contain;
       scrollbar-width: thin;
       scrollbar-color: #aac0d8 transparent;
     }
 
     .modal-footer {
+      flex: none;
       padding: 12px 20px;
       border-top: 1px solid rgba(114, 148, 185, 0.26);
       background: #f3f7fc;
@@ -2419,20 +2425,18 @@
     }
 
     .ai-batch-list {
-      max-height: 295px;
-      overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-bottom: 12px;
-      padding-right: 2px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
     .ai-batch-item-card {
+      flex: 0 0 auto;
       background: #f8fafd;
       border: 1px solid var(--line);
       border-radius: 10px;
-      overflow: hidden;
+      overflow: visible;
       transition: border-color 0.15s ease, background-color 0.15s ease;
     }
 
@@ -2552,25 +2556,26 @@
     }
 
     .ai-batch-item-editor {
-      padding: 10px 12px 12px;
+      padding: 12px 14px 14px;
       border-top: 1px solid var(--line);
+      border-radius: 0 0 10px 10px;
       background: #fafcff;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     .editor-input-label {
       display: block;
       font-size: 11px;
       color: var(--muted);
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
 
     .editor-categories-wrap {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
+      gap: 6px;
     }
 
     .editor-cat-capsule {
@@ -2578,7 +2583,7 @@
       background: #ffffff;
       color: var(--muted);
       border-radius: 6px;
-      padding: 3px 8px;
+      padding: 3px 9px;
       font-size: 11px;
       cursor: pointer;
     }
@@ -2598,22 +2603,23 @@
     .editor-two-cols {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 10px;
     }
 
     .editor-three-cols {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
+      gap: 10px;
     }
 
     .editor-input {
       width: 100%;
+      min-height: 32px;
       background: #ffffff;
       border: 1px solid var(--line-strong);
       border-radius: 7px;
       color: var(--ink);
-      padding: 6px 9px;
+      padding: 6px 10px;
       font-size: 12px;
     }
 
@@ -2947,7 +2953,9 @@
         grid-column: span 2;
       }
       .review-grid,
-      .form-row {
+      .form-row,
+      .editor-two-cols,
+      .editor-three-cols {
         grid-template-columns: 1fr;
       }
       .attention-list {
