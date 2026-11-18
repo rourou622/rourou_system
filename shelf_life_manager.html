@@ -2359,12 +2359,107 @@
 
     .image-preview-card {
       background: #ffffff;
-      border: 1.5px solid #c3d7ec;
+      border: 1px solid #c3d7ec;
       border-radius: 12px;
-      padding: 12px;
+      padding: 12px 14px;
       display: flex;
-      gap: 14px;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .multi-image-header {
+      display: flex;
       align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .multi-image-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .multi-image-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .multi-image-thumb-box {
+      position: relative;
+      width: 68px;
+      height: 68px;
+      border: 1px solid #c3d7ec;
+      border-radius: 8px;
+      background: #f5f9fe;
+      overflow: hidden;
+      flex: none;
+    }
+
+    .multi-image-thumb-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .multi-image-idx {
+      position: absolute;
+      left: 3px;
+      bottom: 3px;
+      font-size: 10px;
+      line-height: 1;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: rgba(25, 53, 87, 0.78);
+      color: #ffffff;
+    }
+
+    .multi-image-remove {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 18px;
+      height: 18px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(25, 53, 87, 0.78);
+      color: #ffffff;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .multi-image-remove:hover {
+      background: #b94a48;
+    }
+
+    .multi-image-add-tile {
+      width: 68px;
+      height: 68px;
+      border: 1.5px dashed #9cb7d5;
+      border-radius: 8px;
+      background: #f7faff;
+      color: var(--blue-dark);
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      flex: none;
+    }
+
+    .multi-image-add-tile:hover {
+      border-color: var(--blue);
+      background: #eef5fd;
     }
 
     .image-preview-thumb {
@@ -3711,25 +3806,32 @@
         <!-- 2. 图像识别面板 -->
         <div id="tabImagePanel" class="image-panel" style="display:none;">
           <div id="imagePreviewBox" class="image-preview-card" style="display:none;">
-            <img id="imagePreviewThumb" class="image-preview-thumb" src="" alt="预览图">
-            <div style="flex:1; min-width:0;">
-              <strong id="imagePreviewFileName" style="color:var(--navy); font-size:13px;">食品包装标签.jpg</strong>
-              <div id="imageRecognizingTip" style="font-size:12px; color:var(--blue); margin-top:4px;">正在唤醒 AI 视觉分析包装上的生产日期与保质期...</div>
-              <div class="scan-bar" id="imageScanBar"></div>
+            <div class="multi-image-header">
+              <strong id="imagePreviewFileName" style="color:var(--navy); font-size:13px;">已选 1 张图片</strong>
+              <div class="multi-image-actions">
+                <button type="button" class="btn secondary btn-sm" onclick="document.getElementById('imageFileInput').click()">+ 追加图片</button>
+                <button type="button" class="btn primary btn-sm" id="btnReRunVision" onclick="callRealAiVisionRecognition()">开始联合识图</button>
+                <button type="button" class="btn secondary btn-sm" onclick="clearUploadedImage()">清空</button>
+              </div>
             </div>
-            <button type="button" class="icon-btn" onclick="clearUploadedImage()" title="移除图片">
-              <svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg>
-            </button>
+            <div id="imageThumbsStrip" class="multi-image-strip"></div>
+            <div>
+              <input type="text" id="imageVisionHintInput" class="ai-batch-refine-input" style="width:100%;" placeholder="选填提示：如 #1和#2是同一个鸡精，#3是牛奶，或全部放厨房（按回车可直接开始识图）" onkeydown="if(event.key==='Enter'){event.preventDefault();callRealAiVisionRecognition();}">
+            </div>
+            <div>
+              <div id="imageRecognizingTip" style="font-size:12px; color:var(--blue);">已就绪，可继续追加图片或按 Ctrl+V 粘贴，全部放好后点击「开始联合识图」</div>
+              <div class="scan-bar" id="imageScanBar" style="display:none;"></div>
+            </div>
           </div>
 
           <div class="upload-dropzone" id="imageUploadDropzone" onclick="document.getElementById('imageFileInput').click()">
             <div style="margin-bottom:8px; color:var(--blue);">
               <svg class="icon" style="width:28px; height:28px;" aria-hidden="true"><use href="#icon-camera"/></svg>
             </div>
-            <div style="font-weight:500; color:var(--navy); margin-bottom:4px;">点击上传食品包装 / 标签喷码 / 购物小票</div>
-            <div style="font-size:11px; color:var(--muted);">支持拍照、JPG/PNG、或在窗口直接按 Ctrl+V 粘贴截图</div>
+            <div style="font-weight:500; color:var(--navy); margin-bottom:4px;">点击上传一张或多张照片（包装标签 / 喷码日期 / 小票）</div>
+            <div style="font-size:11px; color:var(--muted);">支持多选或 Ctrl+V 连续粘贴多张图，全部放好后点击「开始联合识图」一次提交</div>
           </div>
-          <input type="file" id="imageFileInput" accept="image/*" style="display:none;" onchange="handleImageFileSelected(this)">
+          <input type="file" id="imageFileInput" accept="image/*" multiple style="display:none;" onchange="handleImageFileSelected(this)">
         </div>
 
         <!-- 多商品识别预览、修改与 AI 纠错区 (>=2件时自动展开，文本与图片通用) -->
@@ -3762,6 +3864,17 @@
         <!-- 表单区域 -->
         <form id="productForm" onsubmit="handleFormSubmit(event)">
           <input type="hidden" id="form-id">
+
+          <!-- 单商品 AI 对话纠错栏 (文本/图片识别出 1 件商品时显示) -->
+          <div id="singleAiRefineBox" class="ai-batch-refine-box" style="display:none; margin-bottom:14px;">
+            <span class="ai-batch-refine-title">AI 对话纠错（识别不准时直接说一句调整表单）</span>
+            <div class="ai-batch-refine-input-row">
+              <input type="text" id="singleAiRefineInput" class="ai-batch-refine-input" placeholder="如：分类改成厨房用品放厨房、保质期改成18个月、购买日期清空..." onkeydown="if(event.key==='Enter'){event.preventDefault();handleSingleAiRefine();}">
+              <button type="button" class="btn secondary btn-sm" id="btnSingleRefine" onclick="handleSingleAiRefine()">
+                <svg class="icon" style="width:13px; height:13px;" aria-hidden="true"><use href="#icon-magic"/></svg><span>AI 纠错调整</span>
+              </button>
+            </div>
+          </div>
 
           <div class="form-row">
             <div class="form-group">
@@ -3809,7 +3922,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label>购买日期</label>
+              <label><span>购买日期</span><span style="font-weight:400; color:var(--muted); font-size:11px;">选填（默认今天，可清空）</span></label>
               <input type="date" id="form-purchaseDate" class="form-control">
             </div>
             <div class="form-group">
@@ -4422,7 +4535,7 @@
             type1: row.type1 || '食品',
             produceDate: row.produce_date || getTodayString(),
             shelfLife: parseInt(row.shelf_life, 10) || 30,
-            purchaseDate: row.purchase_date || getTodayString(),
+            purchaseDate: row.purchase_date || '',
             expireDate: row.expire_date || '',
             storageLocation: row.storage_location || '',
             recorder: row.recorder || '肉大王',
@@ -5328,6 +5441,8 @@
       toggleOpenedSection(false);
 
       cancelBatchPreview();
+      clearUploadedImagesState();
+      showSingleAiRefineBox(false);
       const textTip = document.getElementById('textRecognizingTip');
       if (textTip) { textTip.style.display = 'none'; textTip.innerHTML = ''; }
       calculateExpireDateFromShelfLife();
@@ -5360,6 +5475,8 @@
       toggleOpenedSection(!!item.isOpened);
 
       cancelBatchPreview();
+      clearUploadedImagesState();
+      showSingleAiRefineBox(false);
       if (!item.expireDate) calculateExpireDateFromShelfLife();
       switchEntryTab('manual');
       updateLivePreview();
@@ -5368,6 +5485,8 @@
 
     function closeEntryModal() {
       cancelBatchPreview();
+      clearUploadedImagesState();
+      showSingleAiRefineBox(false);
       document.getElementById('entryModal').classList.remove('active');
     }
 
@@ -5382,7 +5501,7 @@
       const type1 = document.getElementById('form-type1').value;
       const produceDate = document.getElementById('form-produceDate').value;
       const shelfLife = parseInt(document.getElementById('form-shelfLife').value, 10);
-      const purchaseDate = document.getElementById('form-purchaseDate').value || getTodayString();
+      const purchaseDate = document.getElementById('form-purchaseDate').value.trim();
       const expireDate = document.getElementById('form-expireDate').value;
       const storageLocation = document.getElementById('form-storageLocation').value.trim();
       const code = document.getElementById('form-code').value.trim() || String(Math.floor(1000 + Math.random() * 9000));
@@ -5589,7 +5708,9 @@
       return `${eDate.getFullYear()}-${pad(eDate.getMonth() + 1)}-${pad(eDate.getDate())}`;
     }
 
-    function normalizeRecognizedItem(raw, fallbackDate) {
+    const KITCHEN_SEASONING_RE = /(鸡精|味精|调味|调料|酱油|生抽|老抽|香醋|米醋|陈醋|白醋|食醋|料酒|蚝油|豆瓣酱|芝麻油|香油|花生油|菜籽油|玉米油|葵花籽油|调和油|橄榄油|食用油|十三香|五香粉|胡椒|花椒|食盐|淀粉|洗洁精|厨房纸|保鲜膜|保鲜袋|洗碗)/;
+
+    function normalizeRecognizedItem(raw, fallbackDate, { allowEmptyPurchase = false, autoFixKitchen = true } = {}) {
       const todayStr = fallbackDate || getTodayString();
       const name = String(raw.name || raw.title || '').trim();
       if (!name) return null;
@@ -5597,8 +5718,13 @@
       let produceDate = String(raw.produceDate || '').trim();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(produceDate)) produceDate = todayStr;
 
-      let purchaseDate = String(raw.purchaseDate || '').trim();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(purchaseDate)) purchaseDate = todayStr;
+      const hasPurchaseProp = Object.prototype.hasOwnProperty.call(raw, 'purchaseDate') && raw.purchaseDate !== undefined && raw.purchaseDate !== null;
+      let purchaseDate = String(raw.purchaseDate ?? '').trim();
+      if (allowEmptyPurchase && hasPurchaseProp && purchaseDate === '') {
+        purchaseDate = '';
+      } else if (!/^\d{4}-\d{2}-\d{2}$/.test(purchaseDate)) {
+        purchaseDate = todayStr;
+      }
 
       let shelfLife = 0;
       if (typeof raw.shelfLife === 'number' && isFinite(raw.shelfLife)) {
@@ -5618,7 +5744,10 @@
       if (!shelfLife || shelfLife <= 0) shelfLife = 30;
       if (!expireDate) expireDate = computeExpireDateStr(produceDate, shelfLife);
 
-      const type1 = normalizeCategoryKey(raw.type1);
+      let type1 = normalizeCategoryKey(raw.type1);
+      if (autoFixKitchen && type1 === '食品' && KITCHEN_SEASONING_RE.test(name)) {
+        type1 = '厨房用品';
+      }
       const isOpened = !!raw.isOpened;
       let openedDate = String(raw.openedDate || '').trim();
       if (isOpened && !/^\d{4}-\d{2}-\d{2}$/.test(openedDate)) openedDate = todayStr;
@@ -5755,7 +5884,11 @@
 
 每个对象字段：
 1. "name": 物品名称（如：冷吃兔、冷吃牛肉、蒙牛纯牛奶）
-2. "type1": 物品类型，仅限从 [${catListStr}] 中选最匹配的一项（调味品/厨具/洗洁精选"厨房用品"，猫粮/狗粮/猫砂/宠物零食选"宠物区域"，生鲜肉菜冷冻品选"宠物生鲜"）
+2. "type1": 物品类型，仅限从 [${catListStr}] 中选最匹配的一项：
+   - 烹饪调味料（鸡精、味精、酱油、醋、料酒、蚝油、食用油、香料等）及洗洁精/厨房纸 -> 选 "厨房用品"（不要选 "食品"）
+   - 零食/面包/饼干/肉类熟食等直接食用食品 -> 选 "食品"
+   - 牛奶/咖啡/果汁等饮品 -> 选 "饮料"
+   - 猫粮/狗粮/猫砂/宠物零食 -> 选 "宠物区域"；生鲜肉菜冷冻品 -> 选 "宠物生鲜"
 3. "produceDate": 生产日期 YYYY-MM-DD（如“当天生产”与购买日期一致；若写“昨天”“前天”请按 ${todayStr} 推算）
 4. "shelfLife": 保质时长（正整数天数。若写范围如“7-10天”请保守取下限 7 并写入 note；6个月为180，1年为365）
 5. "purchaseDate": 购买日期 YYYY-MM-DD（未提及时填 "${todayStr}"）
@@ -5924,12 +6057,14 @@
       if (validItems.length === 1) {
         cancelBatchPreview();
         applyParsedDataToForm(validItems[0]);
+        showSingleAiRefineBox(true);
         if (statusTipEl) {
           statusTipEl.style.display = 'block';
-          statusTipEl.innerHTML = `<span style="color:var(--fresh);">已通过${escapeHtml(sourceLabel)}提取 1 件商品，已回填至下方表单核对。</span>`;
+          statusTipEl.innerHTML = `<span style="color:var(--fresh);">已通过${escapeHtml(sourceLabel)}提取 1 件商品，已回填至下方表单（可用表单顶部 AI 纠错调整）。</span>`;
         }
         notify(`${sourceLabel}完成，已回填表单！`);
       } else {
+        showSingleAiRefineBox(false);
         expandedBatchIndex = -1;
         renderBatchPreview(validItems);
         if (statusTipEl) {
@@ -6040,7 +6175,7 @@
             </div>
             <div class="editor-two-cols">
               <div>
-                <span class="editor-input-label">购买日期</span>
+                <span class="editor-input-label">购买日期 (选填，可清空)</span>
                 <input type="date" class="editor-input" value="${escapeHtml(item.purchaseDate || '')}" onchange="updateBatchItemField(${index}, 'purchaseDate', this.value)">
               </div>
               <div>
@@ -6141,7 +6276,7 @@
         type1: first.type1 || '食品',
         produceDate: first.produceDate || todayStr,
         shelfLife: first.shelfLife || 30,
-        purchaseDate: first.purchaseDate || todayStr,
+        purchaseDate: first.purchaseDate !== undefined ? first.purchaseDate : todayStr,
         expireDate: computeExpireDateStr(first.produceDate || todayStr, first.shelfLife || 30),
         storageLocation: first.storageLocation || '',
         note: '',
@@ -6175,34 +6310,31 @@
       if (modalCard) modalCard.classList.remove('has-batch-preview');
     }
 
+    function showSingleAiRefineBox(visible) {
+      const box = document.getElementById('singleAiRefineBox');
+      const input = document.getElementById('singleAiRefineInput');
+      if (box) box.style.display = visible ? 'block' : 'none';
+      if (!visible && input) input.value = '';
+    }
+
     function useFirstBatchProduct() {
       if (currentBatchAiItems.length > 0) {
         const first = currentBatchAiItems[0];
         cancelBatchPreview();
         applyParsedDataToForm(first);
+        showSingleAiRefineBox(true);
         switchEntryTab('manual');
-        notify('已将第 1 条填入表单，可核对后单独保存');
+        notify('已将第 1 条填入表单，可核对或继续 AI 纠错后保存');
       } else {
         cancelBatchPreview();
       }
     }
 
-    async function handleAiBatchRefine() {
-      const inputEl = document.getElementById('aiBatchRefineInput');
-      if (!inputEl) return;
-      const instruction = inputEl.value.trim();
-      if (!instruction) {
-        notify('请先输入纠错指令，例如：保质期全改10天、第2条删掉');
-        inputEl.focus();
-        return;
-      }
-      if (!currentBatchAiItems || currentBatchAiItems.length === 0) {
-        return notify('当前没有可调整的待入库商品');
-      }
-
+    async function requestAiRefineItems(currentList, instruction, btn) {
       const activeConfig = getActiveAiConfig();
       if (!activeConfig || !activeConfig.apiKey) {
-        return notify('未配置大模型 API Key，请点击右上角设置配置后使用 AI 纠错（或点击上方卡片直接手动修改）');
+        notify('未配置大模型 API Key，请点击右上角设置配置后使用 AI 纠错');
+        return null;
       }
 
       let apiEndpoint = activeConfig.endpoint || 'https://openrouter.ai/api/v1/chat/completions';
@@ -6211,7 +6343,6 @@
       }
       const apiModel = activeConfig.model || 'z-ai/glm-4.5-air:free';
 
-      const btn = document.getElementById('btnBatchRefine');
       const originalText = btn ? btn.innerHTML : '';
       if (btn) {
         btn.disabled = true;
@@ -6219,7 +6350,7 @@
       }
 
       const todayStr = getTodayString();
-      const currentListForAi = currentBatchAiItems.map((item, idx) => ({
+      const currentListForAi = currentList.map((item, idx) => ({
         index: idx + 1,
         name: item.name,
         type1: item.type1,
@@ -6234,9 +6365,9 @@
         note: item.note || ''
       }));
 
-      const systemPrompt = `你是一个专业的家庭保质期清单智能纠错与批量微调助手。
+      const systemPrompt = `你是一个专业的家庭保质期清单智能纠错与微调助手。
 今天是 ${todayStr}。
-可选分类: [${VALID_CATEGORY_KEYS.join('、')}]
+可选分类: [${VALID_CATEGORY_KEYS.join('、')}]（注：调味品/鸡精/酱油/洗洁精等归为"厨房用品"，零食/面包归为"食品"，饮品归为"饮料"）
 
 当前待确认的商品列表（index 为从 1 开始的条目序号）：
 ${JSON.stringify(currentListForAi)}
@@ -6245,10 +6376,11 @@ ${JSON.stringify(currentListForAi)}
 "${instruction}"
 
 规则说明：
-1. 序号指代（如“第2条改成...”）、名称匹配（如“麻辣兔头删掉”）、全量/条件修改（如“保质期全改10天”、“全放冷冻室”、“全部归为厨房用品”）：精准修改对应条目或从数组中增删条目。
-2. 当生产日期 produceDate 或保质天数 shelfLife 发生变化时，同步重新计算对应的过期日期 expireDate（YYYY-MM-DD）；若用户直接改过期日期，也同步修正 shelfLife 天数。
-3. 未被要求修改的条目与字段请保持原样。
-4. 严格只输出修改后的合法 JSON 数组（[ {...}, ... ]），不要输出 markdown 代码块或任何额外解释文字。`;
+1. 序号指代（如“第2条改成...”）、名称匹配（如“麻辣兔头删掉”）、字段调整（如“保质期改18个月”、“分类改成厨房用品”、“放厨房”、“购买日期清空”等）：精准修改对应条目；若用户明确要求清空购买日期，将 purchaseDate 设为 ""。
+2. 条目合并（如“前两个是一个物品”、“把第1条和第2条合并”）：将对应条目的有效品名、分类、明确生产日期与保质天数互补合并为 1 个完整对象，删除多余重复条目，并同步重算过期日期 expireDate。
+3. 当生产日期 produceDate 或保质天数 shelfLife 发生变化时，同步重新计算对应的过期日期 expireDate（YYYY-MM-DD）；若用户直接改过期日期，也同步修正 shelfLife 天数。
+4. 未被要求修改的条目与字段请保持原样。
+5. 严格只输出修改后的合法 JSON 数组（[ {...}, ... ]），不要输出 markdown 代码块或任何额外解释文字。`;
 
       try {
         const response = await fetch(apiEndpoint, {
@@ -6276,23 +6408,81 @@ ${JSON.stringify(currentListForAi)}
         const resData = await response.json();
         const rawContent = resData.choices?.[0]?.message?.content || '';
         const parsedList = parseItemsArraySafely(rawContent);
-        const validUpdated = parsedList.map(item => normalizeRecognizedItem(item, todayStr)).filter(Boolean);
+        const validUpdated = parsedList.map(item =>
+          normalizeRecognizedItem(item, todayStr, { allowEmptyPurchase: true, autoFixKitchen: false })
+        ).filter(Boolean);
 
         if (validUpdated.length === 0) throw new Error('调整后的商品列表为空');
-
-        expandedBatchIndex = -1;
-        inputEl.value = '';
-        renderBatchPreview(validUpdated);
-        notify(`AI 纠错已完成，已更新 ${validUpdated.length} 件商品！`);
+        return validUpdated;
       } catch (err) {
-        console.error('AI 批量纠错失败:', err);
+        console.error('AI 纠错失败:', err);
         notify('AI 纠错失败: ' + err.message);
+        return null;
       } finally {
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = originalText;
         }
       }
+    }
+
+    async function handleSingleAiRefine() {
+      const inputEl = document.getElementById('singleAiRefineInput');
+      if (!inputEl) return;
+      const instruction = inputEl.value.trim();
+      if (!instruction) {
+        notify('请输入纠错指令，如：分类改成厨房用品、保质期改成18个月');
+        inputEl.focus();
+        return;
+      }
+      const isOpened = !!document.getElementById('form-isOpened')?.checked;
+      const currentItem = {
+        name: (document.getElementById('form-name')?.value || '').trim() || '当前商品',
+        type1: document.getElementById('form-type1')?.value || '食品',
+        produceDate: document.getElementById('form-produceDate')?.value || getTodayString(),
+        shelfLife: parseInt(document.getElementById('form-shelfLife')?.value, 10) || 30,
+        purchaseDate: document.getElementById('form-purchaseDate')?.value || '',
+        expireDate: document.getElementById('form-expireDate')?.value || '',
+        storageLocation: (document.getElementById('form-storageLocation')?.value || '').trim(),
+        isOpened,
+        openedDate: isOpened ? (document.getElementById('form-openedDate')?.value || '') : '',
+        openedShelfLife: isOpened ? (parseInt(document.getElementById('form-openedShelfLife')?.value, 10) || 0) : 0,
+        note: (document.getElementById('form-note')?.value || '').trim()
+      };
+      const updated = await requestAiRefineItems([currentItem], instruction, document.getElementById('btnSingleRefine'));
+      if (!updated) return;
+      inputEl.value = '';
+      if (updated.length > 1) {
+        showSingleAiRefineBox(false);
+        expandedBatchIndex = -1;
+        renderBatchPreview(updated);
+        notify(`已调整并拆分为 ${updated.length} 件商品！`);
+      } else {
+        applyParsedDataToForm(updated[0]);
+        notify('AI 纠错已应用到表单！');
+      }
+    }
+
+    async function handleAiBatchRefine() {
+      const inputEl = document.getElementById('aiBatchRefineInput');
+      if (!inputEl) return;
+      const instruction = inputEl.value.trim();
+      if (!instruction) {
+        notify('请先输入纠错指令，例如：保质期全改10天、第2条删掉');
+        inputEl.focus();
+        return;
+      }
+      if (!currentBatchAiItems || currentBatchAiItems.length === 0) {
+        return notify('当前没有可调整的待入库商品');
+      }
+
+      const validUpdated = await requestAiRefineItems(currentBatchAiItems, instruction, document.getElementById('btnBatchRefine'));
+      if (!validUpdated) return;
+
+      expandedBatchIndex = -1;
+      inputEl.value = '';
+      renderBatchPreview(validUpdated);
+      notify(`AI 纠错已完成，已更新 ${validUpdated.length} 件商品！`);
     }
 
     async function saveAllBatchProducts() {
@@ -6312,7 +6502,7 @@ ${JSON.stringify(currentListForAi)}
 
       try {
         currentBatchAiItems.forEach((raw, idx) => {
-          const item = normalizeRecognizedItem(raw, todayStr);
+          const item = normalizeRecognizedItem(raw, todayStr, { allowEmptyPurchase: true });
           if (!item) return;
           const uid = 'item-' + Date.now() + '-' + idx + '-' + Math.random().toString(36).slice(2, 6);
           const code = String(Math.floor(1000 + Math.random() * 9000));
@@ -6390,65 +6580,164 @@ ${JSON.stringify(currentListForAi)}
     }
 
     // ==========================================
-    // 8. 图像多模态视觉识别系统
+    // 8. 图像多模态视觉识别系统 (支持多图联合识图)
     // ==========================================
+    const MAX_VISION_IMAGES = 8;
+    let uploadedVisionImages = [];
+    let visionRequestSeq = 0;
+
     function setupPasteListener() {
       window.addEventListener('paste', e => {
         const modal = document.getElementById('entryModal');
         if (!modal.classList.contains('active')) return;
-        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        const items = (e.clipboardData || e.originalEvent.clipboardData)?.items || [];
+        const imageFiles = [];
         for (let item of items) {
           if (item.kind === 'file' && item.type.startsWith('image/')) {
             const file = item.getAsFile();
-            switchEntryTab('image');
-            processUploadedImageFile(file);
-            break;
+            if (file) imageFiles.push(file);
           }
+        }
+        if (imageFiles.length > 0) {
+          switchEntryTab('image');
+          processUploadedImageFiles(imageFiles);
         }
       });
     }
 
     function handleImageFileSelected(input) {
-      const file = input.files?.[0];
-      if (!file) return;
-      processUploadedImageFile(file);
+      const files = Array.from(input.files || []);
+      if (files.length === 0) return;
+      processUploadedImageFiles(files);
       input.value = '';
     }
 
-    function processUploadedImageFile(file) {
-      if (!file.type.startsWith('image/')) return notify('请选择图片文件 (JPG、PNG、WEBP)');
-      const reader = new FileReader();
-      reader.onload = async evt => {
-        const dataUrl = evt.target.result;
-        displayImagePreview(dataUrl, file.name);
-        await callRealAiVisionRecognition(dataUrl, file.name);
-      };
-      reader.readAsDataURL(file);
+    function readImageFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = evt => resolve({
+          id: 'img-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+          dataUrl: evt.target.result,
+          fileName: file.name || '粘贴截图.png'
+        });
+        reader.onerror = () => reject(new Error(`读取图片 ${file.name || ''} 失败`));
+        reader.readAsDataURL(file);
+      });
     }
 
-    function displayImagePreview(dataUrl, fileName) {
+    async function processUploadedImageFiles(files) {
+      const validFiles = files.filter(f => f && f.type && f.type.startsWith('image/'));
+      if (validFiles.length === 0) return notify('请选择图片文件 (JPG、PNG、WEBP)');
+
+      const remain = MAX_VISION_IMAGES - uploadedVisionImages.length;
+      if (remain <= 0) {
+        return notify(`单次最多支持上传 ${MAX_VISION_IMAGES} 张图片，可先移除不需要的图片`);
+      }
+      const toAdd = validFiles.slice(0, remain);
+      if (validFiles.length > remain) {
+        notify(`已超出上限，仅追加前 ${remain} 张图片（最多 ${MAX_VISION_IMAGES} 张）`);
+      }
+
+      try {
+        const loaded = await Promise.all(toAdd.map(readImageFileAsDataUrl));
+        uploadedVisionImages.push(...loaded);
+        renderUploadedImagesPreview();
+        const statusTip = document.getElementById('imageRecognizingTip');
+        const scanBar = document.getElementById('imageScanBar');
+        if (scanBar) scanBar.style.display = 'none';
+        if (statusTip) {
+          statusTip.innerHTML = `已放入 <strong>${uploadedVisionImages.length}</strong> 张图片，可继续追加/粘贴；全部放好后点击右上角「开始联合识图」统一分析，避免浪费 token。`;
+        }
+      } catch (err) {
+        notify(err.message || '图片读取失败');
+      }
+    }
+
+    function renderUploadedImagesPreview() {
       const box = document.getElementById('imagePreviewBox');
-      const thumb = document.getElementById('imagePreviewThumb');
+      const strip = document.getElementById('imageThumbsStrip');
       const nameEl = document.getElementById('imagePreviewFileName');
       const dropzone = document.getElementById('imageUploadDropzone');
+      const runBtn = document.getElementById('btnReRunVision');
+      if (!box || !strip || !dropzone) return;
 
-      thumb.src = dataUrl;
-      nameEl.textContent = fileName || '包装标签截图';
+      if (uploadedVisionImages.length === 0) {
+        box.style.display = 'none';
+        dropzone.style.display = 'block';
+        strip.innerHTML = '';
+        return;
+      }
+
       box.style.display = 'flex';
       dropzone.style.display = 'none';
+      if (runBtn) {
+        runBtn.textContent = `开始联合识图 (${uploadedVisionImages.length}张)`;
+      }
+      if (nameEl) {
+        nameEl.textContent = uploadedVisionImages.length === 1
+          ? `已选 1 张：${uploadedVisionImages[0].fileName}`
+          : `已选 ${uploadedVisionImages.length} 张图片（将联合拼合商品名、生产日期与保质期）`;
+      }
+
+      const thumbsHtml = uploadedVisionImages.map((img, idx) => `
+        <div class="multi-image-thumb-box" title="${escapeHtml(img.fileName)}">
+          <img src="${img.dataUrl}" alt="${escapeHtml(img.fileName)}">
+          <span class="multi-image-idx">#${idx + 1}</span>
+          <button type="button" class="multi-image-remove" onclick="event.stopPropagation(); removeUploadedImage('${img.id}')" title="移除这张图片">&times;</button>
+        </div>
+      `).join('');
+
+      const addTileHtml = uploadedVisionImages.length < MAX_VISION_IMAGES
+        ? `<button type="button" class="multi-image-add-tile" onclick="document.getElementById('imageFileInput').click()" title="再加一张（如补充生产日期喷码照片）"><span style="font-size:18px; line-height:1;">+</span><span>加一张</span></button>`
+        : '';
+
+      strip.innerHTML = thumbsHtml + addTileHtml;
+    }
+
+    function removeUploadedImage(imgId) {
+      uploadedVisionImages = uploadedVisionImages.filter(img => img.id !== imgId);
+      if (uploadedVisionImages.length === 0) {
+        clearUploadedImage();
+        return;
+      }
+      renderUploadedImagesPreview();
+      const statusTip = document.getElementById('imageRecognizingTip');
+      if (statusTip) {
+        statusTip.innerHTML = `<span style="color:var(--muted);">已更新图片列表（当前 ${uploadedVisionImages.length} 张），可继续加图或点击「开始联合识图」。</span>`;
+      }
+    }
+
+    function clearUploadedImagesState() {
+      visionRequestSeq++;
+      uploadedVisionImages = [];
+      const box = document.getElementById('imagePreviewBox');
+      const strip = document.getElementById('imageThumbsStrip');
+      const dropzone = document.getElementById('imageUploadDropzone');
+      const scanBar = document.getElementById('imageScanBar');
+      const hintInput = document.getElementById('imageVisionHintInput');
+      if (box) box.style.display = 'none';
+      if (strip) strip.innerHTML = '';
+      if (dropzone) dropzone.style.display = 'block';
+      if (scanBar) scanBar.style.display = 'none';
+      if (hintInput) hintInput.value = '';
     }
 
     function clearUploadedImage() {
-      document.getElementById('imagePreviewBox').style.display = 'none';
-      document.getElementById('imageUploadDropzone').style.display = 'block';
+      clearUploadedImagesState();
       cancelBatchPreview();
     }
 
-    async function callRealAiVisionRecognition(dataUrl, fileName) {
+    async function callRealAiVisionRecognition(imagesArg) {
+      const imgs = Array.isArray(imagesArg) && imagesArg.length > 0 ? imagesArg : uploadedVisionImages;
+      if (!imgs || imgs.length === 0) return notify('请先上传至少一张图片');
+
       const statusTip = document.getElementById('imageRecognizingTip');
+      const scanBar = document.getElementById('imageScanBar');
+      const runBtn = document.getElementById('btnReRunVision');
       const activeConfig = getActiveAiConfig();
 
       if (!activeConfig || !activeConfig.apiKey) {
+        if (scanBar) scanBar.style.display = 'none';
         statusTip.innerHTML = `<span style="color:var(--expired)">未配置 API Key，请点击右上角「设置」配置视觉模型后使用。</span>`;
         return;
       }
@@ -6459,25 +6748,53 @@ ${JSON.stringify(currentListForAi)}
       }
       const apiModel = activeConfig.model || 'z-ai/glm-4.5-air:free';
 
-      statusTip.innerHTML = `正在调用视觉大模型【${escapeHtml(activeConfig.name || apiModel)}】分析包装与小票...`;
+      const seq = ++visionRequestSeq;
+      if (scanBar) scanBar.style.display = 'block';
+      if (runBtn) {
+        runBtn.disabled = true;
+        runBtn.textContent = '联合识别中...';
+      }
+      statusTip.innerHTML = imgs.length > 1
+        ? `正在调用视觉大模型【${escapeHtml(activeConfig.name || apiModel)}】联合分析这 ${imgs.length} 张图片...`
+        : `正在调用视觉大模型【${escapeHtml(activeConfig.name || apiModel)}】分析包装与小票...`;
 
       const todayStr = getTodayString();
       const catListStr = VALID_CATEGORY_KEYS.join('、');
+      const visionHint = (document.getElementById('imageVisionHintInput')?.value || '').trim();
+      const userHintSection = visionHint
+        ? `\n用户补充说明与分组提示（最高优先级，请严格按此提示归并图片或填写属性）：\n"${visionHint}"\n`
+        : '';
       const systemPrompt = `你是一个专业的食品药品外包装、生产喷码标签、购物小票和订单截图保质期识别专家。
-今天是 ${todayStr}。
-任务：请仔细识别图片中出现的**所有商品**（可能是单个包装，也可能是小票/订单截图里的多件商品），为每一件提取结构化信息并严格以 JSON 数组输出 [ {...}, ... ]：
+今天是 ${todayStr}，本次共提供 ${imgs.length} 张图片，每张图片前均附有文字标号【图片 #1】、【图片 #2】……（与用户提示中的 #1、#2 严格对应）。${userHintSection}
+任务：结合所有图片识别商品并严格以 JSON 数组输出 [ {...}, ... ]：
+重要联合规则：
+- 若用户提供了分组提示（如“#1和#2是同一件商品”），必须严格按提示合并对应图片的信息！
+- 如果多张图片拍的是**同一件商品的不同部位**（例如：一张图是正面商品名或背面配料表的“保质期时长”，另一张图是瓶盖/袋口/底部“生产日期喷码”），请务必**把跨图片信息合并补全成 1 个商品对象**，绝不要拆成两条残缺数据！
+- 只有当明确出现多件不同商品（如购物小票、订单截图或并排摆拍的多种包装）时，才按每件分别输出多个对象。
+分类判定规则（非常重要）：
+- 烹饪调味料（鸡精、味精、酱油、生抽、老抽、醋、料酒、蚝油、食用油、香料等）以及洗洁精、厨房纸、保鲜膜等厨房消耗品 -> 必须选 "厨房用品"，千万不要归为 "食品"！
+- 零食、面包、饼干、蛋糕、即食肉类熟食等直接食用的食品 -> 选 "食品"
+- 牛奶、酸奶、茶饮、咖啡、果汁等饮品 -> 选 "饮料"
+- 生鲜肉类海鲜冻品 -> 选 "宠物生鲜"；猫粮、狗粮、猫砂、宠物零食 -> 选 "宠物区域"
+每个对象的字段要求：
 1. "name": 物品名称
 2. "type1": 物品分类，仅限从 [${catListStr}] 中选最匹配的一项
-3. "produceDate": 生产日期 YYYY-MM-DD（若小票未印生产日期，可参考购买日期或今天）
-4. "shelfLife": 保质天数（整数。如6个月填180，1年填365；若直接印“保质期至：YYYY-MM-DD”，请换算间隔天数；若生鲜/烘焙未印保质期可给合理保守估算）
-5. "purchaseDate": 购买日期 YYYY-MM-DD（无明确说明则填 "${todayStr}"）
+3. "produceDate": 生产日期 YYYY-MM-DD（优先读取喷码或标签生产日期；若仅小票且无生产日期，可参考购买日期或今天）
+4. "shelfLife": 保质天数（整数。如6个月填180，1年填365；若直接印“保质期至：YYYY-MM-DD”，请换算间隔天数；若未印保质期可给合理保守估算）
+5. "purchaseDate": 购买日期 YYYY-MM-DD（若小票/订单未提及购买日期，请默认填 "${todayStr}"）
 6. "expireDate": 过期时间 YYYY-MM-DD
 7. "storageLocation": 推荐存放位置（如：冷藏室、冷冻室、零食柜、药箱、厨房、宠物区、阴凉干燥处等）
-8. "note": 备注（如规格、注意事项等）
+8. "note": 备注（如规格、多图拼合说明或注意事项等）
 
 严格只输出合法 JSON 数组，禁止 markdown 代码块包裹，禁止附加任何额外文字。`;
 
       try {
+        const contentParts = [{ type: 'text', text: systemPrompt }];
+        imgs.forEach((img, idx) => {
+          contentParts.push({ type: 'text', text: `【图片 #${idx + 1}】（${img.fileName || `图${idx + 1}`}）` });
+          contentParts.push({ type: 'image_url', image_url: { url: img.dataUrl } });
+        });
+
         const response = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {
@@ -6491,14 +6808,13 @@ ${JSON.stringify(currentListForAi)}
             messages: [
               {
                 role: 'user',
-                content: [
-                  { type: 'text', text: systemPrompt },
-                  { type: 'image_url', image_url: { url: dataUrl } }
-                ]
+                content: contentParts
               }
             ]
           })
         });
+
+        if (seq !== visionRequestSeq) return;
 
         if (!response.ok) {
           const errText = await response.text();
@@ -6514,18 +6830,29 @@ ${JSON.stringify(currentListForAi)}
         }
 
         const resData = await response.json();
+        if (seq !== visionRequestSeq) return;
+
         const content = resData.choices?.[0]?.message?.content || '';
         const rawItems = parseItemsArraySafely(content);
         const validItems = rawItems.map(item => normalizeRecognizedItem(item, todayStr)).filter(Boolean);
 
         if (validItems.length > 0) {
-          handleRecognizedItems(validItems, 'AI 视觉识别', statusTip);
+          handleRecognizedItems(validItems, imgs.length > 1 ? `多图 AI 联合识图(${imgs.length}张)` : 'AI 视觉识别', statusTip);
         } else {
           throw new Error('未能从模型返回中提取有效商品信息');
         }
       } catch (err) {
+        if (seq !== visionRequestSeq) return;
         console.error('Vision Recognition Error:', err);
         statusTip.innerHTML = `<span style="color:var(--expired);">识别失败: ${escapeHtml(err.message)}</span>`;
+      } finally {
+        if (seq === visionRequestSeq) {
+          if (scanBar) scanBar.style.display = 'none';
+          if (runBtn) {
+            runBtn.disabled = false;
+            runBtn.textContent = `重新联合识图 (${uploadedVisionImages.length}张)`;
+          }
+        }
       }
     }
 
@@ -6534,7 +6861,7 @@ ${JSON.stringify(currentListForAi)}
       if (data.type1) document.getElementById('form-type1').value = normalizeCategoryKey(data.type1);
       if (data.produceDate) document.getElementById('form-produceDate').value = data.produceDate;
       if (data.shelfLife) document.getElementById('form-shelfLife').value = data.shelfLife;
-      if (data.purchaseDate) document.getElementById('form-purchaseDate').value = data.purchaseDate;
+      if (data.purchaseDate !== undefined) document.getElementById('form-purchaseDate').value = data.purchaseDate || '';
       if (data.storageLocation !== undefined) document.getElementById('form-storageLocation').value = data.storageLocation;
       if (data.note !== undefined) document.getElementById('form-note').value = data.note;
 
@@ -6854,7 +7181,7 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
               isOpened,
               openedDate: (idxOpenedDate !== -1 ? cols[idxOpenedDate] : (isOpened ? (cols[6] || getTodayString()) : '')) || '',
               openedShelfLife: openedShelfLife || (isOpened ? 3 : 0),
-              purchaseDate: (idxPurchase !== -1 ? cols[idxPurchase] : (cols.length >= 14 ? cols[7] : cols[5])) || getTodayString(),
+              purchaseDate: idxPurchase !== -1 ? (cols[idxPurchase] || '') : ((cols.length >= 14 ? cols[7] : cols[5]) || getTodayString()),
               expireDate: (idxExpire !== -1 ? cols[idxExpire] : (cols.length >= 14 ? cols[8] : cols[6])) || '',
               storageLocation: (idxLoc !== -1 ? cols[idxLoc] : (cols.length >= 14 ? cols[11] : cols[9])) || '',
               recorder: (idxRecorder !== -1 ? cols[idxRecorder] : (cols.length >= 14 ? cols[12] : cols[10])) || '肉大王',
@@ -6905,7 +7232,7 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
         statusKey: statKey || (item._stat ? item._stat.key : 'fresh'),
         produceDate: item.produceDate,
         shelfLife: item.shelfLife,
-        purchaseDate: item.purchaseDate || getTodayString(),
+        purchaseDate: item.purchaseDate || '',
         storageLocation: item.storageLocation || '',
         code: item.code || '',
         note: item.note || ''
@@ -7132,7 +7459,7 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
         type1: target.type1 || '食品',
         produceDate: target.produceDate || getTodayString(),
         shelfLife: parseInt(target.shelfLife, 10) || 30,
-        purchaseDate: target.purchaseDate || getTodayString(),
+        purchaseDate: target.purchaseDate || '',
         expireDate: '',
         storageLocation: target.storageLocation || '',
         code: target.code || String(Math.floor(1000 + Math.random() * 9000)),
