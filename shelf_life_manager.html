@@ -3604,6 +3604,91 @@
       gap: 8px;
     }
 
+    /* 登录账号切换与首访身份弹窗 */
+    .settings-account-card {
+      background: #f4f8fc;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 13px;
+      margin-bottom: 14px;
+    }
+
+    .settings-account-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .settings-account-badge {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--blue-dark);
+      background: #e4eef9;
+      border: 1px solid #c9d9ec;
+      border-radius: 999px;
+      padding: 2px 10px;
+      white-space: nowrap;
+    }
+
+    .account-choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .account-choice-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--navy);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.16s ease;
+    }
+
+    .account-choice-btn:hover {
+      border-color: var(--blue);
+      background: #eef5fc;
+    }
+
+    .account-choice-btn.active {
+      border-color: var(--blue);
+      background: #dce9f8;
+      color: var(--blue-dark);
+      box-shadow: 0 2px 8px rgba(50, 93, 140, 0.12);
+    }
+
+    .account-choice-sub {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .account-custom-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 9px;
+    }
+
+    .account-custom-row .form-control {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .modal-overlay.account-login-overlay {
+      z-index: 1450;
+    }
+
     /* ========================================================
        响应式断点
        ======================================================== */
@@ -4028,6 +4113,8 @@
     </symbol>
     <symbol id="icon-user" viewBox="0 0 24 24">
       <circle cx="12" cy="8.5" r="3.5" fill="currentColor" fill-opacity="0.24" />
+      <path d="M5.5 19.5c.8-3.2 3.3-4.8 6.5-4.8s5.7 1.6 6.5 4.8" />
+    </symbol>
     <symbol id="icon-arrow" viewBox="0 0 24 24">
       <path d="M5 12h14m-5.5-5.5L19 12l-5.5 5.5" />
     </symbol>
@@ -4954,6 +5041,28 @@
             </button>
           </div>
           <div class="modal-body">
+            <div class="settings-account-card">
+              <div class="settings-account-head">
+                <div style="font-weight:500; color:var(--navy); font-size:14px;">当前登录账号身份</div>
+                <span class="settings-account-badge" id="settingsCurrentAccountBadge">肉大王</span>
+              </div>
+              <div class="account-choice-grid">
+                <button type="button" class="account-choice-btn" data-account-switch="猫大王" onclick="selectAccountFromSettings('猫大王')">
+                  <span>猫大王</span>
+                  <span class="account-choice-sub">对应账号 hundun</span>
+                </button>
+                <button type="button" class="account-choice-btn" data-account-switch="肉大王" onclick="selectAccountFromSettings('肉大王')">
+                  <span>肉大王</span>
+                  <span class="account-choice-sub">对应账号 rourou622</span>
+                </button>
+              </div>
+              <div class="account-custom-row">
+                <input type="text" id="conf-custom-account" class="form-control" placeholder="或输入其他账号昵称"
+                  onkeydown="if(event.key==='Enter'){ event.preventDefault(); applyCustomAccountFromSettings(); }">
+                <button type="button" class="btn secondary btn-sm" onclick="applyCustomAccountFromSettings()">切换</button>
+              </div>
+            </div>
+
             <div style="font-weight:500; color:var(--navy); font-size:14px; margin-bottom:4px;">Supabase 数据库同步设置</div>
             <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">自动共享 expense_tracker 已配置的 Supabase
               项目，保质期数据将存放在独立数据表中。</div>
@@ -5127,6 +5236,53 @@
       </div>
 
       <!-- ========================================================
+       首次使用 / 账号身份选择 Modal (与 expense_tracker 共享 sb_current_user)
+       ======================================================== -->
+      <div class="modal-overlay account-login-overlay" id="accountLoginModal"
+        onclick="if(event.target===this && getSavedAccountName()) closeAccountLoginModal()">
+        <div class="modal" style="width:420px; max-width:100%;" role="dialog" aria-modal="true"
+          aria-labelledby="accountLoginTitle">
+          <div class="modal-header">
+            <h2 id="accountLoginTitle">
+              <svg class="icon" style="color:var(--blue);" aria-hidden="true">
+                <use href="#icon-user" />
+              </svg>
+              <span>选择当前使用身份</span>
+            </h2>
+            <button type="button" class="icon-btn" id="accountLoginCloseBtn" onclick="closeAccountLoginModal()"
+              aria-label="关闭" hidden>
+              <svg class="icon" aria-hidden="true">
+                <use href="#icon-close" />
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div style="font-size:13px; color:var(--ink); line-height:1.6; margin-bottom:12px;">
+              请选择你是哪一位家庭成员；登录状态将与资金管理系统共享，仅用于保鲜播报称呼、荣誉称号徽章与记录人标识。
+            </div>
+            <div class="account-choice-grid">
+              <button type="button" class="account-choice-btn" onclick="quickLoginAccount('猫大王')">
+                <span>猫大王</span>
+                <span class="account-choice-sub">hundun</span>
+              </button>
+              <button type="button" class="account-choice-btn" onclick="quickLoginAccount('肉大王')">
+                <span>肉大王</span>
+                <span class="account-choice-sub">rourou622</span>
+              </button>
+            </div>
+            <div class="form-group" style="margin-top:14px; margin-bottom:0;">
+              <label>或输入其他成员昵称</label>
+              <input type="text" id="accountLoginCustomInput" class="form-control" placeholder="例如：小香蕉"
+                onkeydown="if(event.key==='Enter'){ event.preventDefault(); submitCustomAccountLogin(); }">
+            </div>
+          </div>
+          <div class="modal-footer" style="justify-content:flex-end;">
+            <button type="button" class="btn primary" style="width:100%;" onclick="submitCustomAccountLogin()">进入大窝</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
        全局磨砂白雾蓝主题弹窗 (替代原生 confirm / alert / prompt)
        ======================================================== -->
       <div class="modal-overlay app-dialog-overlay" id="appDialogModal"
@@ -5165,6 +5321,7 @@
         const SB_URL_KEY = 'sb_url';
         const SB_KEY_KEY = 'sb_key';
         const SB_SHELF_TABLE_KEY = 'sb_shelf_table';
+        const SB_CURRENT_USER_KEY = 'sb_current_user';
         const FAMILY_NAME_KEY = 'leancloud_family_name';
 
         const LS_AI_KEY_NAME = 'lc_ai_key';
@@ -5248,6 +5405,94 @@
 
         function svgIcon(id, cls = '') {
           return `<svg class="icon ${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+        }
+
+        // ==========================================
+        // 0.1 共享账号识别与切换 (与 expense_tracker 共享 sb_current_user)
+        // ==========================================
+        function normalizeAccountName(rawName) {
+          const clean = String(rawName || '').trim();
+          if (!clean) return '';
+          if (clean === 'rourou622') return '肉大王';
+          if (clean === 'hundun') return '猫大王';
+          return clean;
+        }
+
+        function getSavedAccountName() {
+          return normalizeAccountName(localStorage.getItem(SB_CURRENT_USER_KEY));
+        }
+
+        function getCurrentAccountName() {
+          return getSavedAccountName() || '肉大王';
+        }
+
+        function renderSettingsAccountUI() {
+          const current = getCurrentAccountName();
+          const badgeEl = document.getElementById('settingsCurrentAccountBadge');
+          if (badgeEl) badgeEl.textContent = current;
+
+          document.querySelectorAll('#settingsModal [data-account-switch]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.accountSwitch === current);
+          });
+
+          const customEl = document.getElementById('conf-custom-account');
+          if (customEl) {
+            customEl.value = (current === '肉大王' || current === '猫大王') ? '' : current;
+          }
+        }
+
+        function openAccountLoginModal(allowClose = false) {
+          const modal = document.getElementById('accountLoginModal');
+          const closeBtn = document.getElementById('accountLoginCloseBtn');
+          const inputEl = document.getElementById('accountLoginCustomInput');
+          if (!modal) return;
+          if (closeBtn) closeBtn.hidden = !allowClose && !getSavedAccountName();
+          if (inputEl) inputEl.value = '';
+          modal.classList.add('active');
+        }
+
+        function closeAccountLoginModal(force = false) {
+          if (!force && !getSavedAccountName()) return;
+          document.getElementById('accountLoginModal')?.classList.remove('active');
+        }
+
+        function setCurrentAccountName(rawName, { silent = false } = {}) {
+          const mapped = normalizeAccountName(rawName);
+          if (!mapped) {
+            notify('请先选择或输入账号昵称');
+            return false;
+          }
+          localStorage.setItem(SB_CURRENT_USER_KEY, mapped);
+          closeAccountLoginModal(true);
+          renderSettingsAccountUI();
+          if (typeof renderReviewPage === 'function') renderReviewPage();
+          if (!silent) notify(`当前账号已切换为「${mapped}」`);
+          return true;
+        }
+
+        function quickLoginAccount(name) {
+          setCurrentAccountName(name);
+        }
+
+        function submitCustomAccountLogin() {
+          const val = document.getElementById('accountLoginCustomInput')?.value || '';
+          setCurrentAccountName(val);
+        }
+
+        function selectAccountFromSettings(name) {
+          setCurrentAccountName(name);
+        }
+
+        function applyCustomAccountFromSettings() {
+          const val = document.getElementById('conf-custom-account')?.value || '';
+          setCurrentAccountName(val);
+        }
+
+        function checkAccountLoginOnLoad() {
+          renderSettingsAccountUI();
+          if (!getSavedAccountName()) {
+            openAccountLoginModal(false);
+          }
         }
 
         function getActiveCategories() {
@@ -5459,6 +5704,16 @@
           setupPasteListener();
           updateLivePreview();
           syncPageFromHash();
+          checkAccountLoginOnLoad();
+          window.addEventListener('storage', (e) => {
+            if (e && e.key === SB_CURRENT_USER_KEY) {
+              if (getSavedAccountName()) {
+                closeAccountLoginModal(true);
+              }
+              renderSettingsAccountUI();
+              if (typeof renderReviewPage === 'function') renderReviewPage();
+            }
+          });
           state.pendingSyncPromise = syncWithSupabase(false);
         });
 
@@ -7800,6 +8055,10 @@
               cancelAppDialog();
               return;
             }
+            if (document.getElementById('accountLoginModal')?.classList.contains('active')) {
+              if (getSavedAccountName()) closeAccountLoginModal();
+              return;
+            }
             if (closeAllLocationCombos()) return;
             closeInventoryMoreMenu();
             closeTaxonomyModal();
@@ -7913,6 +8172,11 @@
           if (!produceDate) return notify('请选择生产日期');
           if (isNaN(shelfLife) || shelfLife <= 0) return notify('请输入合法的保质期天数');
 
+          const existingItem = !isNew ? state.products.find(p => p.id === id) : null;
+          const recorder = isNew
+            ? getCurrentAccountName()
+            : ((existingItem && existingItem.recorder) ? existingItem.recorder : getCurrentAccountName());
+
           const itemData = {
             id: id || ('item-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)),
             name,
@@ -7927,7 +8191,7 @@
             isOpened,
             openedDate: isOpened ? openedDate : '',
             openedShelfLife: isOpened ? openedShelfLife : 0,
-            recorder: localStorage.getItem('user_nickname') || '肉大王'
+            recorder
           };
 
           const ok = await persistProduct(itemData, isNew);
@@ -9077,7 +9341,7 @@ ${JSON.stringify(currentListForAi)}
             btn.innerHTML = '正在批量入库保存...';
           }
 
-          const recorder = localStorage.getItem('user_nickname') || '肉大王';
+          const recorder = getCurrentAccountName();
           const todayStr = getTodayString();
           const newProducts = [];
 
@@ -9479,6 +9743,7 @@ ${JSON.stringify(currentListForAi)}
         // 9. 设置与 Supabase / AI 配置管理
         // ==========================================
         function initSettings() {
+          renderSettingsAccountUI();
           const sbUrl = localStorage.getItem(SB_URL_KEY) || DEFAULT_SB_URL;
           const sbKey = localStorage.getItem(SB_KEY_KEY) || '';
           const sbTable = localStorage.getItem(SB_SHELF_TABLE_KEY) || DEFAULT_SB_TABLE;
@@ -10048,7 +10313,7 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
                   purchaseDate: idxPurchase !== -1 ? (cols[idxPurchase] || '') : ((cols.length >= 14 ? cols[7] : cols[5]) || getTodayString()),
                   expireDate: (idxExpire !== -1 ? cols[idxExpire] : (cols.length >= 14 ? cols[8] : cols[6])) || '',
                   storageLocation: (idxLoc !== -1 ? cols[idxLoc] : (cols.length >= 14 ? cols[11] : cols[9])) || '',
-                  recorder: (idxRecorder !== -1 ? cols[idxRecorder] : (cols.length >= 14 ? cols[12] : cols[10])) || '肉大王',
+                  recorder: (idxRecorder !== -1 ? cols[idxRecorder] : (cols.length >= 14 ? cols[12] : cols[10])) || getCurrentAccountName(),
                   note: (idxNote !== -1 ? cols[idxNote] : (cols.length >= 14 ? cols[13] : cols[11])) || ''
                 };
 
@@ -10111,25 +10376,26 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
           const total = consumed + wasted;
           const rate = total > 0 ? Math.round((consumed / total) * 100) : 100;
 
+          const ownerName = getCurrentAccountName();
           let medalIcon = 'GOLD';
-          let medal = '金牌光盘先锋 · 肉大王';
+          let medal = `金牌光盘先锋 · ${ownerName}`;
           let medalDesc = '保鲜拯救率极高，几乎零浪费，守护每一份食物！';
 
           if (total === 0) {
             medalIcon = 'NEW';
-            medal = '粮食保卫新星 · 肉大王';
+            medal = `粮食保卫新星 · ${ownerName}`;
             medalDesc = '快去消灭第一批食物，点亮光盘徽章吧！';
           } else if (rate >= 90) {
             medalIcon = 'GOLD';
-            medal = '金牌光盘先锋 · 肉大王';
+            medal = `金牌光盘先锋 · ${ownerName}`;
             medalDesc = `全家保鲜拯救率高达 ${rate}%！完美利用每一件食物，超级贤惠！`;
           } else if (rate >= 75) {
             medalIcon = 'SILVER';
-            medal = '家庭保鲜能手 · 肉大王';
+            medal = `家庭保鲜能手 · ${ownerName}`;
             medalDesc = `全家保鲜拯救率达 ${rate}%，继续保持，多消灭临期商品！`;
           } else {
             medalIcon = 'BRONZE';
-            medal = '护粮保卫标兵';
+            medal = `护粮保卫标兵 · ${ownerName}`;
             medalDesc = `全家保鲜拯救率当前为 ${rate}%，请关注临期预警，优先消灭快到期的食物哦！`;
           }
 
@@ -10576,7 +10842,7 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
             chefVoiceState.requestId++;
             if (toggleBtn) toggleBtn.disabled = false;
             statusTitle.textContent = '保鲜大厨 · 全新鲜';
-            const freshAdvice = '报告肉大王！当前家中所有食品均处于新鲜状态，没有发现陈旧、临期或过期的物品。全家食材保鲜状况极佳，请继续安心享用！';
+            const freshAdvice = `报告${getCurrentAccountName()}！当前家中所有食品均处于新鲜状态，没有发现陈旧、临期或过期的物品。全家食材保鲜状况极佳，请继续安心享用！`;
             adviceContent.textContent = freshAdvice;
             speakChefText(freshAdvice);
             return;
@@ -10629,6 +10895,7 @@ alter table ${tableName} add column if not exists opened_shelf_life integer defa
             apiEndpoint = apiEndpoint.replace(/\/$/, '') + '/chat/completions';
           }
           const apiModel = activeConfig.model || 'z-ai/glm-4.5-air:free';
+          const ownerName = getCurrentAccountName();
 
           const promptSystem = `你是家庭保鲜大厨兼私人食材管理顾问“大厨管家”。
 当前厨房与零食库存中有以下需要处置的食材：
@@ -10636,7 +10903,7 @@ ${expiredList.length > 0 ? `【已过期需报废】：${expiredList.map(p => `$
 ${nearList.length > 0 ? `【紧急临期需消灭】：${nearList.map(p => `${p.name}（还剩${p._stat.daysLeft}天${p.isOpened ? '，已开封' : ''}）`).join('、')}` : '【紧急临期】：无'}
 ${staleList.length > 0 ? `【存放较久陈旧】：${staleList.map(p => `${p.name}（还剩${p._stat.daysLeft}天）`).join('、')}` : '【存放较久陈旧】：无'}
 
-请为家庭主人“肉大王”给出一份生动有趣、口语化、适合直接用扬声器朗读播报的建议（字数严格控制在 120~170 字以内）：
+请为家庭主人“${ownerName}”给出一份生动有趣、口语化、适合直接用扬声器朗读播报的建议（字数严格控制在 120~170 字以内）：
 1. 严肃明确告诫过期的物品坚决丢弃报废，绝对不可食用；
 2. 重点把临期和陈旧食材组合起来，给出 1~2 个快手料理混搭吃法或实用消灭妙招（怎么吃、怎么用）；
 3. 严格禁止使用任何 Markdown 格式（如星号**、标题#、数字列表等符号），直接输出连贯流畅的口语文段，方便语音合成直接自然朗读。`;
@@ -10661,7 +10928,7 @@ ${staleList.length > 0 ? `【存放较久陈旧】：${staleList.map(p => `${p.n
         }
 
         function generateLocalChefAdvice(expiredList, nearList, staleList) {
-          let parts = ['报告肉大王！大厨管家为您盘点了今日重点食材。'];
+          let parts = [`报告${getCurrentAccountName()}！大厨管家为您盘点了今日重点食材。`];
           if (expiredList.length > 0) {
             const names = expiredList.map(p => p.name).slice(0, 3).join('、');
             parts.push(`首先，发现${names}${expiredList.length > 3 ? '等' : ''}已经超出保质期了，请务必果断清理报废，健康第一绝不能心疼！`);
